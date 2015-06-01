@@ -1,0 +1,137 @@
+<project name="Chessbot"
+         default="build"
+         basedir=".">
+
+    <!-- ===== Define our relevant directories ============== -->
+    <property name="srcDir"      location="${basedir}/src"     />
+    <property name="buildDir"    location="${basedir}/build"   />
+    <property name="docDir"      location="${basedir}/doc"     />
+    <property name="javadocDir"  location="${docDir}/javadoc"  />
+    <property name="doxygenDir"  location="${docDir}/doxygen"  />
+    <property name="distDir"     location="${basedir}/dist"    />
+    <property name="testDir"     location="${basedir}/test"    />
+    <property name="scriptDir"   location="${basedir}/scripts" />
+
+    <!-- ===== Directories to external libraries and tools ================ -->
+    <property name="incDir"      location="${basedir}/include"               />
+    <property name="junitDir"    location="${incDir}/junit4"                 />
+    <property name="doxyLib"     location="${incDir}/doxygen/ant_doxygen.jar"/>
+    <property name="doxyfile"    location="chessbot.dox"                     />
+    
+    <!-- ===== Some properties we need later on =================== -->
+    <property name="mainPKG"     value="de.chessbot"                 />
+    <property name="docTitle"    value="Chessbot API-Dokumentation"  />
+   
+    <!-- ===== Define the classpath used =============================================== -->
+    <property name="cpJUNIT"     value="${juDir}/junit.jar:${juDir}/hamcrest-core.jar" />
+    <property name="classpath"   value="${buildDir}" />
+
+    
+    <!-- Define the Doxygen task -->
+    <taskdef name="doxygen"
+             classname="org.doxygen.tools.DoxygenTask">
+        <classpath>
+            <pathelement path="${doxyLib}" />
+        </classpath>
+    </taskdef>
+
+
+    <!-- Alternate build target, uses the system default java compiler -->
+    <target name="build"
+            description="Builds all Java classes using the default Java compiler">
+        <mkdir dir="${buildDir}" />
+        <javac classpath="${classpath}"
+               destdir="${buildDir}" >
+            <src path="${srcDir}"  />
+            <include name="**/*.java" />
+            <compilerarg value="-g" />
+            <compilerarg value="-Xlint:all"  />
+        </javac>
+    </target>
+
+
+    <!-- Builds all JUnit test using the system default Java compiler -->
+    <target name="buildTests" depends="build">
+        <mkdir dir="${buildDir}" />
+        <javac classpath="${classpath}:${cpJUNIT}"
+               destdir="${buildDir}">
+            <src path="${testDir}" />
+            <include name="**/*Test.java" />
+            <include name="TestRunner.java" />
+        </javac>
+    </target>
+
+    <!-- DEPRECATED
+      -  Runs all compiled tests
+      -  FIXME: compile tests in all build targets
+      -->
+    <target name="test" depends="build,buildTests,runTests"
+            description="Runs all JUnit4 tests" />
+
+    <target name="runTests">
+        <exec executable="/bin/bash"
+              dir="${buildDir}" >
+            <arg value="${scriptDir}/createTestList.sh" />
+        </exec>
+        <java classname="prog2.test.TestRunner"
+              classpath="${classpath}:${cpJUNIT}" >
+              <arg value="${buildDir}/TestList.txt" />
+        </java>
+    </target>
+
+    <!-- Packs all classes into a redistributable JAR archive -->
+    <target name="packClasses" depends="build"
+            description="Produces a redistributable archive of all classes">
+        <mkdir dir="${distDir}" />
+        <jar basedir="${buildDir}"
+             destfile="${distDir}/prog2.jar"
+             />
+    </target>
+
+    <!-- Packs all class documentation into a redistributable ZIP archive -->
+    <target name="packDoc" depends="doc"
+            description="Produces a redistributable archive of all documentation">
+        <mkdir dir="${distDir}" />
+        <zip basedir="${docDir}"
+             destfile="${distDir}/prog2-doc.zip" />
+    </target>
+
+    <!-- Runs all distribution targets -->
+    <target name="dist" depends="packClasses,packDoc" 
+            description="Produces all redistributable archives"/>
+
+    <!-- Cleans up the project directories for temporarily generated files -->
+    <target name="clean"
+            description="Cleans all generated data">
+        <delete dir="${buildDir}" />
+        <delete dir="${javadocDir}" />
+        <delete dir="${doxygenDir}" />
+        <delete dir="${distDir}" />
+    </target>
+
+    <!-- Produces all class documentation -->
+    <target name="doc" depends="javadoc,doxygen" 
+            description="Produces all documentation"/>
+
+    <!-- Produces javadoc documentation -->
+    <target name="javadoc"
+            description="Produces javadoc documentation">
+        <mkdir dir="${javadocDir}" />
+        <javadoc sourcepath="${srcDir}"
+                 destdir="${javadocDir}"
+                 packagenames="de.htwsaar.chessbot.*"
+                 encoding="UTF-8"
+                 charset="UTF-8"
+                 locale="de_DE"
+                 author="yes"
+                 windowtitle="${docTitle}" />
+    </target>
+
+    <!-- Produces doxygen documentation -->
+    <target name="doxygen"
+            description="Produces doxygen documentation">
+        <mkdir dir="${doxygenDir}" />
+            <doxygen configFilename="${doxyfile}"/>
+    </target>
+
+</project>
