@@ -84,7 +84,7 @@
             description="Produces a redistributable archive of all classes">
         <mkdir dir="${distDir}" />
         <jar basedir="${buildDir}"
-             destfile="${distDir}/prog2.jar"
+             destfile="${distDir}/de.htwsaar.chessbot.jar"
              />
     </target>
 
@@ -93,7 +93,7 @@
             description="Produces a redistributable archive of all documentation">
         <mkdir dir="${distDir}" />
         <zip basedir="${docDir}"
-             destfile="${distDir}/prog2-doc.zip" />
+             destfile="${distDir}/chessbot-doc.zip" />
     </target>
 
     <!-- Runs all distribution targets -->
