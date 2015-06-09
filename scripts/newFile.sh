@@ -38,6 +38,7 @@ case "$operation" in
     ;;
     *)
         printUsage
+        exit 1
     ;;
 esac
 
