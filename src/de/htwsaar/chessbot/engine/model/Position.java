@@ -10,6 +10,12 @@ public class Position {
     private static int MAX_ROWS = 8;
     private static int MAX_COLS = 8;
 
+    /**
+    * Legt die Obergrenze für Zeilen- und Spaltenanzahl fest.
+    *
+    * @param width  maximale Zeilenanzahl
+    * @param height maximale Spaltenanzahl
+    */
     public static void setMaxDimensions(int width, int height) {
         if ( width < 1 || height < 1 )
             throw new IllegalArgumentException();
@@ -30,21 +36,16 @@ public class Position {
         this.set(row, column);
     }
 
+    /**
+    * Gibt die x-Koordinate dieser Position zurück.
+    */
     public int getRow() {
         return this.row;
     }
-
-    public int getColumn() {
-        return this.column;
-    }
-
-    public void setColumn(int column) {
-        if ( column < 1 || column > MAX_COLS )
-            throw new IllegalArgumentException();
-
-        this.column = column;
-    }
-
+    
+    /**
+    * Legt die x-Koordinate dieser Position fest.
+    */
     public void setRow(int row) {
         if ( row < 1 || row > MAX_ROWS )
             throw new IllegalArgumentException();
@@ -52,17 +53,56 @@ public class Position {
         this.row = row;
     }
 
+    /**
+    * Gibt die y-Koordinate dieser Position zurück.
+    */
+    public int getColumn() {
+        return this.column;
+    }
+
+    /**
+    * Legt die y-Koordinate dieser Position fest.
+    */
+    public void setColumn(int column) {
+        if ( column < 1 || column > MAX_COLS )
+            throw new IllegalArgumentException();
+
+        this.column = column;
+    }
+
+    /**
+    * Ändert die Position.
+    */
     public void set(int row, int column) {
         setRow(row);
         setColumn(column);
     }
 
+    /**
+    * Verschiebt die Position um die übergebenen Deltas.
+    */
     public void translate(int deltaX, int deltaY) {
         int trow = this.row + deltaX, 
             tcol = this.column + deltaY;
         
         setRow(trow);
         setColumn(tcol);
+    }
+
+    public boolean equals(Object other) {
+        if ( other == null )
+            return false;
+        try {
+            Position otherPosition = (Position) other;
+            if ( getRow()    != otherPosition.getRow()
+              || getColumn() != otherPosition.getColumn() ) {
+                return false;
+            }
+
+            return true;
+        } catch (ClassCastException cce) {
+            return false;
+        }
     }
 
     /**
@@ -72,7 +112,7 @@ public class Position {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-
+        sb.append("(").append(getRow()).append("|").append(getColumn()).append(")");
         return sb.toString();
     }
 }

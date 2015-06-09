@@ -15,6 +15,7 @@ public class PositionTest {
 
     // Testvariablen
     private List<Position> positions;
+    private Position lowerLeft, upperRight;
     // Kontrollwerte
     
     /**
@@ -30,6 +31,9 @@ public class PositionTest {
             for (int y = 1; y <= 8; ++y) {
                 positions.add( new Position(x,y) );
             }
+
+        lowerLeft  = new Position(1,1);
+        upperRight = new Position(8,8);
     }
 
     /**
@@ -75,7 +79,7 @@ public class PositionTest {
     @Test public void testCons() {
         for (int x = 1; x <= 8; ++x) {
             for (int y = 1; y <= 8; ++y) {
-                Position p = positions.get(8*(x-1)+y);
+                Position p = positions.get(8*(x-1)+(y-1));
                 assertEquals("Zeile stimmt nicht",
                              x,
                              p.getRow());
@@ -84,6 +88,17 @@ public class PositionTest {
                              p.getColumn());
             }
         }   
+    }
+
+    @Test public void testTranslation() {
+        lowerLeft.translate(1,2);
+        assertEquals( "",
+                      new Position(2,3),
+                      lowerLeft);
+        upperRight.translate(-3,-3);
+        assertEquals( "",
+                      new Position(5,5),
+                      upperRight);
     }
 
 }
