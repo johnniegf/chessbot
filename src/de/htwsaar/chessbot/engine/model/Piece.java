@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import java.util.*;
+
 /**
 * Interne Darstellung einer Schachfigur.
 *
@@ -12,22 +14,31 @@ public abstract class Piece {
     private boolean  isWhite;
     private boolean  hasMoved;
 
+    
     protected Piece(Position position) {
         this(position, true, true);
     }
 
+    protected Piece(Position position, boolean isWhite) {
+        this(position, isWhite, false);
+    }
+
     protected Piece(Position position, boolean isWhite, boolean hasMoved) {
-        if (position == null) {
-            throw new NullPointerException();
-        }
-            
-        this.position = position;
+        this.setPosition(position);
         this.isWhite  = isWhite;
         this.hasMoved = hasMoved;
     }
 
     public Position getPosition() {
         return this.position;
+    }
+
+    public void setPosition(Position newPosition) {
+        if ( newPosition == null ) {
+            throw new NullPointerException();
+        } 
+        
+        this.position = newPosition;
     }
 
     public boolean isWhite() {

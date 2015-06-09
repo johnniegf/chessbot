@@ -1,11 +1,13 @@
 package de.htwsaar.chessbot.engine.model;
 
+import java.util.*;
+
 /**
 * Beschreibung.
 *
 * @author
 */
-public class Pawn {
+public class Pawn extends Piece {
     
     /**
     * Standardkonstruktor.
@@ -25,6 +27,8 @@ public class Pawn {
     }
 
     public Collection<Position> getValidMoves(Board context) {
+        return new ArrayList<Position>();
+/*
         int increment = isWhite ? 1 : -1;
         List<Position> validTargets = new ArrayList(3);
         Position topPos      = this.getPosition().translate(0, increment),
@@ -44,6 +48,7 @@ public class Pawn {
         if (topRight.isWhite() != isWhite()) validTargets.add( topRightPos );
     
         return validTargets;
+*/
     }
 
     /**
