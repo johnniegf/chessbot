@@ -49,7 +49,17 @@ public abstract class Piece {
         return this.hasMoved;
     }
 
-    public abstract String toString();
+    public abstract String getName();
+
+    public abstract String getShortName();
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getName()).append(" ")
+          .append( isWhite ? "w" : "b" ).append(" ")
+          .append(getPosition());
+        return sb.toString();
+    }
 
     public abstract Collection<Position> getValidMoves(Board context);
 }

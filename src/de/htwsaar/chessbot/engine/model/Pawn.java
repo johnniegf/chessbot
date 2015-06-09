@@ -26,9 +26,32 @@ public class Pawn extends Piece {
 
     }
 
+    public String getName() {
+        return "Bauer";
+    }
+
+    public String getShortName() {
+        return "";
+    }
+
     public Collection<Position> getValidMoves(Board context) {
-        return new ArrayList<Position>();
+        List<Position> possibleMoves = new ArrayList<Position>(4);
+        int increment = isWhite() ? 1 : -1;
+        Position p = getPosition();
+        for (int i = -1; i <= 1; ++i) 
+            try { 
+                possibleMoves.add( p.translate(increment,i) );
+            } catch (RuntimeException e) {}
+
+        if ( !hasMoved() )
+            try {
+                possibleMoves.add( p.translate(2*increment, 0) );
+            } catch (RuntimeException e) {}
+
+        return possibleMoves;
 /*
+        //TODO:
+        // Hat der Bauer noch nicht gezogen, kann er 2 Felder vorrücken!
         int increment = isWhite ? 1 : -1;
         List<Position> validTargets = new ArrayList(3);
         Position topPos      = this.getPosition().translate(0, increment),

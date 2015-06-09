@@ -32,8 +32,8 @@ public class Position {
     *
     * 
     */ 
-    public Position(int row, int column) {
-        this.set(row, column);
+    public Position(int column, int row) {
+        this.set(column, row);
     }
 
     /**
@@ -73,7 +73,7 @@ public class Position {
     /**
     * Ändert die Position.
     */
-    public void set(int row, int column) {
+    public void set(int column, int row) {
         setRow(row);
         setColumn(column);
     }
@@ -81,12 +81,11 @@ public class Position {
     /**
     * Verschiebt die Position um die übergebenen Deltas.
     */
-    public void translate(int deltaX, int deltaY) {
+    public Position translate(int deltaX, int deltaY) {
         int trow = this.row + deltaX, 
             tcol = this.column + deltaY;
-        
-        setRow(trow);
-        setColumn(tcol);
+    
+        return new Position(tcol, trow);
     }
 
     public boolean equals(Object other) {

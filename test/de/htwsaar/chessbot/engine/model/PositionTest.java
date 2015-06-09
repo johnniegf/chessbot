@@ -27,10 +27,11 @@ public class PositionTest {
         Position.setMaxDimensions(8,8);
         positions = new ArrayList<Position>(64);
 
-        for (int x = 1; x <= 8; ++x) 
-            for (int y = 1; y <= 8; ++y) {
-                positions.add( new Position(x,y) );
+        for (int y = 1; y <= 8; ++y) {
+            for (int x = 1; x <= 8; ++x) {
+                positions.add( new Position(y,x) );
             }
+        }
 
         lowerLeft  = new Position(1,1);
         upperRight = new Position(8,8);
@@ -52,23 +53,23 @@ public class PositionTest {
     // ====================================================
 
     @Test(expected = IllegalArgumentException.class)
-    public void testNegativeRow() {
+    public void testNegativeCol() {
         new Position(-1,0);
         // Fehlerhafte Anweisung, die MyException auslöst
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testNegativeCol() {
+    public void testNegativeRow() {
         new Position(1,-1);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExceedRowBounds() {
+    public void testExceedColBounds() {
         new Position(20,2);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExceedColBounds() {
+    public void testExceedRowBounds() {
         new Position(1,20);
     }
 
@@ -77,9 +78,9 @@ public class PositionTest {
     // ====================================================
 
     @Test public void testCons() {
-        for (int x = 1; x <= 8; ++x) {
-            for (int y = 1; y <= 8; ++y) {
-                Position p = positions.get(8*(x-1)+(y-1));
+        for (int y = 1; y <= 8; ++y) {
+            for (int x = 1; x <= 8; ++x) {
+                Position p = positions.get(8*(y-1)+(x-1));
                 assertEquals("Zeile stimmt nicht",
                              x,
                              p.getRow());
@@ -91,14 +92,15 @@ public class PositionTest {
     }
 
     @Test public void testTranslation() {
-        lowerLeft.translate(1,2);
+        Position p1 = lowerLeft.translate(1,2);
         assertEquals( "",
-                      new Position(2,3),
-                      lowerLeft);
-        upperRight.translate(-3,-3);
+                      new Position(3,2),
+                      p1);
+
+        Position p2 = upperRight.translate(-3,-3);
         assertEquals( "",
                       new Position(5,5),
-                      upperRight);
+                      p2);
     }
 
 }
