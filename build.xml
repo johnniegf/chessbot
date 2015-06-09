@@ -23,7 +23,7 @@
     <property name="docTitle"    value="Chessbot API-Dokumentation"  />
    
     <!-- ===== Define the classpath used =============================================== -->
-    <property name="cpJUNIT"     value="${juDir}/junit.jar:${juDir}/hamcrest-core.jar" />
+    <property name="cpJUNIT"     value="${junitDir}/junit.jar:${junitDir}/hamcrest-core.jar" />
     <property name="classpath"   value="${buildDir}" />
 
     
