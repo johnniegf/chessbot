@@ -21,11 +21,13 @@ className="$3"
 pkgPath=$(echo $pkgName | sed -e "s/\./\//g")
 tplFile=""
 targetFile=""
+targetPath=""
 
 case "$operation" in
     "class")
         tplFile="$classTemplate"
-        targetFile="$src_path/$pkgPath/${className}.java"
+        targetPath="$src_path/$pkgPath"
+        targetFile="$targetPath/${className}.java"
     ;;
     "interface")
         tplFile="$interfaceTemplate"
@@ -33,14 +35,20 @@ case "$operation" in
     ;;
     "test")
         tplFile="$testTemplate"
-        className="${className}Test"
-        targetFile="$test_path/$pkgPath/${className}.java"
+        targetPath="$test_path/$pkgPath"
+        targetFile="$targetPath/${className}Test.java"
     ;;
     *)
         printUsage
         exit 1
     ;;
 esac
+
+if [ ! -d "$targetPath" ]
+then
+    echo "Erstelle Verzeichnis $targetPath"
+    mkdir -p "$targetPath"
+fi
 
 echo "Kopiere Vorlage \'$tplFile\' nach \'$targetFile\'"
 "$CP" "$tplFile" "$targetFile"
