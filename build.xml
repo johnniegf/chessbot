@@ -73,7 +73,7 @@
               dir="${buildDir}" >
             <arg value="${scriptDir}/createTestList.sh" />
         </exec>
-        <java classname="prog2.test.TestRunner"
+        <java classname="de.htwsaar.chessbot.test.TestRunner"
               classpath="${classpath}:${cpJUNIT}" >
               <arg value="${buildDir}/TestList.txt" />
         </java>
