@@ -3,7 +3,11 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.*;
 
 /**
-* Beschreibung.
+* Der Springer.
+*
+* Der Springer darf sich auf alle Felder bewegen, die ihm am nächsten sind
+* aber nicht auf einer Zeile, Spalte oder Diagonalen, die sich in dem von
+* ihm besetzten Feld kreuzen.
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
@@ -11,12 +15,15 @@ import java.util.*;
 public class Knight extends Piece {
     
     /**
-    *
+    * Erzeuge einen neuen weißen Springer an übergebener Position.
     */ 
     public Knight(Position position) {
         super(position);
     }
 
+    /**
+    * Erzeuge einen neuen Springer an übergebener Position.
+    */ 
     public Knight(Position position, boolean isWhite) {
         super(position, isWhite);
     }
@@ -43,5 +50,9 @@ public class Knight extends Piece {
 
     public String getShortName() {
         return "N";
+    }
+
+    public Knight clone() {
+        return new Knight(getPosition().clone(), isWhite());
     }
 }

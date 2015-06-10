@@ -32,4 +32,8 @@ public class Queen extends Piece {
     public String getShortName() {
         return "Q";
     }
+
+    public Queen clone() {
+        return new Queen(getPosition().clone(), isWhite());
+    }
 }
