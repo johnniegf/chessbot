@@ -36,4 +36,8 @@ public class Rook extends Piece {
     public String getShortName() {
         return "R";
     }
+
+    public Rook clone() {
+        return new Rook(getPosition().clone(), isWhite(), hasMoved());
+    }
 }

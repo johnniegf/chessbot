@@ -53,4 +53,8 @@ public class King extends Piece {
     public String getShortName() {
         return "K";
     }
+
+    public King clone() {
+        return new King(getPosition().clone(), isWhite(), hasMoved());
+    }
 }

@@ -5,14 +5,14 @@ import java.util.*;
 /**
 * Der Läufer.
 *
+* Der Läufer kann sich über beide Diagonalen, die sich in dem von ihm
+* besetzten Schachfeld kreuzen bewegen, dabei aber keine Figuren überspringen.
+*
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Bishop extends Piece {
     
-    /**
-    *
-    */ 
     public Bishop(Position position) {
         super(position);
     }
@@ -31,5 +31,9 @@ public class Bishop extends Piece {
 
     public String getShortName() {
         return "B";
+    }
+
+    public Bishop clone() {
+        return new Bishop(getPosition().clone(), isWhite());
     }
 }

@@ -88,6 +88,10 @@ public class Position {
         return new Position(tcol, trow);
     }
 
+    public int hashCode() {
+        return this.row * 231 + this.column * 127;
+    }
+
     public boolean equals(Object other) {
         if ( other == null )
             return false;
@@ -102,6 +106,10 @@ public class Position {
         } catch (ClassCastException cce) {
             return false;
         }
+    }
+
+    public Position clone() {
+        return new Position(this.column, this.row);
     }
 
     /**

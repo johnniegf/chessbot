@@ -3,27 +3,23 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.*;
 
 /**
-* Beschreibung.
+* Der Bauer.
 *
-* @author
+* @author Kevin Alberts
+* @author Johannes Haupt
 */
 public class Pawn extends Piece {
     
-    /**
-    * Standardkonstruktor.
-    */ 
     public Pawn(Position position) {
-        this(position, true, true);
+        super(position);
+    }
+
+    public Pawn(Position position, boolean isWhite) {
+        super(position, isWhite);
     }
 
     public Pawn(Position position, boolean isWhite, boolean hasMoved) {
         super(position, isWhite, hasMoved);
-
-        if (isWhite && position.getRow() < 2)
-            throw new IllegalArgumentException();
-        if (!isWhite && position.getRow() > 7)
-            throw new IllegalArgumentException();
-
     }
 
     public String getName() {
@@ -73,15 +69,7 @@ public class Pawn extends Piece {
         return validTargets;
 */
     }
-
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
+    public Pawn clone() {
+        return new Pawn(getPosition().clone(), isWhite(), hasMoved());
     }
 }
