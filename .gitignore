@@ -16,3 +16,6 @@ build
 doc/doxygen
 doc/javadoc
 dist
+
+*.iml
+.idea
