@@ -112,6 +112,16 @@ public class Position {
         return new Position(this.column, this.row);
     }
 
+    public String toSAN() {
+        StringBuilder sb = new StringBuilder();
+        sb.append( getLetter(this.column)).append(this.row);
+        return sb.toString();
+    }
+
+    private static char getLetter(int column) {
+        return (char) ( 'a' + (char) (column-1)); 
+    }
+
     /**
     * Stringkonversion.
     *

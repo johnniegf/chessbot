@@ -17,6 +17,15 @@ public class PositionTest {
     private List<Position> positions;
     private Position lowerLeft, upperRight;
     // Kontrollwerte
+    private static final Position[] sanTestInput = {
+        new Position(5,2),
+        new Position(3,8),
+        new Position(1,1),
+        new Position(6,2)
+    };
+    private static final String[] sanExpecteds = {
+        "e2", "c8", "a1", "f2"
+    };
     
     /**
     * Testaufbau.
@@ -101,6 +110,14 @@ public class PositionTest {
         assertEquals( "",
                       new Position(5,5),
                       p2);
+    }
+
+    @Test public void testSanConversion() {
+        for (int i = 0; i < sanTestInput.length; i++) {
+            assertEquals("",
+                         sanExpecteds[i],
+                         sanTestInput[i].toSAN() );
+        }
     }
 
 }

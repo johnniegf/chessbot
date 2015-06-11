@@ -18,6 +18,8 @@ public class KingTest {
 
     // Kontrollwerte
     private static List<Position> possibleMovesAtE1;
+    private static List<Position> impossibleMovesAtE1;
+    
     private static final Board EMPTY_BOARD = new Board();
 
     static {
@@ -29,6 +31,11 @@ public class KingTest {
         possibleMovesAtE1.add( new Position(6,2) );
         possibleMovesAtE1.add( new Position(6,1) );
         possibleMovesAtE1.add( new Position(7,1) );
+        
+        impossibleMovesAtE1 = new ArrayList<Position>(3);
+        impossibleMovesAtE1.add( new Position(2,1) );
+        impossibleMovesAtE1.add( new Position(8,5) );
+        impossibleMovesAtE1.add( new Position(4,3) );
     }
 
     /**
@@ -59,7 +66,11 @@ public class KingTest {
         Collection<Position> possibleMoves = whiteKingAtE1.getValidMoves(EMPTY_BOARD);
         assertTrue("",
                    possibleMovesAtE1.containsAll(possibleMoves) &&
-                   possibleMoves.containsAll(possibleMovesAtE1) ); 
+                   possibleMoves.containsAll(possibleMovesAtE1) );
+        for (Position i : impossibleMovesAtE1) {
+            assertFalse("",
+                       whiteKingAtE1.canMoveTo(i, EMPTY_BOARD));
+        }
     }
 
 }
