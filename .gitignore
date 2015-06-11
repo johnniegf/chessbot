@@ -13,5 +13,6 @@ hs_err_pid*
 
 # temporary directories
 build
-doc
+doc/doxygen
+doc/javadoc
 dist
