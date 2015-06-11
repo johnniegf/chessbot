@@ -18,7 +18,7 @@ public class Pieces {
 
     private Pieces() {
         this.prototypes = new Piece[6];
-        this.existingPieces = new ArrayList<Piece>(32);
+        this.existingPieces = new ArrayList<Piece>();
     }
 
     public static Pieces getInstance() {
@@ -30,6 +30,7 @@ public class Pieces {
     }
 
     public Piece getPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved) {
+        //TODO: Fehleberhandlung für ungültige Parameter
         Piece piece = getExistingPiece(pieceType, position, isWhite, hasMoved);
         if(piece == null) {
             piece = this.getPrototypeCopy(pieceType);
@@ -42,12 +43,20 @@ public class Pieces {
     }
 
     private Piece getExistingPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved) {
-        for(Piece piece : existingPieces) {
-            if(piece.getPosition().equals(position) && piece.isWhite() == isWhite && piece.hasMoved() == hasMoved)
+        //TODO: Fehleberhandlung für ungültige Parameter
+        Piece foundPiece = null;
+        for(int i = 0; i < existingPieces.size() && foundPiece == null; i++) {
+            Piece piece = existingPieces.get(i);
+            if(piece.getPosition().equals(position) && piece.isWhite() == isWhite && piece.hasMoved() == hasMoved) {
+                foundPiece = piece;
+            }
         }
+
+        return foundPiece;
     }
 
     private Piece getPrototypeCopy(int pieceType) {
+        //TODO: Fehlerbehandlung für ungültigen PieceType
         if(this.prototypes[pieceType] == null) {
             Piece newPrototype;
             switch(pieceType) {
@@ -69,8 +78,6 @@ public class Pieces {
                 case KING:
                     newPrototype = new King(new Position(), false, false);
                     break;
-                default:
-                    //TODO: Fehlerbehandlung für ungültigen pieceType
             }
             this.prototypes[pieceType] = newPrototype;
         }
