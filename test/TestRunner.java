@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.test;
 
-import java.util.Vector;
-import java.util.List;
+import java.util.*;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,29 +10,24 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
 
 
 public class TestRunner {
 
-    private static final int     SCREEN_WIDTH      = 78;
-    private static final String  DEFAULT_TEST_LIST = "TestList.txt";
-    private static final char    INDENT            = '>';
-    private static final char    LINE              = '=';
-    private static final char[]  SEPARATORS        = { ' ', '\t', '\n', '-', ':', ';' };
 
     private Class[]   testClasses;
 
     private static    StringBuffer tmpSB;
     private transient JUnitCore    testRunner;
 
-    private transient int runCount;
-    private transient int ignCount;
-    private transient int failCount;
+    private Map<String, StringBuffer> logs;
+    private ResultListener resultListener;
 
     public static void main(String[] args) 
     {  
         if ( args.length != 1 ) {
-            printUsage();
+            displayUsage();
             return;
         }
         try {
@@ -47,126 +41,35 @@ public class TestRunner {
     }
     
     public TestRunner(Class[] testList) {
+        this.logs = new HashMap<String, StringBuffer>(); 
+        
         this.testClasses = testList;
-        this.testRunner  = new JUnitCore();
-}
+        this.resultListener = new ResultListener();
+    }
 
     /**
     * Convenience method.
     */
     public void runAllTests() {
-        runCount = 0; ignCount = 0; failCount = 0;
-        Result result;
-
+        this.resultListener = new ResultListener();
+        Collection<Thread> workers = new ArrayList<Thread>();
         for (Class test : testClasses) {
-            result     = runTest(test);
-            runCount  += result.getRunCount();
-            ignCount  += result.getIgnoreCount();
-            failCount += result.getFailureCount();
+            Thread t = new RunWorker(test);
+            t.start();
+            workers.add(t);
         }
+
+        for (Thread w : workers) {
+            try {
+                w.join();
+            } catch(InterruptedException ire) {
+                System.out.println(ire);
+            }
+        }
+
         displaySummary();
     }
  
-    private Result runTest(Class<?> testClass) {
-        Result result = testRunner.run(testClass);
-        displayResult(testClass, result);
-        return result;
-
-    }
-
-    private static void displayTestHeader(Class<?> testClass) {
-        printBar();
-        printf("=== Tests für Klasse " + testClass.getName());
-        printBar();
-    }
-
-    private void displayResult(Class<?> testClass, Result r) {
-        if ( r.getRunCount() > 0 && r.getFailureCount() > 0 ) {
-            displayTestHeader(testClass);
-            if (!r.wasSuccessful()) {
-                printBar('-');
-                for (Failure f : r.getFailures())
-                    displayFailure(f);
-            } else {
-                printf("=== +++ Alle (" + r.getRunCount() + ") Testfälle bestanden +++");
-            }
-            printBar();
-        } else
-            printf("==> Test erfolgreich: <" + testClass.getName() + ">");
-    }
-
-    private static void displayFailure(Failure f) { 
-        Description d = f.getDescription();
-        Throwable   e = f.getException();
-        printf("Test nicht bestanden: " + d.getDisplayName());
-        printException(e);
-        printBar('-');
-
-    }
-
-    private void displaySummary() {
-        println();
-        printBar();
-        printf("=====> Zusammenfassung <=====");
-        printf("+-> ++ " + runCount  + " Tests durchgeführt ++  -- " +
-                ignCount + " Tests ignoriert       --");
-        printf("+-> ++ " + (runCount - failCount)
-                         +             " Tests bestanden    ++  -- " +
-               failCount + " Tests nicht bestanden --");
-        printBar();
-        println();
-
-    }
-
-    private static void printUsage() {
-    }
-
-    private static void printException(Throwable e) {
-        if (e == null) return;
-        printf("- Ausnahme!  <" + e.getClass().getName() + ">");
-        printf("- Nachricht: "  + e.getMessage());
-        printf("----- stack trace -----");
-        int i = 10;
-        for (StackTraceElement ste : e.getStackTrace()) {
-            if (--i < 0 ) break;
-            printf("- " + ste.toString());
-        }
-    }
-
-    private static void printBar() {
-        printBar(LINE);
-    }
-
-    private static void printBar(char line) {
-        tmpSB = new StringBuffer();
-        tmpSB.append(INDENT).append(" ");
-        for (int i = 0; i < SCREEN_WIDTH; ++i)
-            tmpSB.append(line);
-        System.out.println(tmpSB.toString());
-        
-    }
-
-    private static void println() {
-        printf(" ");
-    }
-
-    private static void printf(String inputText) {
-        if ( inputText == null ) { 
-            printf(" ");
-            return;
-        }
-
-        tmpSB = new StringBuffer(inputText);
-        int len = tmpSB.length();
-        for (int i = 0; i < len; i += SCREEN_WIDTH) {
-            if ( i + SCREEN_WIDTH > len )
-                System.out.println(INDENT + " " + tmpSB.substring(i));
-            else
-                System.out.println(INDENT + " " + tmpSB.substring(i, i + SCREEN_WIDTH));
-        }
-
-    }
-
     private static Class[] parseTestList(String filename)
             throws FileNotFoundException, IOException
     {
@@ -182,6 +85,185 @@ public class TestRunner {
         }
 
         return classList.toArray(new Class[0]);
+    }
+    
+    private static void displayUsage() {
+    
+    }
+
+    
+    private void displaySummary() {
+        int fails = this.resultListener.failCount;
+        
+        if (fails > 0) {
+            for (String testName : logs.keySet()) {
+                System.out.println(logs.get(testName).toString());
+            }
+        } else {
+            System.out.print("[PASS] ");
+        }
+        displayOverallResult();
+    }
+
+    private void displayOverallResult() {
+        StringBuilder b = new StringBuilder();
+        int fails = this.resultListener.failCount;
+        int count = this.resultListener.runCount;
+        int ign   = this.resultListener.ignCount;
+        b.append("Overall result: ");
+        b.append( String.format("%d/%d tests passed",count - fails, count) );
+        if (ign > 0) 
+            b.append( String.format(", %d ignored", ign) );
+                
+        b.append("\n");
+        System.out.println(b.toString());
+    }
+
+// =============================================================
+    
+    private static final String  DEFAULT_TEST_LIST = "TestList.txt";
+    private static final char[]  SEPARATORS        = { ' ', '\t', '\n', '-', ':', ';' };
+
+// =============================================================
+    
+    private class RunWorker extends Thread {
+    
+        private Class<?>  testClass;
+        private JUnitCore runner;
+
+        public RunWorker(Class<?> testClass) {
+            this.testClass = testClass;
+            this.runner = new JUnitCore();
+            this.runner.addListener(resultListener);
+
+            StringBuffer log = new StringBuffer();
+            synchronized(logs) {
+                logs.put(testClass.getName(), log);
+            }
+            this.runner.addListener( new LogListener(testClass.getName(), log) );
+        }
+
+        public void run() {
+            this.runner.run(testClass);
+        }
+    }
+
+//===============================================================
+
+    private class ResultListener extends RunListener {
+        public int failCount;
+        public int runCount;
+        public int ignCount;
+
+        public ResultListener() {
+            failCount = runCount = ignCount = 0;
+        }
+        
+        public synchronized void testStarted(Description d) {
+            runCount++;
+        }
+
+        public synchronized void testFailure(Failure f) {
+            failCount++;
+        }
+
+        public synchronized void testIgnored(Description d) {
+            ignCount++;
+        }
+    }
+
+//================================================================
+
+    private class LogListener extends RunListener {
+        private String testName;
+        private StringBuffer log;
+        private transient StringBuilder buf;
+
+        public LogListener(String testName, StringBuffer log) {
+            this.testName = testName;
+            if (log == null)
+                this.log = new StringBuffer();
+            else
+                this.log = log;
+        }
+
+        public void testAssumptionFailure(Failure f) {
+        }
+
+        public void testFailure(Failure f) {
+            Description d = f.getDescription();
+            Throwable   e = f.getException();
+            buf = new StringBuilder();
+            
+            prettyPrintInfo(buf, PREFIX_FAIL, d.getDisplayName());
+            prettyPrintException(buf, e);
+
+            log.append(buf);
+        }
+
+        public void testFinished(Description d) {
+        }
+
+        public void testIgnored(Description d) {
+            buf = new StringBuilder();
+
+            prettyPrintInfo(buf,PREFIX_IGNORE, d.getDisplayName());
+            log.append(buf);
+        }
+
+        public void testRunFinished(Result r) {
+            buf = new StringBuilder();
+            prettyPrintStats(buf, r);
+            log.append(buf);
+        }   
+
+        public void testRunStarted(Description d) {
+            buf = new StringBuilder();
+            prettyPrintInfo(buf, PREFIX_TEST, testName);
+            log.append(buf);
+
+        }
+
+        public void testStarted(Description d) {
+            buf = new StringBuilder();
+            prettyPrintInfo(buf, PREFIX_TEST_RUN, d.getDisplayName());
+            log.append(buf);
+        }
+
+        private void prettyPrintStats(StringBuilder b, Result r) {
+            if (r == null || b == null) return;
+            int fails = r.getFailureCount();
+            int count = r.getRunCount();
+            int ign   = r.getIgnoreCount();
+            b.append(PREFIX_RESULT).append(": ");
+            b.append( String.format("%d/%d tests passed",count - fails, count) );
+            if (ign > 0) 
+                b.append( String.format(", %d ignored", ign) );
+            b.append("\n");
+        }
+        private void prettyPrintInfo(StringBuilder b, String prefix, String message) {
+            if (b == null || prefix == null) return;
+            b.append(prefix).append(": ").append(message).append(NEWLINE);
+        }
+
+        private void prettyPrintException(StringBuilder b, Throwable e) {
+            if (e == null || b == null) return;
+            b.append("-- <").append(e.getClass().getName()).append(">").append(NEWLINE);
+            b.append("-- \"").append(e.getMessage()).append("\"").append(NEWLINE);
+            b.append("--+ stack trace").append(NEWLINE);
+            for (StackTraceElement ste : e.getStackTrace()) {
+                b.append("  +-> ").append(ste.toString()).append(NEWLINE);
+            }
+
+        }
+
+        private static final String NEWLINE = "\n";
+
+        private static final String PREFIX_FAIL     = "[FAIL]";
+        private static final String PREFIX_IGNORE   = "[IGN] ";
+        private static final String PREFIX_TEST     = "[TEST]";
+        private static final String PREFIX_TEST_RUN = "[RUN] ";
+        private static final String PREFIX_RESULT   = "[RES] ";
     }
 
 } 
