@@ -20,7 +20,7 @@ public class KingTest {
     private static List<Position> possibleMovesAtE1;
     private static List<Position> impossibleMovesAtE1;
     
-    private static final Board EMPTY_BOARD = new Board();
+    private static final Board EMPTY_BOARD = null;
 
     static {
         possibleMovesAtE1 = new ArrayList<Position>(7);
@@ -64,11 +64,11 @@ public class KingTest {
 
     @Test public void testWhiteKingAtStartingPosition() {
         Collection<Position> possibleMoves = whiteKingAtE1.getValidMoves(EMPTY_BOARD);
-        assertTrue("",
-                   possibleMovesAtE1.containsAll(possibleMoves) &&
-                   possibleMoves.containsAll(possibleMovesAtE1) );
+        assertTrue("Listen stimmen nicht überein (contains)",
+                    possibleMovesAtE1.containsAll(possibleMoves) &&
+                    possibleMoves.containsAll(possibleMovesAtE1));
         for (Position i : impossibleMovesAtE1) {
-            assertFalse("",
+            assertFalse("canMoveTo()",
                        whiteKingAtE1.canMoveTo(i, EMPTY_BOARD));
         }
     }

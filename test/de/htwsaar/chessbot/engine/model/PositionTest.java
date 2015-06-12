@@ -15,16 +15,29 @@ public class PositionTest {
 
     // Testvariablen
     private List<Position> positions;
-    private Position lowerLeft, upperRight;
+    private Position a1, h8;
     // Kontrollwerte
     private static final Position[] sanTestInput = {
         new Position(5,2),
         new Position(3,8),
         new Position(1,1),
-        new Position(6,2)
+        new Position(6,2),
+        new Position(26,17)
     };
     private static final String[] sanExpecteds = {
-        "e2", "c8", "a1", "f2"
+        "e2", "c8", "a1", "f2", "z17"
+    };
+    private static final Board EMPTY_BOARD = null;
+    
+    private static final Position[] validPositions = {
+        new Position(1,2), new Position(5,7),
+        new Position(12,8), new Position(5,32),
+        new Position(15,4)
+    };
+    private static final Position[] invalidPositions = {
+        new Position(-1,5), new Position(200,40),
+        new Position(0,0), new Position(7,-42),
+        new Position(5,51)
     };
     
     /**
@@ -33,7 +46,6 @@ public class PositionTest {
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
     @Before public void prepareTest() {
-        Position.setMaxDimensions(8,8);
         positions = new ArrayList<Position>(64);
 
         for (int y = 1; y <= 8; ++y) {
@@ -42,8 +54,8 @@ public class PositionTest {
             }
         }
 
-        lowerLeft  = new Position(1,1);
-        upperRight = new Position(8,8);
+        a1  = new Position(1,1);
+        h8 = new Position(8,8);
     }
 
     /**
@@ -60,7 +72,7 @@ public class PositionTest {
     // ====================================================
     // = Ausnahmetests
     // ====================================================
-
+/*
     @Test(expected = IllegalArgumentException.class)
     public void testNegativeCol() {
         new Position(-1,0);
@@ -81,7 +93,7 @@ public class PositionTest {
     public void testExceedRowBounds() {
         new Position(1,20);
     }
-
+*/
     // ====================================================
     // = Funktionstests
     // ====================================================
@@ -101,12 +113,12 @@ public class PositionTest {
     }
 
     @Test public void testTranslation() {
-        Position p1 = lowerLeft.translate(1,2);
+        Position p1 = a1.translate(1,2);
         assertEquals( "",
                       new Position(3,2),
                       p1);
 
-        Position p2 = upperRight.translate(-3,-3);
+        Position p2 = h8.translate(-3,-3);
         assertEquals( "",
                       new Position(5,5),
                       p2);
@@ -118,6 +130,40 @@ public class PositionTest {
                          sanExpecteds[i],
                          sanTestInput[i].toSAN() );
         }
+    }
+
+    @Test public void testConstructFromSanString() {
+        Position pe = new Position(1,1);
+        Position pa = new Position("a1");
+        assertEquals("", pe, pa);
+    }
+
+    @Test public void testClone() {
+        Position orig = new Position(5,5);
+        Position clon = orig.clone();
+        assertEquals("Position wurde beim Kopieren verändert: ",
+                     orig,
+                     clon);
+        assertFalse("Original und Kopie sind dasselbe Objekt",
+                    orig == clon );
+        orig = orig.setColumn(2);
+        assertFalse("Änderung am Original wirkt sich auf Kopie aus",
+                    orig.equals(clon) );
+                    
+    }
+
+    @Test public void testValidPositions() {
+        for (Position v : validPositions) {
+            assertTrue("Position als falsch gewertet: " + v,
+                       v.isValid() ); 
+        }
+    }
+
+    @Test public void testInvalidPositions() {
+        for (Position i : invalidPositions) {
+            assertFalse("Position als gültig eingestuft: " + i,
+                        i.isValid() );
+        }   
     }
 
 }
