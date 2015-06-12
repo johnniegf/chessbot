@@ -27,20 +27,22 @@ public class King extends Piece {
 
     public Collection<Position> getValidMoves(Board context) {
         Collection<Position> validPositions = new ArrayList<Position>(8);
-        Position p = getPosition();
+        Position pt, p = getPosition();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 if ( x == 0 && y == 0 )
                     continue;
 
-                try {
-                    validPositions.add( p.translate(x,y) );
-                } catch (RuntimeException rte) {}
+                pt = p.translate(x,y);
+                if (pt.existsOn(context))
+                    validPositions.add(pt);
             }
         }
         if ( !hasMoved() ) {
-            validPositions.add( p.translate(0,2) );
-            validPositions.add( p.translate(0,-2) );
+            pt = p.translate(0,2);
+            if (pt.existsOn(context))validPositions.add(pt);
+            pt = p.translate(0,-2);
+            if (pt.existsOn(context))validPositions.add(pt);
         }
 
         return validPositions; 

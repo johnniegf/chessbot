@@ -30,15 +30,13 @@ public class Knight extends Piece {
 
     public Collection<Position> getValidMoves(Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(8);
-        Position p = getPosition();
+        Position pt, p = getPosition();
         for (int d = -2; d <= 2; d += 4) {
             for (int e = -1; e <= 1; e += 2) {
-                try {
-                    possibleMoves.add( p.translate(d,e) );
-                } catch (RuntimeException rte) {}
-                try {
-                    possibleMoves.add( p.translate(e,d) );
-                } catch (RuntimeException rte) {}
+                pt = p.translate(d,e);
+                if (pt.existsOn(context)) possibleMoves.add( pt );
+                pt = p.translate(e,d);
+                if (pt.existsOn(context)) possibleMoves.add( pt );
             }
         }
         return possibleMoves; 

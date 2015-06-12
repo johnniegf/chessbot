@@ -5,24 +5,10 @@ package de.htwsaar.chessbot.engine.model;
 *
 * @author
 */
-public class Position {
+public final class Position {
     
-    private static int MAX_ROWS = 8;
-    private static int MAX_COLS = 8;
-
-    /**
-    * Legt die Obergrenze für Zeilen- und Spaltenanzahl fest.
-    *
-    * @param width  maximale Zeilenanzahl
-    * @param height maximale Spaltenanzahl
-    */
-    public static void setMaxDimensions(int width, int height) {
-        if ( width < 1 || height < 1 )
-            throw new IllegalArgumentException();
-
-        MAX_ROWS = width;
-        MAX_COLS = height;
-    }
+    public static final int MAX_ROWS = 50;
+    public static final int MAX_COLS = 26;
 
     private int row;
     private int column;
@@ -33,7 +19,20 @@ public class Position {
     * 
     */ 
     public Position(int column, int row) {
-        this.set(column, row);
+        this.column = column;
+        this.row    = row;
+    }
+
+    public Position(String sanString) {
+        String san = sanString.trim();
+        //TODO: Regex für Notation prüfen
+        if (san.length() < 2)
+            throw SAN_STRING_TOO_SHORT;
+
+        char col   = san.charAt(0);
+        String row = san.substring(1);
+        this.column = (col - 'a' + 1);
+        this.row = Integer.valueOf(row);
     }
 
     /**
@@ -46,11 +45,8 @@ public class Position {
     /**
     * Legt die x-Koordinate dieser Position fest.
     */
-    public void setRow(int row) {
-        if ( row < 1 || row > MAX_ROWS )
-            throw new IllegalArgumentException();
-
-        this.row = row;
+    public Position setRow(int row) {
+        return new Position(this.column, row);
     }
 
     /**
@@ -63,19 +59,15 @@ public class Position {
     /**
     * Legt die y-Koordinate dieser Position fest.
     */
-    public void setColumn(int column) {
-        if ( column < 1 || column > MAX_COLS )
-            throw new IllegalArgumentException();
-
-        this.column = column;
+    public Position setColumn(int column) {
+        return new Position(column, this.row);
     }
 
     /**
     * Ändert die Position.
     */
-    public void set(int column, int row) {
-        setRow(row);
-        setColumn(column);
+    public Position set(int column, int row) {
+        return new Position(column, row);
     }
 
     /**
@@ -108,18 +100,39 @@ public class Position {
         }
     }
 
+    public boolean existsOn(Board context) {
+        if ( !isValid() ) return false;
+
+        if (context == null) {
+            return getRow() <= 8 && getColumn() <= 8;
+        } else {
+/*         
+            return getColumn() <= context.getWidth()
+                && getRow() <= context.getHeight();
+*/
+            return false;
+        }
+    }
+
+    public boolean isValid() {
+        if ( getRow() < 1 || getColumn() < 1)
+            return false;
+        if ( getRow() > MAX_ROWS || getColumn() > MAX_COLS )
+            return false;
+
+        return true;
+    }
+
     public Position clone() {
         return new Position(this.column, this.row);
     }
 
     public String toSAN() {
+        if ( !isValid() )
+            return "INVALID";
         StringBuilder sb = new StringBuilder();
         sb.append( getLetter(this.column)).append(this.row);
         return sb.toString();
-    }
-
-    private static char getLetter(int column) {
-        return (char) ( 'a' + (char) (column-1)); 
     }
 
     /**
@@ -129,7 +142,15 @@ public class Position {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("(").append(getRow()).append("|").append(getColumn()).append(")");
+        sb.append("(").append(getColumn()).append("|").append(getRow()).append(")");
         return sb.toString();
     }
+    
+    private static char getLetter(int column) {
+        return (char) ( 'a' + (char) (column-1)); 
+    }
+
+    private static final IllegalArgumentException SAN_STRING_TOO_SHORT =
+        new IllegalArgumentException("Die algebraische Notation ist zu kurz!");
+
 }

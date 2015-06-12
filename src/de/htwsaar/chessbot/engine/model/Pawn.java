@@ -34,15 +34,14 @@ public class Pawn extends Piece {
         List<Position> possibleMoves = new ArrayList<Position>(4);
         int increment = isWhite() ? 1 : -1;
         Position p = getPosition();
-        for (int i = -1; i <= 1; ++i) 
-            try { 
-                possibleMoves.add( p.translate(increment,i) );
-            } catch (RuntimeException e) {}
-
+        Position pn;
+        for (int i = -1; i <= 1; ++i) {
+            pn = p.translate(increment,i);
+            if (pn.existsOn(context))
+                possibleMoves.add(pn);
+        }
         if ( !hasMoved() )
-            try {
-                possibleMoves.add( p.translate(2*increment, 0) );
-            } catch (RuntimeException e) {}
+            possibleMoves.add( p.translate(2*increment, 0) );
 
         return possibleMoves;
 /*
