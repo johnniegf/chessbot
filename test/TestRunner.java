@@ -15,12 +15,7 @@ import org.junit.runner.notification.RunListener;
 
 public class TestRunner {
 
-
     private Class[]   testClasses;
-
-    private static    StringBuffer tmpSB;
-    private transient JUnitCore    testRunner;
-
     private Map<String, StringBuffer> logs;
     private ResultListener resultListener;
 
@@ -31,7 +26,7 @@ public class TestRunner {
             return;
         }
         try {
-            Class[]    testList = parseTestList(args[0]);
+            Class<?>[] testList = parseTestList(args[0]);
             TestRunner runner   = new TestRunner(testList);
             runner.runAllTests();
         } catch (Exception e) {
@@ -70,21 +65,21 @@ public class TestRunner {
         displaySummary();
     }
  
-    private static Class[] parseTestList(String filename)
+    private static Class<?>[] parseTestList(String filename)
             throws FileNotFoundException, IOException
     {
         BufferedReader reader = new BufferedReader( 
                                     new FileReader(filename) );
-        Vector<Class> classList = new Vector<Class>();
+        Collection<Class<?>> classList = new ArrayList<Class<?>>();
         String line = "";
         while (line != null) {
             line = reader.readLine();
             try {
-                classList.add(Class.forName(line));
+                classList.add(Class.forName(line.trim()));
             } catch (Exception e) {}
         }
 
-        return classList.toArray(new Class[0]);
+        return classList.toArray(new Class<?>[0]);
     }
     
     private static void displayUsage() {
