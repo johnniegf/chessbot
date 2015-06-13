@@ -14,7 +14,7 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class Knight extends Piece {
+public final class Knight extends Piece {
 
     public Knight() {
         super();
@@ -24,11 +24,20 @@ public class Knight extends Piece {
         super(position);
     }
 
-    public Knight(Position position, boolean isWhite) {
+    public Knight(final Position position, 
+                  final boolean isWhite) 
+    {
+        super(position, isWhite);
+    }
+    
+    public Knight(final Position position, 
+                  final boolean isWhite,
+                  final boolean hasMoved) 
+    {
         super(position, isWhite);
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(8);
         Position pt, p = getPosition();
         for (int d = -2; d <= 2; d += 4) {
@@ -42,15 +51,15 @@ public class Knight extends Piece {
         return possibleMoves; 
     }
 
-    public String getName() {
+    public final String getName() {
         return "Springer";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "N";
     }
     
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other == null) 
             return false;
         if (other == this)
@@ -65,7 +74,8 @@ public class Knight extends Piece {
         }
     }
 
-    public Knight clone() {
+    public final Knight clone() {
         return new Knight(getPosition().clone(), isWhite());
     }
 }
+

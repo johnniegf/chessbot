@@ -27,7 +27,7 @@ public abstract class Piece {
     * @param position Die Position der neuen Figur
     * @throws NullPointerException wenn <code>position == null</code>
     */
-    protected Piece(Position position) {
+    protected Piece(final Position position) {
         this(position, true);
     }
 
@@ -38,7 +38,9 @@ public abstract class Piece {
     * @param isWhite  Die Farbe der neuen Figur (<code>true</code> für weiß)
     * @throws NullPointerException wenn <code>position == null</code>
     */
-    protected Piece(Position position, boolean isWhite) {
+    protected Piece(final Position position, 
+                    final boolean isWhite) 
+    {
         this(position, isWhite, false);
     }
 
@@ -50,7 +52,10 @@ public abstract class Piece {
     * @param hasMoved Ob die Figur bereits bewegt wurde.
     * @throws NullPointerException wenn <code>position == null</code>
     */
-    protected Piece(Position position, boolean isWhite, boolean hasMoved) {
+    protected Piece(final Position position, 
+                    final boolean isWhite, 
+                    final boolean hasMoved) 
+    {
         this.setPosition(position);
         this.isWhite  = isWhite;
         this.hasMoved = hasMoved;
@@ -70,7 +75,7 @@ public abstract class Piece {
     *
     * @param newPosition neue Position der Figur
     */
-    public void setPosition(Position newPosition) {
+    public void setPosition(final Position newPosition) {
         if ( newPosition == null ) {
             throw new NullPointerException();
         }
@@ -92,7 +97,7 @@ public abstract class Piece {
     * @param isWhite Farbe der Figur. <code>true</code> für weiß, 
     *                <code>false</code> für schwarz
     */
-    public void setColor(boolean isWhite) {
+    public void setColor(final boolean isWhite) {
         this.isWhite = isWhite;
     }
 
@@ -111,7 +116,7 @@ public abstract class Piece {
     *
     * @param hasMoved ob die Figur bewegt wurde.
     */
-    public void setHasMoved(boolean hasMoved) {
+    public void setHasMoved(final boolean hasMoved) {
         this.hasMoved = hasMoved;
     }
 
@@ -124,7 +129,7 @@ public abstract class Piece {
     * @throws InvalidMove wenn die Figur nicht auf das übergebene 
     *                     Feld ziehen kann
     */
-    public Piece move(Position targetPosition, Board context) {
+    public Piece move(final Position targetPosition,final Board context) {
         if (targetPosition == null)
             throw new NullPointerException();
         Piece target = this.clone();
@@ -145,7 +150,9 @@ public abstract class Piece {
     * @return <code>true</code> wenn der Zug möglich ist, sonst
     *         <code>false</code>
     */
-    public boolean canMoveTo(Position targetPosition, Board context) {
+    public boolean canMoveTo(final Position targetPosition, 
+                             final Board context) 
+    {
         if (targetPosition == null || !targetPosition.isValid())
             return false;
         Collection<Position> validMoves = getValidMoves(context);
@@ -160,7 +167,7 @@ public abstract class Piece {
     * @return <code>true</code> wenn das übergebene Objekt eine Figur
     *         gleich dieser ist, sonst <code>false</code>
     */
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other == null)
             return false;
 

@@ -40,33 +40,38 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class Pawn extends Piece {
+public final class Pawn extends Piece {
 
     public Pawn() {
         super();
     }
 
-    public Pawn(Position position) {
+    public Pawn(final Position position) {
         super(position);
     }
 
-    public Pawn(Position position, boolean isWhite) {
+    public Pawn(final Position position, 
+                final boolean isWhite) 
+    {
         super(position, isWhite);
     }
 
-    public Pawn(Position position, boolean isWhite, boolean hasMoved) {
+    public Pawn(final Position position, 
+                final boolean isWhite, 
+                final boolean hasMoved) 
+    {
         super(position, isWhite, hasMoved);
     }
 
-    public String getName() {
+    public final String getName() {
         return "Bauer";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "";
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public final Collection<Position> getValidMoves(final Board context) {
         List<Position> possibleMoves = new ArrayList<Position>(4);
         int increment = isWhite() ? 1 : -1;
         Position p = getPosition();
@@ -82,11 +87,11 @@ public class Pawn extends Piece {
         return possibleMoves;
     }
 
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         return super.equals(other);
     }
 
-    public Pawn clone() {
+    public final Pawn clone() {
         return new Pawn(getPosition().clone(), isWhite(), hasMoved());
     }
 }
