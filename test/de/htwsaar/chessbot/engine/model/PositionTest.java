@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import static de.htwsaar.chessbot.engine.model.Position.*;
+
 import java.util.*;
 
 // JUnit-Pakete
@@ -18,11 +20,11 @@ public class PositionTest {
     private Position a1, h8;
     // Kontrollwerte
     private static final Position[] sanTestInput = {
-        new Position(5,2),
-        new Position(3,8),
-        new Position(1,1),
-        new Position(6,2),
-        new Position(26,17)
+        P(5,2),
+        P(3,8),
+        P(1,1),
+        P(6,2),
+        P(26,17)
     };
     private static final String[] sanExpecteds = {
         "e2", "c8", "a1", "f2", "z17"
@@ -30,14 +32,14 @@ public class PositionTest {
     private static final Board EMPTY_BOARD = null;
     
     private static final Position[] validPositions = {
-        new Position(1,2), new Position(5,7),
-        new Position(12,8), new Position(5,32),
-        new Position(15,4)
+        P(1,2), P(5,7),
+        P(12,8), P(5,32),
+        P(15,4)
     };
     private static final Position[] invalidPositions = {
-        new Position(-1,5), new Position(200,40),
-        new Position(0,0), new Position(7,-42),
-        new Position(5,51)
+        P(-1,5), P(200,40),
+        P(0,0), P(7,-42),
+        P(5,51)
     };
     
     /**
@@ -50,12 +52,12 @@ public class PositionTest {
 
         for (int y = 1; y <= 8; ++y) {
             for (int x = 1; x <= 8; ++x) {
-                positions.add( new Position(y,x) );
+                positions.add( P(y,x) );
             }
         }
 
-        a1  = new Position(1,1);
-        h8 = new Position(8,8);
+        a1  = P(1,1);
+        h8 = P(8,8);
     }
 
     /**
@@ -75,23 +77,23 @@ public class PositionTest {
 /*
     @Test(expected = IllegalArgumentException.class)
     public void testNegativeCol() {
-        new Position(-1,0);
+        P(-1,0);
         // Fehlerhafte Anweisung, die MyException auslöst
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNegativeRow() {
-        new Position(1,-1);
+        P(1,-1);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testExceedColBounds() {
-        new Position(20,2);
+        P(20,2);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testExceedRowBounds() {
-        new Position(1,20);
+        P(1,20);
     }
 */
     // ====================================================
@@ -115,12 +117,12 @@ public class PositionTest {
     @Test public void testTranslation() {
         Position p1 = a1.translate(1,2);
         assertEquals( "",
-                      new Position(3,2),
+                      P(3,2),
                       p1);
 
         Position p2 = h8.translate(-3,-3);
         assertEquals( "",
-                      new Position(5,5),
+                      P(5,5),
                       p2);
     }
 
@@ -133,13 +135,13 @@ public class PositionTest {
     }
 
     @Test public void testConstructFromSanString() {
-        Position pe = new Position(1,1);
-        Position pa = new Position("a1");
+        Position pe = P(1,1);
+        Position pa = P("a1");
         assertEquals("", pe, pa);
     }
 
     @Test public void testClone() {
-        Position orig = new Position(5,5);
+        Position orig = P(5,5);
         Position clon = orig.clone();
         assertEquals("Position wurde beim Kopieren verändert: ",
                      orig,

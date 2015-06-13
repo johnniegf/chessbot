@@ -1,14 +1,40 @@
 package de.htwsaar.chessbot.engine.model;
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.Collection;
+import java.util.ArrayList;
+
 /**
 * Beschreibung.
 *
 * @author
 */
 public final class Position {
+
+    public static final Position INVALID = new Position(0,0);
+
+    private static final int MAX_ROWS = 50;
+    private static final int MAX_COLS = 26;
+    private static final Pattern REGEX_SAN = 
+        Pattern.compile("[a-z][1-9][0-9]?");
+
+    public static final Position P(int column, int row) {
+        return new Position(column, row);
+    }
     
-    public static final int MAX_ROWS = 50;
-    public static final int MAX_COLS = 26;
+    public static final Position P(String san) {
+        return new Position(san);
+    }
+
+    public static final Collection<Position> PList(String... positions) {
+        Collection<Position> result = new ArrayList<Position>();
+        if (positions != null) {
+            for (String p : positions)
+                result.add(P(p));
+        }
+        return result;
+    }
 
     private int row;
     private int column;
@@ -25,7 +51,10 @@ public final class Position {
 
     public Position(String sanString) {
         String san = sanString.trim();
-        //TODO: Regex für Notation prüfen
+        if (!REGEX_SAN.matcher(san).matches()) {
+            System.out.println(san);
+            throw SAN_FORMAT_ERROR;
+        }
         if (san.length() < 2)
             throw SAN_STRING_TOO_SHORT;
 
@@ -152,5 +181,7 @@ public final class Position {
 
     private static final IllegalArgumentException SAN_STRING_TOO_SHORT =
         new IllegalArgumentException("Die algebraische Notation ist zu kurz!");
+    private static final IllegalArgumentException SAN_FORMAT_ERROR =
+        new IllegalArgumentException("Die algebraische Notation ist ungültig!");
 
 }
