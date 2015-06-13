@@ -16,25 +16,30 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class Rook extends Piece {
+public final class Rook extends Piece {
 
     public Rook() {
         super();
     }
 
-    public Rook(Position position) {
+    public Rook(final Position position) {
         super(position);
     }
 
-    public Rook(Position position, boolean isWhite) {
+    public Rook(final Position position, 
+                final boolean isWhite) 
+    {
         super(position, isWhite);
     }
 
-    public Rook(Position position, boolean isWhite, boolean hasMoved) {
+    public Rook(final Position position, 
+                final boolean isWhite, 
+                final boolean hasMoved) 
+    {
         super(position, isWhite, hasMoved);
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(14);
         Position p = getPosition();
         
@@ -51,15 +56,16 @@ public class Rook extends Piece {
         return possibleMoves;
     }
 
-    public String getName() {
+    public final String getName() {
         return "Turm";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "R";
     }
 
-    public Rook clone() {
+    public final Rook clone() {
         return new Rook(getPosition().clone(), isWhite(), hasMoved());
     }
 }
+

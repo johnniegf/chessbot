@@ -15,21 +15,30 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class Queen extends Piece {
+public final class Queen extends Piece {
    
     public Queen() {
         super();
     }
 
-    public Queen(Position position) {
+    public Queen(final Position position) {
         super(position);
     }
 
-    public Queen(Position position, boolean isWhite) {
+    public Queen(final Position position, 
+                 final boolean isWhite) 
+    {
         super(position, isWhite);
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public Queen(final Position position, 
+                 final boolean isWhite,
+                 final boolean hasMoved) 
+    {
+        super(position, isWhite);
+    }
+
+    public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> result = new ArrayList<Position>();
         Bishop b = new Bishop(getPosition(), isWhite());
         Rook   r = new Rook(getPosition(), isWhite(), true);
@@ -38,15 +47,15 @@ public class Queen extends Piece {
         return result;
     }
 
-    public String getName() {
+    public final String getName() {
         return "Dame";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "Q";
     }
     
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other == null) 
             return false;
         if (other == this)
@@ -61,7 +70,7 @@ public class Queen extends Piece {
         }
     }
 
-    public Queen clone() {
+    public final Queen clone() {
         return new Queen(getPosition().clone(), isWhite());
     }
 }

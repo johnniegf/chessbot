@@ -12,25 +12,30 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class Bishop extends Piece {
+public final class Bishop extends Piece {
     
     public Bishop() {
         super();
     }
 
-    public Bishop(Position position) {
+    public Bishop(final Position position) {
         super(position);
     }
 
-    public Bishop(Position position, boolean isWhite) {
+    public Bishop(final Position position, 
+                  final boolean isWhite) 
+    {
         super(position, isWhite);
     }
 
-    public Bishop(Position position, boolean isWhite, boolean hasMoved) {
+    public Bishop(final Position position,
+                  final boolean isWhite, 
+                  final boolean hasMoved) 
+    {
         super(position, isWhite);
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> result =  new ArrayList<Position>();
         Position p; 
         for (int i = -1; i <= 1; i += 2) {
@@ -47,15 +52,15 @@ public class Bishop extends Piece {
         return result;
     }
 
-    public String getName() {
+    public final String getName() {
         return "Läufer";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "B";
     }
 
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other == null) 
             return false;
         if (other == this)
@@ -70,7 +75,7 @@ public class Bishop extends Piece {
         }
     }
 
-    public Bishop clone() {
+    public final Bishop clone() {
         return new Bishop(getPosition().clone(), isWhite());
     }
 }

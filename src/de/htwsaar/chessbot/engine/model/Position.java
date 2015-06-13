@@ -55,8 +55,8 @@ public final class Position {
         return result;
     }
 
-    private int row;
-    private int column;
+    private final int row;
+    private final int column;
 
     /**
     * Erzeuge eine neue Position mit den übergebenen Koordinaten.
@@ -64,7 +64,7 @@ public final class Position {
     * @param column x-Koordinate der neuen Position
     * @param row    y-Koordinaten der neuen Position
     */ 
-    public Position(int column, int row) {
+    public Position(final int column, final int row) {
         this.column = column;
         this.row    = row;
     }
@@ -74,7 +74,7 @@ public final class Position {
     *
     * @param sanString Postion in algebraischer Notation
     */
-    public Position(String sanString) {
+    public Position(final String sanString) {
         String san = sanString.trim();
         if (!REGEX_SAN.matcher(san).matches()) {
             System.out.println(san);
@@ -104,7 +104,7 @@ public final class Position {
     * @param row neue Zeile dieser Position
     * @return neue Position mit geänderter Koordinate
     */
-    public Position setRow(int row) {
+    public Position setRow(final int row) {
         return new Position(this.column, row);
     }
 
@@ -123,7 +123,7 @@ public final class Position {
     * @param column neue Spalte dieser Position
     * @return neue Position mit geänderter Koordinate
     */
-    public Position setColumn(int column) {
+    public Position setColumn(final int column) {
         return new Position(column, this.row);
     }
 
@@ -135,7 +135,7 @@ public final class Position {
     * @return neue Position mit geänderten Koordinaten
     * @see Position#translate
     */
-    public Position transpose(int deltaRow, int deltaCol) {
+    public Position transpose(final int deltaRow, final int deltaCol) {
         return translate(deltaRow, deltaCol);
     }
 
@@ -146,7 +146,7 @@ public final class Position {
     * @param deltaCol Verschiebung in x-Richtung
     * @return neue Position mit geänderten Koordinaten
     */
-    public Position translate(int deltaRow, int deltaCol) {
+    public Position translate(final int deltaRow, final int deltaCol) {
         int trow = this.row + deltaRow, 
             tcol = this.column + deltaCol;
     
@@ -168,7 +168,7 @@ public final class Position {
     *         mit den selben Koordinaten wie diese ist, 
     *         sonst <code>false</code>
     */
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if ( other == null )
             return false;
         try {
@@ -191,7 +191,7 @@ public final class Position {
     * @return <code>true</code>, wenn die Position auf dem übergebenen
     *         Schachbrett liegt, sonst <code>false</code>
     */
-    public boolean existsOn(Board context) {
+    public boolean existsOn(final Board context) {
         if ( !isValid() ) return false;
 
         if (context == null) {

@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.ArrayList;
 
 /**
 * Der König.
@@ -25,25 +26,30 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public class King extends Piece {
+public final class King extends Piece {
 
     public King() {
         super();
     }
 
-    public King(Position position) {
+    public King(final Position position) {
         super(position);
     }
 
-    public King(Position position, boolean isWhite) {
+    public King(final Position position, 
+                final boolean isWhite) 
+    {
         super(position, isWhite);
     }
 
-    public King(Position position, boolean isWhite, boolean hasMoved) {
+    public King(final Position position, 
+                final boolean isWhite, 
+                final boolean hasMoved) 
+    {
         super(position, isWhite, hasMoved);
     }
 
-    public Collection<Position> getValidMoves(Board context) {
+    public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> validPositions = new ArrayList<Position>(8);
         Position pt, p = getPosition();
         for (int x = -1; x <= 1; x++) {
@@ -56,7 +62,7 @@ public class King extends Piece {
                     validPositions.add(pt);
             }
         }
-        if ( !hasMoved() ) {
+        if (!hasMoved()) {
             pt = p.translate(0,2);
             if (pt.existsOn(context))validPositions.add(pt);
             pt = p.translate(0,-2);
@@ -66,15 +72,15 @@ public class King extends Piece {
         return validPositions; 
     }
 
-    public String getName() {
+    public final String getName() {
         return "König";
     }
 
-    public String getShortName() {
+    public final String getShortName() {
         return "K";
     }
 
-    public King clone() {
+    public final King clone() {
         return new King(getPosition().clone(), isWhite(), hasMoved());
     }
 }
