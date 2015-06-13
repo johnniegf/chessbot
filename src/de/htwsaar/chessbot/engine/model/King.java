@@ -9,7 +9,11 @@ import java.util.*;
 * @author Johannes Haupt
 */
 public class King extends Piece {
-    
+
+    public King() {
+        super();
+    }
+
     /**
     *
     */ 

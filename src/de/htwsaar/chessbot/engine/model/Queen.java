@@ -9,7 +9,11 @@ import java.util.*;
 * @author Johannes Haupt
 */
 public class Queen extends Piece {
-    
+   
+    public Queen() {
+        super();
+    }
+
     /**
     *
     */ 
@@ -22,7 +26,12 @@ public class Queen extends Piece {
     }
 
     public Collection<Position> getValidMoves(Board context) {
-        return new ArrayList<Position>();
+        Collection<Position> result = new ArrayList<Position>();
+        Bishop b = new Bishop(getPosition(), isWhite());
+        Rook   r = new Rook(getPosition(), isWhite(), true);
+        result.addAll(b.getValidMoves(context));
+        result.addAll(r.getValidMoves(context));
+        return result;
     }
 
     public String getName() {
@@ -31,6 +40,21 @@ public class Queen extends Piece {
 
     public String getShortName() {
         return "Q";
+    }
+    
+    public boolean equals(Object other) {
+        if (other == null) 
+            return false;
+        if (other == this)
+            return true;
+
+        try {
+            Queen q = (Queen) other;
+            return q.getPosition().equals(getPosition())
+                && q.isWhite() == isWhite();
+        } catch (ClassCastException cce) {
+            return false;
+        }
     }
 
     public Queen clone() {

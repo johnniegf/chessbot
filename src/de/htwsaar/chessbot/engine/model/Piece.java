@@ -14,6 +14,9 @@ public abstract class Piece {
     private boolean  isWhite;
     private boolean  hasMoved;
 
+    protected Piece() {
+        this(Position.INVALID);
+    }
 
     /**
     * Erzeuge eine neue weiße Schachfigur an der übergebenen Position.
@@ -22,7 +25,7 @@ public abstract class Piece {
     * @throws NullPointerException wenn <code>position == null</code>
     */
     protected Piece(Position position) {
-        this(position, true, true);
+        this(position, true);
     }
 
     /**
@@ -67,8 +70,7 @@ public abstract class Piece {
     public void setPosition(Position newPosition) {
         if ( newPosition == null ) {
             throw new NullPointerException();
-        } 
-        
+        }
         this.position = newPosition;
     }
 
@@ -79,6 +81,16 @@ public abstract class Piece {
     */ 
     public boolean isWhite() {
         return this.isWhite;
+    }
+
+    /**
+    * Lege die Farbe der Figur fest.
+    *
+    * @param isWhite Farbe der Figur. <code>true</code> für weiß, 
+    *                <code>false</code> für schwarz
+    */
+    public void setColor(boolean isWhite) {
+        this.isWhite = isWhite;
     }
 
     /**
@@ -110,6 +122,8 @@ public abstract class Piece {
     *                     Feld ziehen kann
     */
     public Piece move(Position targetPosition, Board context) {
+        if (targetPosition == null)
+            throw new NullPointerException();
         Piece target = this.clone();
         if ( !target.canMoveTo(targetPosition, context) )
             throw new InvalidMove();
@@ -129,9 +143,26 @@ public abstract class Piece {
     *         <code>false</code>
     */
     public boolean canMoveTo(Position targetPosition, Board context) {
+        if (targetPosition == null || !targetPosition.isValid())
+            return false;
         Collection<Position> validMoves = getValidMoves(context);
         return validMoves != null 
             && validMoves.contains(targetPosition);
+    }
+
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+
+        try {
+            Piece p = (Piece) other;
+            return p.getPosition().equals(getPosition())
+                && p.isWhite()  == isWhite()
+                && p.hasMoved() == hasMoved();
+
+        } catch (ClassCastException cce) {
+            return false;
+        }
     }
 
     /**
