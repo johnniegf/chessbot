@@ -3,7 +3,15 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.*;
 
 /**
-* Beschreibung.
+* Der Turm.
+*
+* <ul>
+* <li>Ein Turm darf auf Linien und Reihen, also horizontal und vertikal, 
+* beliebig weit ziehen, ohne jedoch über andere Figuren zu springen. 
+* Die einzige Ausnahme davon ist die Rochade, bei der Turm und König 
+* bewegt werden. Ein Turm hat, wie Dame und Läufer, eine nur durch 
+* den Spielfeldrand begrenzte Reichweite.</li>
+* </ul>
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
@@ -14,9 +22,6 @@ public class Rook extends Piece {
         super();
     }
 
-    /**
-    *
-    */ 
     public Rook(Position position) {
         super(position);
     }

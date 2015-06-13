@@ -6,27 +6,46 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 /**
-* Beschreibung.
+* Interne Darstellung einer Position auf dem Schachbrett.
 *
-* @author
+* @author Kevin Alberts
+* @author Johannes Haupt
 */
 public final class Position {
 
+    /**
+    * Eine ungültige Position.
+    */
     public static final Position INVALID = new Position(0,0);
 
-    private static final int MAX_ROWS = 50;
-    private static final int MAX_COLS = 26;
-    private static final Pattern REGEX_SAN = 
-        Pattern.compile("[a-z][1-9][0-9]?");
-
+    /**
+    * Kurzschreibweise für Konstruktor.
+    *
+    * @param column x-Koordinate der neuen Position
+    * @param row    y-Koordinaten der neuen Position
+    * @return Position mit den übergebenen Koordinaten
+    */
     public static final Position P(int column, int row) {
         return new Position(column, row);
     }
     
+    /**
+    * Kurzschreibweise für Konstruktor.
+    *
+    * @param san Postion in algebraischer Notation
+    * @return Position mit der übergebenen algebraischen Notation
+    */
     public static final Position P(String san) {
         return new Position(san);
     }
 
+    /**
+    * Erzeuge eine Liste von Positionen aus algebraischer Notation.
+    *
+    * @param positions kommagetrennte Liste von Positionen in 
+    *                  algebraischer Notation
+    * @return eine Liste mit allen übergebenen Positionen
+    */
     public static final Collection<Position> PList(String... positions) {
         Collection<Position> result = new ArrayList<Position>();
         if (positions != null) {
@@ -40,15 +59,21 @@ public final class Position {
     private int column;
 
     /**
-    * Erzeugt eine neue Position mit den übergebenen Koordinaten.
+    * Erzeuge eine neue Position mit den übergebenen Koordinaten.
     *
-    * 
+    * @param column x-Koordinate der neuen Position
+    * @param row    y-Koordinaten der neuen Position
     */ 
     public Position(int column, int row) {
         this.column = column;
         this.row    = row;
     }
 
+    /**
+    * Erzeuge eine neue Position mit der übergebenen algebraischen Notation.
+    *
+    * @param sanString Postion in algebraischer Notation
+    */
     public Position(String sanString) {
         String san = sanString.trim();
         if (!REGEX_SAN.matcher(san).matches()) {
@@ -65,54 +90,84 @@ public final class Position {
     }
 
     /**
-    * Gibt die x-Koordinate dieser Position zurück.
+    * Gib die x-Koordinate dieser Position zurück.
+    *
+    * @return Zeile dieser Position
     */
     public int getRow() {
         return this.row;
     }
     
     /**
-    * Legt die x-Koordinate dieser Position fest.
+    * Lege die x-Koordinate dieser Position fest.
+    *
+    * @param row neue Zeile dieser Position
+    * @return neue Position mit geänderter Koordinate
     */
     public Position setRow(int row) {
         return new Position(this.column, row);
     }
 
     /**
-    * Gibt die y-Koordinate dieser Position zurück.
+    * Gib die y-Koordinate dieser Position zurück.
+    *
+    * @return Spalte dieser Position
     */
     public int getColumn() {
         return this.column;
     }
 
     /**
-    * Legt die y-Koordinate dieser Position fest.
+    * Lege die y-Koordinate dieser Position fest.
+    *
+    * @param column neue Spalte dieser Position
+    * @return neue Position mit geänderter Koordinate
     */
     public Position setColumn(int column) {
         return new Position(column, this.row);
     }
 
     /**
-    * Ändert die Position.
+    * Verschiebe die Position um die übergebenen Deltas.
+    *
+    * @param deltaRow Verschiebung in y-Richtung
+    * @param deltaCol Verschiebung in x-Richtung
+    * @return neue Position mit geänderten Koordinaten
+    * @see Position#translate
     */
-    public Position set(int column, int row) {
-        return new Position(column, row);
+    public Position transpose(int deltaRow, int deltaCol) {
+        return translate(deltaRow, deltaCol);
     }
 
     /**
-    * Verschiebt die Position um die übergebenen Deltas.
+    * Verschiebe die Position um die übergebenen Deltas.
+    *
+    * @param deltaRow Verschiebung in y-Richtung
+    * @param deltaCol Verschiebung in x-Richtung
+    * @return neue Position mit geänderten Koordinaten
     */
-    public Position translate(int deltaX, int deltaY) {
-        int trow = this.row + deltaX, 
-            tcol = this.column + deltaY;
+    public Position translate(int deltaRow, int deltaCol) {
+        int trow = this.row + deltaRow, 
+            tcol = this.column + deltaCol;
     
         return new Position(tcol, trow);
     }
 
+    /**
+    * Erzeuge einen Hashwert dieser Position.
+    */
     public int hashCode() {
         return this.row * 231 + this.column * 127;
     }
 
+    /**
+    * Prüfe die Position auf Gleichheit mit einem Objekt.
+    *
+    * @param other zu prüfendes Objekt
+    * @return <code>true</code>, wenn das übergebene Objekt eine Position
+    *         mit den selben Koordinaten wie diese ist, 
+    *         sonst <code>false</code>
+    */
     public boolean equals(Object other) {
         if ( other == null )
             return false;
@@ -129,6 +184,13 @@ public final class Position {
         }
     }
 
+    /**
+    * Prüfe, ob diese Position auf einem Schachbrett existiert.
+    *
+    * @param context das zu prüfende Schachbrett
+    * @return <code>true</code>, wenn die Position auf dem übergebenen
+    *         Schachbrett liegt, sonst <code>false</code>
+    */
     public boolean existsOn(Board context) {
         if ( !isValid() ) return false;
 
@@ -143,6 +205,16 @@ public final class Position {
         }
     }
 
+    /**
+    * Prüfe, ob die Koordinaten dieser Stellung zulässig sind.
+    *
+    * Die Zählung der Koordinaten beginnt bei 1. Die (einschließlichen)
+    * Maximalwerte sind in den Konstanten <code>MAX_ROWS</code>(50) und
+    * <code>MAX_COLS</code>(26) festgehalten.
+    *
+    * @return <code>true</code>, wenn die Koordinaten innerhalb der
+    *         zulässigen Grenzen liegen, sonst <code>false</code>
+    */
     public boolean isValid() {
         if ( getRow() < 1 || getColumn() < 1)
             return false;
@@ -152,10 +224,20 @@ public final class Position {
         return true;
     }
 
+    /**
+    * Kopiere diese Position.
+    *
+    * @return eine neue Position, die dieser Position gleicht
+    */
     public Position clone() {
         return new Position(this.column, this.row);
     }
 
+    /**
+    * Gib die algebraische Notation dieser Position aus.
+    *
+    * @return Darstellung der Position in algebraischer Notation
+    */
     public String toSAN() {
         if ( !isValid() )
             return "INVALID";
@@ -165,19 +247,28 @@ public final class Position {
     }
 
     /**
-    * Stringkonversion.
+    * Stringkonversion, gib Details dieser Position aus.
     *
     * @return Stringdarstellung dieses Objekts.
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("(").append(getColumn()).append("|").append(getRow()).append(")");
+        sb.append("(")
+          .append( getColumn() )
+          .append("|")
+          .append( getRow() )
+          .append(")");
         return sb.toString();
     }
     
     private static char getLetter(int column) {
         return (char) ( 'a' + (char) (column-1)); 
     }
+    
+    private static final int MAX_ROWS = 50;
+    private static final int MAX_COLS = 26;
+    private static final Pattern REGEX_SAN = 
+        Pattern.compile("[a-z][1-9][0-9]?");
 
     private static final IllegalArgumentException SAN_STRING_TOO_SHORT =
         new IllegalArgumentException("Die algebraische Notation ist zu kurz!");

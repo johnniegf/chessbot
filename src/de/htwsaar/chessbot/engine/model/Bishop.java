@@ -4,9 +4,10 @@ import java.util.*;
 
 /**
 * Der Läufer.
-*
-* Der Läufer kann sich über beide Diagonalen, die sich in dem von ihm
-* besetzten Schachfeld kreuzen bewegen, dabei aber keine Figuren überspringen.
+* <ul>
+* <li>Läufer ziehen in diagonaler Richtung beliebig weit über das Brett. Über 
+* andere Figuren hinweg dürfen die dabei nicht ziehen.</li>
+* </ul>
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
@@ -22,6 +23,10 @@ public class Bishop extends Piece {
     }
 
     public Bishop(Position position, boolean isWhite) {
+        super(position, isWhite);
+    }
+
+    public Bishop(Position position, boolean isWhite, boolean hasMoved) {
         super(position, isWhite);
     }
 

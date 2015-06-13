@@ -5,32 +5,25 @@ import java.util.*;
 /**
 * Der Springer.
 *
-* Der Springer darf sich auf alle Felder bewegen, die ihm am nächsten sind
-* aber nicht auf einer Zeile, Spalte oder Diagonalen, die sich in dem von
-* ihm besetzten Feld kreuzen.
+* <ul>
+* <li>Der Springer darf auf eines der Felder ziehen, die seinem Standfeld am 
+* nächsten, aber nicht auf gleicher Reihe, Linie oder Diagonale mit 
+* diesem liegen.</li>
+* </ul>
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Knight extends Piece {
 
-    /**
-    * 
-    */
     public Knight() {
         super();
     }
 
-    /**
-    * Erzeuge einen neuen weißen Springer an übergebener Position.
-    */ 
     public Knight(Position position) {
         super(position);
     }
 
-    /**
-    * Erzeuge einen neuen Springer an übergebener Position.
-    */ 
     public Knight(Position position, boolean isWhite) {
         super(position, isWhite);
     }

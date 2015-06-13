@@ -3,7 +3,14 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.*;
 
 /**
-* Beschreibung.
+* Die Dame.
+*
+* <ul>
+* <li>Die Dame darf in horizontaler, vertikaler und diagonaler Richtung 
+* beliebig weit ziehen, ohne jedoch über andere Figuren zu springen. Sie 
+* vereint somit die Zugmöglichkeiten eines Turms und eines Läufers in sich.
+* </li>
+* </ul>
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
@@ -14,9 +21,6 @@ public class Queen extends Piece {
         super();
     }
 
-    /**
-    *
-    */ 
     public Queen(Position position) {
         super(position);
     }

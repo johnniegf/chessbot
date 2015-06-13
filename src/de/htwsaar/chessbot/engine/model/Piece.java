@@ -14,6 +14,9 @@ public abstract class Piece {
     private boolean  isWhite;
     private boolean  hasMoved;
 
+    /**
+    * Erzeuge eine neue Schachfigur.
+    */
     protected Piece() {
         this(Position.INVALID);
     }
@@ -150,13 +153,21 @@ public abstract class Piece {
             && validMoves.contains(targetPosition);
     }
 
+    /**
+    * Prüfe, ob das übergebe Objekt gleich dieser Figur ist.
+    *
+    * @param other das zu prüfende Objekt.
+    * @return <code>true</code> wenn das übergebene Objekt eine Figur
+    *         gleich dieser ist, sonst <code>false</code>
+    */
     public boolean equals(Object other) {
         if (other == null)
             return false;
 
         try {
             Piece p = (Piece) other;
-            return p.getPosition().equals(getPosition())
+            return getClass().isInstance(p)
+                && p.getPosition().equals(getPosition())
                 && p.isWhite()  == isWhite()
                 && p.hasMoved() == hasMoved();
 
