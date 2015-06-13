@@ -94,6 +94,7 @@ public class TestRunner {
             for (String testName : logs.keySet()) {
                 System.out.println(logs.get(testName).toString());
             }
+            System.out.print("[FAIL] ");
         } else {
             System.out.print("[PASS] ");
         }
@@ -106,7 +107,8 @@ public class TestRunner {
         int count = this.resultListener.runCount;
         int ign   = this.resultListener.ignCount;
         b.append("Overall result: ");
-        b.append( String.format("%d/%d tests passed",count - fails, count) );
+        b.append( String.format("%d classes run, ", testClasses.length) );
+        b.append( String.format("%d/%d atomic tests passed",count - fails, count) );
         if (ign > 0) 
             b.append( String.format(", %d ignored", ign) );
                 
