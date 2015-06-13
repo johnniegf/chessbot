@@ -13,7 +13,14 @@ import java.util.*;
 * @author Johannes Haupt
 */
 public class Knight extends Piece {
-    
+
+    /**
+    * 
+    */
+    public Knight() {
+        super();
+    }
+
     /**
     * Erzeuge einen neuen weißen Springer an übergebener Position.
     */ 
@@ -48,6 +55,21 @@ public class Knight extends Piece {
 
     public String getShortName() {
         return "N";
+    }
+    
+    public boolean equals(Object other) {
+        if (other == null) 
+            return false;
+        if (other == this)
+            return true;
+
+        try {
+            Knight k = (Knight) other;
+            return k.getPosition().equals(getPosition())
+                && k.isWhite() == isWhite();
+        } catch (ClassCastException cce) {
+            return false;
+        }
     }
 
     public Knight clone() {

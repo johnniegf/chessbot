@@ -1,32 +1,49 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Position.P;
 
+import java.util.*;
 // JUnit-Pakete
 import org.junit.*;
 import static org.junit.Assert.*;
-
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.junit.runner.RunWith;
 /**
 * Testklasse für ...
 *
 * @author
 */
+@RunWith(Parameterized.class)
 public class PieceTest { 
 
     // Testvariablen
-    private List<Piece> whitePieces, blackPieces;
+    Piece currentPrototype;
+    
     // Kontrollwerte
+    private static final Board TEST_BOARD = null;
+    private static final Position[] TEST_POSITIONS = {
+        P("c3"), P("a1"), P("i2"), P("h12")
+    };
+    @Parameters
+    public static Collection<Object[]> getTestData() {
+        return Arrays.asList(new Object[][] { 
+            { new Pawn()   },
+            { new Knight() },
+            { new Rook()   },
+            { new Queen()  },
+            { new Bishop() },
+            { new King()   }
+        });
+    }
     
     /**
     * Testaufbau.
     *
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
-    @Before public void prepareTest() {
-        whitePieces = new ArrayList<Piece>();
-        blackPieces = new ArrayList<Piece>();
-        whitePieces.add( new Knight(new Position(1,2), true)  );
-        blackPieces.add( new Knight(new Position(8,7), false) );
+    public PieceTest(Piece prototype) {
+        currentPrototype = prototype;
     }
 
     /**
@@ -45,32 +62,54 @@ public class PieceTest {
     // ====================================================
 
     @Test(expected = NullPointerException.class)
-    public void testNullPosition() {
-        // Fehlerhafte Anweisung, die MyException auslöst
-        new Knight(null);
-    }
-
-    @Test(expected = NullPointerException.class)
     public void testSetNullPosition() {
-        for ( Piece w : whitePieces ) {
-            w.setPosition(null);
-        }
+        currentPrototype.setPosition(null);
+    }
+    @Test(expected = NullPointerException.class)
+    public void testMoveToNullPosition() {
+        currentPrototype.move(null, TEST_BOARD);
     }
 
     // ====================================================
     // = Funktionstests
     // ====================================================
 
-    @Test public void testColor() {
-        for ( Piece w : whitePieces ) {
-            assertTrue("Figur hat falsche Farbe " + w,
-                       w.isWhite() );
-        }
+    @Test public void testCloning() {
+        Piece cloned = currentPrototype.clone();
+        assertEquals(currentPrototype, cloned);
+        assertFalse(currentPrototype == cloned);
+    }
 
-        for ( Piece b : blackPieces ) {
-            assertFalse("Figur hat falsche Farbe " + b,
-                       b.isWhite() );
-        }  
+    @Test public void testColor() {
+        Piece piece = currentPrototype.clone();
+        piece.setColor(true);
+        assertTrue("Die Figur " + piece + " sollte weiß sein",
+                   piece.isWhite());
+        piece.setColor(false);
+        assertFalse("Die Figur " + piece + " sollte schwarz sein",
+                    piece.isWhite());
+    }
+
+    @Test public void testPositions() {
+        for (Position p : TEST_POSITIONS) {
+            currentPrototype.setPosition(p);
+            assertEquals(p,
+                         currentPrototype.getPosition());
+        }
+    }
+
+    @Test public void testMove() {
+        assertFalse(currentPrototype.canMoveTo(null, TEST_BOARD));
+    }
+
+    @Test public void testHasMovedFlag() {
+        Piece piece = currentPrototype.clone();
+        piece.setHasMoved(true);
+        assertTrue("",
+                   piece.hasMoved() );
+        piece.setHasMoved(false);
+        assertFalse("",
+                    piece.hasMoved() );
     }
 
 }
