@@ -6,12 +6,18 @@ tplDir="templates"
 classTemplate="$tplDir/Class.java"
 interfaceTemplate="$tplDir/Interface.java"
 testTemplate="$tplDir/Test.java"
+parameterizedTemplate="$tplDir/Parameterized.java"
 
 src_path="src/de/htwsaar/chessbot"
 test_path="test/de/htwsaar/chessbot"
 
 printUsage() {
-    echo "Aufruf: $0 <class|test|interface> <Paketname> <Dateiname>"
+    echo "Aufruf: $0 <Typ> <Paketname> <Dateiname>"
+    echo "Verfügbare Typen:"
+    echo "    class       -- Erstellt eine neue Klasse"
+    echo "    interface   -- Erstellt eine neue Schnittstelle"
+    echo "    test        -- Erstellt einen neuen Test"
+    echo "    testp       -- Erstellt einen neuen parametrierten Test"
 }
 
 operation="$1"
@@ -31,10 +37,16 @@ case "$operation" in
     ;;
     "interface")
         tplFile="$interfaceTemplate"
-        targetFile="$src_path/$pkgPath/${className}.java"
+        targetPath="$src_path/$pkgPath"
+        targetFile="$targetPath/${className}.java"
     ;;
     "test")
         tplFile="$testTemplate"
+        targetPath="$test_path/$pkgPath"
+        targetFile="$targetPath/${className}Test.java"
+    ;;
+    "testp")
+        tplFile="$parameterizedTemplate"
         targetPath="$test_path/$pkgPath"
         targetFile="$targetPath/${className}Test.java"
     ;;
