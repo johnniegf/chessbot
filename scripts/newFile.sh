@@ -152,6 +152,11 @@ case "$operation" in
         tplFile="$exceptionTemplate"
         makeSourceFile "$pkgName" "$tplFile" "$className"
     ;;
+    "exception")
+        tplFile="$exceptionTemplate"
+        targetPath="$src_path/$pkgPath"
+        targetFile="$targetPath/${className}.java"
+    ;;
     "interface")
         tplFile="$interfaceTemplate"
         makeSourceFile "$pkgName" "$tplFile" "$className"
@@ -174,20 +179,5 @@ case "$operation" in
         exit 1
     ;;
 esac
-
-if [ -f "$targetFile" ]
-then
-    read -n1 -p"Datei $targetFile existiert bereits. Überschreiben? (j/N) " answer
-    echo
-    case "$answer" in
-        [jJyY])
-        ;;
-        *)
-            echo "Abbruch."
-            exit 1
-        ;;
-    esac
-fi
-
 exit 0
 
