@@ -74,6 +74,33 @@ public class PieceTest {
     // = Funktionstests
     // ====================================================
 
+    @Test public void testEquality() {
+        Piece a, b, c;
+        a = currentPrototype.clone();
+        b = a.clone();
+        b.setColor(!a.isWhite());
+        c = b.clone();
+        c.setHasMoved(!b.hasMoved());
+        
+        assertFalse(a.equals(null));
+        assertTrue(a.equals(a));
+        assertEquals(a.equals(b), b.equals(a));
+        assertEquals(a.equals(b) && b.equals(c),
+                     a.equals(c) );                
+    }
+
+    @Test public void testHashFunction() {
+        Piece a, b, c;
+        a = currentPrototype.clone();
+        b = a.clone();
+
+        assertTrue("Hashwert ist kleiner als 0 : " + a.hashCode(),
+                   a.hashCode() > 0 );
+        assertEquals("Hashwerte stimmen nicht überein", 
+                     a.hashCode(), 
+                     b.hashCode());
+    }
+
     @Test public void testCloning() {
         Piece cloned = currentPrototype.clone();
         assertEquals(currentPrototype, cloned);

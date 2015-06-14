@@ -41,11 +41,11 @@ public final class Bishop extends Piece {
         for (int i = -1; i <= 1; i += 2) {
             for (int j = -1; j <= 1; j += 2) {
                 int c = 1;
-                p = getPosition().translate(c*i, c*j);
+                p = getPosition().transpose(c*i, c*j);
                 while(p.existsOn(context)) {
                     result.add(p);
                     c += 1;
-                    p = getPosition().translate(c*i, c*j);
+                    p = getPosition().transpose(c*i, c*j);
                } 
             }
         }
