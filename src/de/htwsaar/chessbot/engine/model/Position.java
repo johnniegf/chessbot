@@ -140,6 +140,12 @@ public final class Position {
         return new Position(tcol, trow);
     }
 
+    /**
+    * Verschiebe die Position um das übergeben Delta.
+    *
+    * @param delta Verschiebung in x- und y-Richtung
+    * @return neue Position mit geänderten Koordinaten
+    */
     public Position transpose(final Position delta) {
         return transpose(delta.getColumn(), delta.getRow());
     }
