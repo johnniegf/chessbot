@@ -161,6 +161,20 @@ public abstract class Piece {
     }
 
     /**
+    * Erzeuge einen Hashwert aus dieser Figur.
+    *
+    * @return Hashwert dieser Figur
+    */
+    public int hashCode() {
+        int hash = 0;
+        hash += getName().hashCode() * 17;
+        hash += getPosition().hashCode() * 13;
+        hash += hash + (isWhite() ? 23 : 19);
+        hash *= (hash < 0 ? -1 : 1);
+        return hash;
+    }
+
+    /**
     * Prüfe, ob das übergebe Objekt gleich dieser Figur ist.
     *
     * @param other das zu prüfende Objekt.

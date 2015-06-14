@@ -7,6 +7,7 @@ import java.util.*;
 // JUnit-Pakete
 import org.junit.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 /**
 * Testklasse für ...
@@ -19,27 +20,28 @@ public class PositionTest {
     private List<Position> positions;
     private Position a1, h8;
     // Kontrollwerte
-    private static final Position[] sanTestInput = {
-        P(5,2),
-        P(3,8),
-        P(1,1),
-        P(6,2),
-        P(26,17)
-    };
-    private static final String[] sanExpecteds = {
-        "e2", "c8", "a1", "f2", "z17"
-    };
-    private static final Board EMPTY_BOARD = null;
+    private static final Board EMPTY_BOARD    = null;
+    private static final Board STANDARD_BOARD = null;
     
     private static final Position[] validPositions = {
-        P(1,2), P(5,7),
-        P(12,8), P(5,32),
-        P(15,4)
+        P(1,2), P(5,7), P(12,8), P(5,32), P(15,4)
+    };
+    private static final Position[] standardPositions = {
+        P(1,2), P(5,7), P(4,8), P(5,6), P(2,3)
+    };
+    private static final Position[] translationDeltas = {
+        P(1,2), P(-2,-5), P(2,-2), P(-4,1), P(6,0)
+    };
+    private static final Position[] translationResults = {
+        P(2,4), P(3,2), P(6,6), P(1,7), P(8,3)
     };
     private static final Position[] invalidPositions = {
-        P(-1,5), P(200,40),
-        P(0,0), P(7,-42),
-        P(5,51)
+        P(-1,5),    // negative x-Koordinate
+        P(7,-42),   // negative y-Koordinate
+        P(200,40),  // zu große x-Koordinate
+        P(5,51),    // zu große y-Koordinate
+        P(0,4),     // x-Koordinate ist 0
+        P(2,0)      // y-Koordinate ist 0
     };
     
     /**
@@ -74,31 +76,54 @@ public class PositionTest {
     // ====================================================
     // = Ausnahmetests
     // ====================================================
-/*
+
     @Test(expected = IllegalArgumentException.class)
-    public void testNegativeCol() {
-        P(-1,0);
-        // Fehlerhafte Anweisung, die MyException auslöst
+    public void testMalformedSanReverse() {
+        P("1a");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testNegativeRow() {
-        P(1,-1);
+    public void testMalformedSanMissingNumber() {
+        P("a");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExceedColBounds() {
-        P(20,2);
+    public void testMalformedSanLeadingZero() {
+        P("a01");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExceedRowBounds() {
-        P(1,20);
+    public void testMalformedSanMissingLetter() {
+        P("12");
     }
-*/
+
     // ====================================================
     // = Funktionstests
     // ====================================================
+
+    @Test public void testValidPositions() {
+        for (Position v : validPositions) {
+            assertTrue("Position als falsch gewertet: " + v,
+                       v.isValid() ); 
+        }
+    }
+
+    @Test public void testInvalidPositions() {
+        for (Position p : invalidPositions) {
+            assertFalse("Position " + p + " als gültig erkannt",
+                        p.isValid() );
+        }
+    }
+
+    @Test public void testExistingPosition() {
+        Board b = STANDARD_BOARD;
+        assumeNotNull(b);
+        for (Position p : standardPositions) {
+            assertTrue("Position " + p + " sollte auf dem "
+                     + "Standardschachbrett existieren",
+                       p.existsOn(b));
+        }
+    }
 
     @Test public void testCons() {
         for (int y = 1; y <= 8; ++y) {
@@ -111,33 +136,19 @@ public class PositionTest {
                              y,
                              p.getColumn());
             }
-        }   
-    }
-
-    @Test public void testTranslation() {
-        Position p1 = a1.translate(1,2);
-        assertEquals( "",
-                      P(3,2),
-                      p1);
-
-        Position p2 = h8.translate(-3,-3);
-        assertEquals( "",
-                      P(5,5),
-                      p2);
-    }
-
-    @Test public void testSanConversion() {
-        for (int i = 0; i < sanTestInput.length; i++) {
-            assertEquals("",
-                         sanExpecteds[i],
-                         sanTestInput[i].toSAN() );
         }
     }
 
-    @Test public void testConstructFromSanString() {
-        Position pe = P(1,1);
-        Position pa = P("a1");
-        assertEquals("", pe, pa);
+    @Test public void testTranslation() {
+        Position source, delta, result;
+        for (int i = 0; i < standardPositions.length; i++) {
+            source = standardPositions[i];
+            delta  = translationDeltas[i];
+            result = source.transpose(delta);
+            assertEquals("",
+                         translationResults[i],
+                         result);
+        }
     }
 
     @Test public void testClone() {
@@ -146,26 +157,14 @@ public class PositionTest {
         assertEquals("Position wurde beim Kopieren verändert: ",
                      orig,
                      clon);
-        assertFalse("Original und Kopie sind dasselbe Objekt",
-                    orig == clon );
+        assertNotSame("Original und Kopie sind dasselbe Objekt",
+                      orig,
+                      clon );
         orig = orig.setColumn(2);
-        assertFalse("Änderung am Original wirkt sich auf Kopie aus",
-                    orig.equals(clon) );
+        assertNotEquals("Änderung am Original wirkt sich auf Kopie aus",
+                        orig,
+                        clon );
                     
-    }
-
-    @Test public void testValidPositions() {
-        for (Position v : validPositions) {
-            assertTrue("Position als falsch gewertet: " + v,
-                       v.isValid() ); 
-        }
-    }
-
-    @Test public void testInvalidPositions() {
-        for (Position i : invalidPositions) {
-            assertFalse("Position als gültig eingestuft: " + i,
-                        i.isValid() );
-        }   
     }
 
 }

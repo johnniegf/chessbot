@@ -38,18 +38,20 @@ public final class Rook extends Piece {
     {
         super(position, isWhite, hasMoved);
     }
+    
+    public int hashCode() {
+        return super.hashCode() * (hasMoved() ? 61 : 67);
+    }
 
     public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(14);
         Position p = getPosition();
         
         for (int i = 1; i <= 8; i++) {  
-            if ( i != getPosition().getColumn() ) 
-            {
-                possibleMoves.add( p.setColumn(i) );
+            if (i != getPosition().getColumn()) {
+                possibleMoves.add(p.setColumn(i));
             }
-            if ( i != getPosition().getRow() ) 
-            {
+            if (i != getPosition().getRow()) {
                 possibleMoves.add( p.setRow(i) );
             }
         }

@@ -76,12 +76,11 @@ public final class Position {
     */
     public Position(final String sanString) {
         String san = sanString.trim();
-        if (!REGEX_SAN.matcher(san).matches()) {
-            System.out.println(san);
-            throw SAN_FORMAT_ERROR;
-        }
         if (san.length() < 2)
             throw SAN_STRING_TOO_SHORT;
+        if (!REGEX_SAN.matcher(san).matches()) {
+            throw SAN_FORMAT_ERROR;
+        }
 
         char col   = san.charAt(0);
         String row = san.substring(1);
@@ -133,24 +132,16 @@ public final class Position {
     * @param deltaRow Verschiebung in y-Richtung
     * @param deltaCol Verschiebung in x-Richtung
     * @return neue Position mit geänderten Koordinaten
-    * @see Position#translate
     */
-    public Position transpose(final int deltaRow, final int deltaCol) {
-        return translate(deltaRow, deltaCol);
-    }
-
-    /**
-    * Verschiebe die Position um die übergebenen Deltas.
-    *
-    * @param deltaRow Verschiebung in y-Richtung
-    * @param deltaCol Verschiebung in x-Richtung
-    * @return neue Position mit geänderten Koordinaten
-    */
-    public Position translate(final int deltaRow, final int deltaCol) {
+    public Position transpose(final int deltaCol, final int deltaRow) {
         int trow = this.row + deltaRow, 
             tcol = this.column + deltaCol;
     
         return new Position(tcol, trow);
+    }
+
+    public Position transpose(final Position delta) {
+        return transpose(delta.getColumn(), delta.getRow());
     }
 
     /**

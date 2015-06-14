@@ -77,14 +77,18 @@ public final class Pawn extends Piece {
         Position p = getPosition();
         Position pn;
         for (int i = -1; i <= 1; ++i) {
-            pn = p.translate(increment,i);
+            pn = p.transpose(i, increment);
             if (pn.existsOn(context))
                 possibleMoves.add(pn);
         }
-        if ( !hasMoved() )
-            possibleMoves.add( p.translate(2*increment, 0) );
+        if (!hasMoved())
+            possibleMoves.add(p.transpose(0, 2*increment));
 
         return possibleMoves;
+    }
+
+    public int hashCode() {
+        return super.hashCode() * (hasMoved() ? 61 : 67);
     }
 
     public boolean equals(final Object other) {

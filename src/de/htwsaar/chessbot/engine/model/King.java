@@ -57,15 +57,15 @@ public final class King extends Piece {
                 if ( x == 0 && y == 0 )
                     continue;
 
-                pt = p.translate(x,y);
+                pt = p.transpose(x,y);
                 if (pt.existsOn(context))
                     validPositions.add(pt);
             }
         }
         if (!hasMoved()) {
-            pt = p.translate(0,2);
+            pt = p.transpose(2,0);
             if (pt.existsOn(context))validPositions.add(pt);
-            pt = p.translate(0,-2);
+            pt = p.transpose(-2,0);
             if (pt.existsOn(context))validPositions.add(pt);
         }
 

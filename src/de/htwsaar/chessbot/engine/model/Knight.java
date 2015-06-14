@@ -42,9 +42,9 @@ public final class Knight extends Piece {
         Position pt, p = getPosition();
         for (int d = -2; d <= 2; d += 4) {
             for (int e = -1; e <= 1; e += 2) {
-                pt = p.translate(d,e);
+                pt = p.transpose(d,e);
                 if (pt.existsOn(context)) possibleMoves.add( pt );
-                pt = p.translate(e,d);
+                pt = p.transpose(e,d);
                 if (pt.existsOn(context)) possibleMoves.add( pt );
             }
         }
