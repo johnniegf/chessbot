@@ -1,10 +1,18 @@
 package de.htwsaar.chessbot.%PKGNAME;
 
+// Interne Referenzen
+import de.htwsaar.chessbot.*;
+
+// Java-API
 import java.util.*;
 
-// JUnit-Pakete
+// JUnit-API
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assume.*;
 import static org.junit.Assert.*;
 import org.junit.*;
+
+// Klassen für parametrierte Tests
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runner.RunWith;
