@@ -194,11 +194,8 @@ public final class Position {
         if (context == null) {
             return getRow() <= 8 && getColumn() <= 8;
         } else {
-/*         
             return getColumn() <= context.getWidth()
                 && getRow() <= context.getHeight();
-*/
-            return false;
         }
     }
 
