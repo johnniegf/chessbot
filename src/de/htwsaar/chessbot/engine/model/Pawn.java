@@ -98,25 +98,30 @@ public final class Pawn extends Piece {
             }
         }   
 
-        possibleMoves.add(getValidHits(context));
+        possibleMoves.addAll(getValidHits(context));
 
         return possibleMoves;
     }
 
-    private Collection getValidHits(final Board context) {
+    private Collection<Position> getValidHits(final Board context) {
+        Collection<Position> possibleMoves = new ArrayList<Position>(2);
+        int increment = isWhite() ? 1 : -1;
+        Position p = getPosition();
+
         // Schlagmöglichkeiten durchprobieren.
         Position[] canHit = new Position[] { 
             p.transpose(-1, increment),
             p.transpose(1, increment)
         };
         for (Position ph : canHit) {
-            if (pn.existsOn(context) && !context.isFree(pn)) {
-                Piece tp = context.pieceAt(pn);
+            if (ph.existsOn(context) && !context.isFree(ph)) {
+                Piece tp = context.pieceAt(ph);
                 if (tp.isWhite() != isWhite())
-                    possibleMoves.add(pn);
+                    possibleMoves.add(ph);
             }
         }
 
+        return possibleMoves;
     }
 
     public int hashCode() {
