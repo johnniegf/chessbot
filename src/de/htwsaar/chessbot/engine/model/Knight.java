@@ -39,13 +39,16 @@ public final class Knight extends Piece {
 
     public final Collection<Position> getValidMoves(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(8);
-        Position pt, p = getPosition();
+        Position p = getPosition();
         for (int d = -2; d <= 2; d += 4) {
             for (int e = -1; e <= 1; e += 2) {
-                pt = p.transpose(d,e);
-                if (pt.existsOn(context)) possibleMoves.add( pt );
-                pt = p.transpose(e,d);
-                if (pt.existsOn(context)) possibleMoves.add( pt );
+                for ( Position pn : new Position[] {p.transpose(d,e), p.transpose(e,d)} )
+                    if (pn.existsOn(context)) 
+                        if (context.isFree(pn) || 
+                            context.pieceAt(pn).isWhite() != isWhite() )
+                        {
+                            possibleMoves.add(pn);
+                        }
             }
         }
         return possibleMoves; 
