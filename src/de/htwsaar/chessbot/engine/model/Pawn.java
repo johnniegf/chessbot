@@ -71,19 +71,19 @@ public final class Pawn extends Piece {
         return "";
     }
 
-    public final String toFEN() {
+    protected final String getFEN() {
         return "P";
     }
 
-    public final boolean canHit(final Position targetPosition,
-                                final Board context)
+    public final boolean attacks(final Position targetPosition,
+                                 final Board context)
     {
-        return getValidHits(context).contains(targetPosition);
+        return getAttacks(context).contains(targetPosition);
     }
 
     public final Collection<Position> getValidMoves(final Board context) {
         List<Position> possibleMoves = new ArrayList<Position>(4);
-        int increment = isWhite() ? 1 : -1;
+        int increment = increment(); 
         Position p = getPosition();
         Position pn;
 
@@ -103,25 +103,40 @@ public final class Pawn extends Piece {
         return possibleMoves;
     }
 
-    private Collection<Position> getValidHits(final Board context) {
+    private Collection<Position> getAttacks(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(2);
-        int increment = isWhite() ? 1 : -1;
-        Position p = getPosition();
-
-        // Schlagmöglichkeiten durchprobieren.
-        Position[] canHit = new Position[] { 
-            p.transpose(-1, increment),
-            p.transpose(1, increment)
+        int increment = increment();
+        Position[] attacks = new Position[] { 
+            getPosition().transpose(-1, increment),
+            getPosition().transpose(1, increment)
         };
-        for (Position ph : canHit) {
-            if (ph.existsOn(context) && !context.isFree(ph)) {
-                Piece tp = context.pieceAt(ph);
-                if (tp.isWhite() != isWhite())
-                    possibleMoves.add(ph);
+        for (Position p : attacks) {
+            if (p.existsOn(context)) {
+                possibleMoves.add(p);
+            }
+        }
+        return possibleMoves;
+
+    }
+
+    private Collection<Position> getValidHits(final Board context) {
+        Collection<Position> canHit = getAttacks(context);
+        
+        Iterator<Position> it = canHit.iterator();
+        while(it.hasNext()) {
+            Position p = it.next();
+            if (context.isFree(p) || 
+                context.pieceAt(p).isWhite() == isWhite()) 
+            {
+                it.remove();
             }
         }
 
-        return possibleMoves;
+        return canHit;
+    }
+
+    private int increment() {
+        return (isWhite() ? 1 : -1);
     }
 
     public int hashCode() {
