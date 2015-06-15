@@ -76,13 +76,30 @@ public final class Pawn extends Piece {
         int increment = isWhite() ? 1 : -1;
         Position p = getPosition();
         Position pn;
-        for (int i = -1; i <= 1; ++i) {
-            pn = p.transpose(i, increment);
-            if (pn.existsOn(context))
-                possibleMoves.add(pn);
+
+        // Zugmöglichkeiten prüfen
+        pn = p.transpose(0,increment);
+        if ( context.isFree(pn) ) {
+            possibleMoves.add(pn);
+            if (!hasMoved()) {
+                pn = p.transpose(0, 2*increment);
+                if (context.isFree(pn))
+                    possibleMoves.add(pn);
+            }
+        }   
+
+        // Schlagmöglichkeiten durchprobieren.
+        Position[] canHit = new Position[] { 
+            p.transpose(-1, increment),
+            p.transpose(1, increment)
+        };
+        for (Position ph : canHit) {
+            if (pn.existsOn(context) && !context.isFree(pn)) {
+                Piece tp = context.pieceAt(pn);
+                if (tp.isWhite() != isWhite())
+                    possibleMoves.add(pn);
+            }
         }
-        if (!hasMoved())
-            possibleMoves.add(p.transpose(0, 2*increment));
 
         return possibleMoves;
     }

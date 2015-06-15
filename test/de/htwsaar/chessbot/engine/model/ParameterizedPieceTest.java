@@ -26,6 +26,7 @@ public class ParameterizedPieceTest {
     private Collection<Position> impossibleMoves;
 
     // Kontrollwerte
+    private static final Board EMPTY_BOARD = new Board();
     @Parameters
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] {
@@ -85,33 +86,33 @@ public class ParameterizedPieceTest {
             },
             {
                 new Pawn(P("a2"),true,false),
-                PList("a3","a4","b3"),
+                PList("a3","a4"),
                 PList("b2","a1","b1")
             }, 
             {
                 new Pawn(P("e5"),true,true),
-                PList("d6","e6","f6"),
+                PList("e6"),
                 PList("e7","e4","d5")
             }, 
             {
                 new Pawn(P("f2"),true,false),
-                PList("e3","f3","g3","f4"),
+                PList("f3","f4"),
                 PList("e2","e4","f1")
             }, 
             {
                 new Pawn(P("d7"),false,false),
-                PList("c6","d6","e6","d5"),
+                PList("d6","d5"),
                 PList("d8","c7","e5")
             }, 
             {
                 new Pawn(P("h7"),false,false),
-                PList("g6","h6","h5"),
+                PList("h6","h5"),
                 PList("h8","i7","g7")
             }, 
             {
                 new Pawn(P("c5"),false,true),
-                PList("b4","c4","d4"),
-                PList("c3","c5","d5") 
+                PList("c4"),
+                PList("b4","c5","c6") 
             },
             {
                 new Rook(P("a1"),true,false),
@@ -170,18 +171,20 @@ public class ParameterizedPieceTest {
             assertTrue(currentPiece.getName() + " auf " + 
                        currentPiece.getPosition().toSAN() +
                        " sollte nach " + p.toSAN() + " ziehen können",
-                       currentPiece.canMoveTo(p, null) );
+                       currentPiece.canMoveTo(p, EMPTY_BOARD) );
         }
         for (Position i : this.impossibleMoves) {
             assertFalse(currentPiece.getName() + " auf " + 
                         currentPiece.getPosition().toSAN() +
                         " sollte nicht nach " + i.toSAN() + " ziehen können",
-                        currentPiece.canMoveTo(i, null) );
+                        currentPiece.canMoveTo(i, EMPTY_BOARD) );
         }
     }
     
     @Test public void testMoveList() {
-        Collection<Position> possibleMoves = currentPiece.getValidMoves(null);
+        Collection<Position> possibleMoves = 
+            currentPiece.getValidMoves(EMPTY_BOARD);
+
         assertEquals("Länge der Zugliste ist falsch!",
                      this.possibleMoves.size(),
                      possibleMoves.size() );
