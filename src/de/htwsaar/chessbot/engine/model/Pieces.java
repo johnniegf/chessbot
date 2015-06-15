@@ -8,6 +8,7 @@ import java.util.ArrayList;
  * Fabrik zur Bereitstellung von Schachfiguren-Objekten.
  *
  * @author David Holzapfel
+ * @author Dominik Becker
  * @version 0.2
  */
 public class Pieces {
@@ -113,22 +114,22 @@ public class Pieces {
             Piece newPrototype;
             switch(pieceType) {
                 case PAWN:
-                    newPrototype = new Pawn(new Position(), false, false);
+                    newPrototype = new Pawn();
                     break;
                 case ROOK:
-                    newPrototype = new Rook(new Position(), false, false);
+                    newPrototype = new Rook();
                     break;
                 case KNIGHT:
-                    newPrototype = new Knight(new Position(), false, false);
+                    newPrototype = new Knight();
                     break;
                 case BISHOP:
-                    newPrototype = new Bishop(new Position(), false, false);
+                    newPrototype = new Bishop();
                     break;
                 case QUEEN:
-                    newPrototype = new Queen(new Position(), false, false);
+                    newPrototype = new Queen();
                     break;
                 case KING:
-                    newPrototype = new King(new Position(), false, false);
+                    newPrototype = new King();
                     break;
             }
             this.prototypes[pieceType] = newPrototype;
