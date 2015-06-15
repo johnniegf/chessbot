@@ -160,8 +160,8 @@ public abstract class Piece {
             && validMoves.contains(targetPosition);
     }
 
-    public boolean canHit(final Position targetPosition,
-                          final Board context)
+    public boolean attacks(final Position targetPosition,
+                           final Board context)
     {
         return canMoveTo(targetPosition, context);
     }
@@ -227,9 +227,20 @@ public abstract class Piece {
     /**
     * Gib das Kürzel der Figur für FEN-Notation aus.
     *
+    * Großschreibung steht für weiße, Kleinschreibung für schwarze Figuren
+    *
     * @return Figurkürzel in FEN-Notation
     */
     public String toFEN() {
+        return (isWhite() ? getFEN().toUpperCase() : getFEN().toLowerCase());
+    }
+
+    /**
+    * Gib den Buchstaben der Figur für FEN-Notation aus.
+    *
+    * @return Buchstabe für die Figur in FEN-Notation
+    */
+    protected String getFEN() {
         return toSAN();
     }
 

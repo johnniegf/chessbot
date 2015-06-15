@@ -10,8 +10,12 @@ import java.util.ArrayList;
 */
 public class Board {
     
+    private static final String WHITE_KING = "K";
+    private static final String BLACK_KING = "k";
+
     private final int width;
     private final int height;
+    private boolean whiteMoving;
     private Piece[][] pieces;
 
     /**
@@ -22,6 +26,11 @@ public class Board {
     }
 
     public Board(int width, int height) {
+        this(width, height, true);
+    }
+
+    public Board(int width, int height, boolean whiteMoving) {
+        this.whiteMoving = whiteMoving;
         this.width  = width;
         this.height = height;
         this.pieces = new Piece[width][height];
@@ -59,6 +68,10 @@ public class Board {
     }
 
     public boolean isAttacked(Position p, boolean byWhite) {
+        for (Piece pc : getPieces()) {
+            if (pc.isWhite() == byWhite && pc.attacks(p, this))
+                return true;
+        }
         return false;
     }
 
@@ -72,6 +85,33 @@ public class Board {
 
     public int getHeight() {
         return height;
+    }
+
+    public void togglePlayer() {
+        whiteMoving = !whiteMoving;
+    }
+
+    public boolean inCheck(boolean whitePlayer) {
+        String kingToSeek = (whitePlayer ? WHITE_KING : BLACK_KING);
+        Collection<Piece> kings = getPiecesByName(kingToSeek);
+        for (Piece k : kings) {
+            if (isAttacked(k.getPosition(), !whitePlayer))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isValid() {
+        return !inCheck(!whiteMoving);
+    }
+
+    public Collection<Piece> getPiecesByName(String fenName) {
+        Collection<Piece> result = new ArrayList<Piece>();
+        for (Piece p : getPieces()) {
+            if (p.toFEN().equals(fenName))
+                result.add(p);
+        }
+        return result;
     }
 
     public Piece pieceAt(Position at) {
