@@ -26,7 +26,7 @@ public class PieceTest {
     Piece currentPrototype;
     
     // Kontrollwerte
-    private static final Board TEST_BOARD = null;
+    private static final Board TEST_BOARD = new Board();
     private static final Position[] TEST_POSITIONS = {
         P("c3"), P("a1"), P("i2"), P("h12")
     };
