@@ -58,7 +58,7 @@ public final class Knight extends Piece {
         return "Springer";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "N";
     }
     

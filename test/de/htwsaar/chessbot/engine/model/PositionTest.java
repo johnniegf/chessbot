@@ -1,13 +1,16 @@
 package de.htwsaar.chessbot.engine.model;
 
+// Interne Referenzen
 import static de.htwsaar.chessbot.engine.model.Position.*;
 
+// Java-API
 import java.util.*;
 
 // JUnit-Pakete
-import org.junit.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
+import org.junit.*;
 
 /**
 * Testklasse für ...

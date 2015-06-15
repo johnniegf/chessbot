@@ -5,8 +5,10 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 // JUnit-Pakete
-import org.junit.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;

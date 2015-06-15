@@ -74,10 +74,10 @@ public final class Rook extends Piece {
         return "Turm";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "R";
     }
-
+    
     public final Rook clone() {
         return new Rook(getPosition().clone(), isWhite(), hasMoved());
     }

@@ -64,7 +64,7 @@ public final class Bishop extends Piece {
         return "Läufer";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "B";
     }
 
