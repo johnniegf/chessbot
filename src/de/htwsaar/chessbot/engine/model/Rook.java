@@ -47,12 +47,24 @@ public final class Rook extends Piece {
         Collection<Position> possibleMoves = new ArrayList<Position>(14);
         Position p = getPosition();
         
-        for (int i = 1; i <= 8; i++) {  
-            if (i != getPosition().getColumn()) {
-                possibleMoves.add(p.setColumn(i));
-            }
-            if (i != getPosition().getRow()) {
-                possibleMoves.add( p.setRow(i) );
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == j || i == -j) continue;
+                int c = 1;
+                p = getPosition().transpose(c*i, c*j);
+                while(p.existsOn(context)) 
+                {
+                    if (context.isFree(p))
+                       possibleMoves.add(p);
+                    else if (context.pieceAt(p).isWhite() != isWhite()) {
+                        possibleMoves.add(p);
+                        break;
+                    } else {
+                        break;
+                    }
+                    c += 1;
+                    p = getPosition().transpose(c*i, c*j);
+               } 
             }
         }
         return possibleMoves;
