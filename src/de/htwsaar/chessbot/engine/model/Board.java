@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import de.htwsaar.chessbot.engine.exception.*;
 
 /**
-* Repraesentation des SpielBrettes
+*   Repraesentation des SpielBrettes
 *
-* @author   Timo Klein
-* @author   Henning Walte
+*   @author Timo Klein
+*   @author Henning Walte
 */
 public class Board
-    
 {
     
     private final int width;
@@ -19,12 +18,18 @@ public class Board
     private Piece[][] pieces;
 
     /**
-    * Standardkonstruktor.
+    *   Standardkonstruktor.
     */ 
     public Board() {   
         this(8,8);
     }
-
+    
+    /**
+    *   Konstruktor um Boardobjekt mit Feldgroesse zu erstellen 
+    *
+    *   @param width    Spielfeldbreite
+    *   @param height   Spielfeldhoehe
+    */
     public Board(int width, int height) {
         this.width  = width;
         this.height = height;
@@ -137,7 +142,13 @@ public class Board
         }
         return result;
     }
-
+    
+    /**
+    *   Gibt die Anzahl der Figuren die sich derzeit auf dem Spielbrett
+    *   befinden zurueck
+    *
+    *   @return Anzahl der Spielfiguren
+    */
     public int getPieceCount() {
         return getPieces().size();
     }
@@ -146,7 +157,8 @@ public class Board
     *   Gibt eine Spielfigur die sich auf dem Spielbrett befindet zurueck
     *   
     *   @param seek zu suchende Spielfigur
-    *   @return Spielfigur wenn sie sich auf dem Spielbrett befindet
+    *   @return Spielfigur wenn sie sich auf dem Spielbrett befindet, 
+    *           ansonsten null
     */
     public Piece getPiece(Piece seek) {
         for (Piece p : getPieces()) {
@@ -160,7 +172,7 @@ public class Board
     *   Vergleich zweier Objekte
     *
     *   @param other    zu ueberpruefende Objekt
-    *   @return true falls Objekt gleich, false wenn nicht
+    *   @return true falls Objekt gleich, ansonsten false
     */
     public boolean equals(final Object other) {
         if (other == null)
@@ -185,11 +197,12 @@ public class Board
         } catch (ClassCastException cce) {
             return false;
         }
-
     }
     
     /**
-    *   Prüft ob Brett leer ist
+    *   Prüft ob Spielbrett leer ist
+    *
+    *   @return true falls 
     */
     public boolean isEmpty() {
         return getPieceCount() == 0;
@@ -208,8 +221,10 @@ public class Board
     }
     
     /**
-    *   
+    *   Loescht eine Spielfigur vom Spielbrett 
     *
+    *   @param piece    Spielfigur die geloescht werden soll
+    *   @return true wenn Figur geloescht wurde, ansonsten false
     */
     public boolean removePiece(Piece piece) {
         if (getPiece(piece) == null)
