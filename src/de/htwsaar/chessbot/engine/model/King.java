@@ -103,7 +103,7 @@ public final class King extends Piece {
         return "König";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "K";
     }
 

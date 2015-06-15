@@ -67,8 +67,18 @@ public final class Pawn extends Piece {
         return "Bauer";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "";
+    }
+
+    public final String toFEN() {
+        return "P";
+    }
+
+    public final boolean canHit(final Position targetPosition,
+                                final Board context)
+    {
+        return getValidHits(context).contains(targetPosition);
     }
 
     public final Collection<Position> getValidMoves(final Board context) {
@@ -88,6 +98,12 @@ public final class Pawn extends Piece {
             }
         }   
 
+        possibleMoves.add(getValidHits(context));
+
+        return possibleMoves;
+    }
+
+    private Collection getValidHits(final Board context) {
         // Schlagmöglichkeiten durchprobieren.
         Position[] canHit = new Position[] { 
             p.transpose(-1, increment),
@@ -101,7 +117,6 @@ public final class Pawn extends Piece {
             }
         }
 
-        return possibleMoves;
     }
 
     public int hashCode() {

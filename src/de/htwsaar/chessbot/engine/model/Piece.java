@@ -160,6 +160,12 @@ public abstract class Piece {
             && validMoves.contains(targetPosition);
     }
 
+    public boolean canHit(final Position targetPosition,
+                          final Board context)
+    {
+        return canMoveTo(targetPosition, context);
+    }
+
     /**
     * Erzeuge einen Hashwert aus dieser Figur.
     *
@@ -216,7 +222,16 @@ public abstract class Piece {
     *
     * @return Figurkürzel in algebraischer Notation
     */
-    public abstract String getShortName();
+    public abstract String toSAN();
+
+    /**
+    * Gib das Kürzel der Figur für FEN-Notation aus.
+    *
+    * @return Figurkürzel in FEN-Notation
+    */
+    public String toFEN() {
+        return toSAN();
+    }
 
     /**
     * Gib eine Beschreibung der Figur aus.
