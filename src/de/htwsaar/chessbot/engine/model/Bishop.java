@@ -42,8 +42,16 @@ public final class Bishop extends Piece {
             for (int j = -1; j <= 1; j += 2) {
                 int c = 1;
                 p = getPosition().transpose(c*i, c*j);
-                while(p.existsOn(context)) {
-                    result.add(p);
+                while(p.existsOn(context)) 
+                {
+                    if (context.isFree(p))
+                       result.add(p);
+                    else if (context.pieceAt(p).isWhite() != isWhite()) {
+                        result.add(p);
+                        break;
+                    } else {
+                        break;
+                    }
                     c += 1;
                     p = getPosition().transpose(c*i, c*j);
                } 
