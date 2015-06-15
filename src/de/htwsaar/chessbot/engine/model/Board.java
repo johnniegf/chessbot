@@ -32,6 +32,32 @@ public class Board {
         }
     }
 
+    public boolean addPiece(Piece newPiece) {
+        if (newPiece == null)
+            return false;
+
+        Position p = newPiece.getPosition();
+        if (!p.existsOn(this) || !isFree(p))
+            return false;
+       
+        int x = p.getRow() - 1;
+        int y = p.getColumn() - 1;
+
+        pieces[x][y] = newPiece;
+        return true;
+    }
+
+    public boolean removePiece(Piece delPiece) {
+        Piece p = getPiece(delPiece);
+        if (p == null)
+            return false;
+
+        int x = p.getPosition().getRow() - 1;
+        int y = p.getPosition().getColumn() - 1;
+        pieces[x][y] = null;
+        return true;
+    }
+
     public boolean isAttacked(Position p, boolean byWhite) {
         return false;
     }
@@ -49,8 +75,13 @@ public class Board {
     }
 
     public Piece pieceAt(Position at) {
-        
-        return null;
+        if (at == null || !at.existsOn(this))
+            return null;
+
+        int x = at.getRow() - 1;
+        int y = at.getColumn() - 1;
+
+        return pieces[x][y];
     }
 
     public Collection<Piece> getPieces() {
@@ -72,6 +103,14 @@ public class Board {
         return null;
     }
 
+    public Board clone() {
+        Board cloned = new Board(width, height);
+        for (Piece p : getPieces()) {
+            cloned.addPiece(p.clone());
+        }
+        return cloned;
+    }
+
     public boolean equals(final Object other) {
         if (other == null)
             return false;
@@ -82,7 +121,7 @@ public class Board {
             Board b = (Board) other;
             Position p;
             Piece op;
-            if (getPieces().size() != b.getPieces().size())
+            if (pieceCount() != b.pieceCount())
                 return false;
 
             for (Piece mp : getPieces()) {
@@ -98,6 +137,10 @@ public class Board {
 
     }
 
+    public int pieceCount() {
+        return getPieces().size();
+    }
+
     /**
     * Stringkonversion.
     *
@@ -105,6 +148,9 @@ public class Board {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("[").append(width).append("x").append(height).append("]");
+        for (Piece p : getPieces())
+            sb.append(p).append(", ");
 
         return sb.toString();
     }

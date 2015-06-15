@@ -55,8 +55,39 @@ public class Move {
     public boolean isPossible(Board context) {
         if (isNull())
             return false;
+        if (context.getPiece(piece) == null)
+            return false;
 
         return piece.canMoveTo(targetPosition, context);
+    }
+
+    public Board execute(Board onBoard) {
+        if ( !isPossible(onBoard) )
+            return null;
+
+        Board target = onBoard.clone();
+
+        target.removePiece(piece);
+        if (!target.isFree(targetPosition))
+            target.removePiece(target.pieceAt(targetPosition));
+
+        Piece movedPiece = piece.clone();
+        movedPiece.setPosition(targetPosition);
+        target.addPiece(movedPiece);
+        return target;
+    }
+
+    public boolean equals(final Object other) {
+        if (other == null) return false;
+        if (other == this) return true;
+
+        try {
+            Move om = (Move) other;
+            return om.getPiece().equals(getPiece())
+                && om.getTarget().equals(getTarget());
+        } catch (ClassCastException cce) {
+            return false;
+        }
     }
 
     public String toString() {
@@ -77,9 +108,9 @@ public class Move {
         if (isNull()) {
             sb.append("0000");
         } else {
-            sb.append(piece.getShortName())
-              .append(piece.getPosition())
-              .append(targetPosition);
+            sb.append(piece.toSAN())
+              .append(piece.getPosition().toSAN())
+              .append(targetPosition.toSAN());
         }
         return sb.toString();
     }
