@@ -1,29 +1,25 @@
-package de.htwsaar.chessbot.
-
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
-%PKGNAME;
+package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
-        import static de.htwsaar.chessbot.engine.model.Position.*;
+import static de.htwsaar.chessbot.engine.model.Position.*;
 
 // Java-API
-        import java.util.*;
+import java.util.*;
 
 // JUnit-API
-        import static org.hamcrest.Matchers.*;
-        import static org.junit.Assume.*;
-        import static org.junit.Assert.*;
-        import org.junit.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assume.*;
+import static org.junit.Assert.*;
+import org.junit.*;
 
-// Klassen für parametrierte Tests
+// Klassen fÃ¼r parametrierte Tests
 import org.junit.Test;
 import org.junit.runners.Parameterized;
-        import org.junit.runners.Parameterized.Parameters;
-        import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized.Parameters;
+import org.junit.runner.RunWith;
 
 /**
- * Testklasse für die Figurenfabrik.
+ * Testklasse fÃ¼r die Figurenfabrik.
  *
  * @author David Holzapfel
  * @author Dominik Becker
@@ -39,12 +35,12 @@ public class PiecesTest {
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][]{
                 {
-                        Pieces.getPiece(Pieces.PAWN, P("c2"), true, false),
+                        Pieces.getInstance().getPiece(Pieces.PAWN, P("c2"), true, false),
                         new Pawn(P("c2"), true, false)
 
                 },
                 {
-                        Pieces.getPiece(Pieces.ROOK, P("a1"), true, false),
+                        Pieces.getInstance().getPiece(Pieces.ROOK, P("a1"), true, false),
                         new Rook(P("a1"), true, false)
 
                 }
@@ -62,25 +58,25 @@ public class PiecesTest {
         this.expected = expected;
     }
 
-/* FIXTURES FÜR DIESEN TESTFALL */
+/* FIXTURES FÃœR DIESEN TESTFALL */
 
 // ====================================================
 // = Ausnahmetests
 // ====================================================
 
-    @Test(expected = InvalidArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testPieceTypeTooLow() {
-        Pieces.getPiece(-2, P("c1"), false, false);
+        Pieces.getInstance().getPiece(-2, P("c1"), false, false);
     }
 
-    @Test(expected = InvalidArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testPieceTypeTooHigh() {
-        Pieces.getPiece(6, P("d3"), false, false);
+        Pieces.getInstance().getPiece(6, P("d3"), false, false);
     }
 
-    @Test(expected = InvalidArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testPositionNull() {
-        Pieces.getPiece(3, null, false, false);
+        Pieces.getInstance().getPiece(3, null, false, false);
     }
 
 // ====================================================
@@ -94,7 +90,7 @@ public class PiecesTest {
 
     @Test
     public void testPiecesSameReference() {
-        Piece existingPiece = Pieces.getPiece(getPieceTypeFromName(actual.getName()), actual.getPosition,
+        Piece existingPiece = Pieces.getInstance().getPiece(getPieceTypeFromName(actual.getName()), actual.getPosition(),
                 actual.isWhite(), actual.hasMoved());
         assert(existingPiece == actual);
     }
@@ -104,9 +100,10 @@ public class PiecesTest {
             case "Bauer":   return Pieces.PAWN;
             case "Turm":    return Pieces.ROOK;
             case "Springer":return Pieces.KNIGHT;
-            case "Läufer":  return Pieces.BISHOP;
+            case "LÃ¤ufer":  return Pieces.BISHOP;
             case "Dame":    return Pieces.QUEEN;
-            case "König":   return Pieces.KING;
+            case "KÃ¶nig":   return Pieces.KING;
+            default: return -42;
         }
     }
 

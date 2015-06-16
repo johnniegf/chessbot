@@ -1,6 +1,4 @@
-package src.de.htwsaar.chessbot.engine.model;
-
-import com.sun.javaws.exceptions.InvalidArgumentException;
+package de.htwsaar.chessbot.engine.model;
 
 import java.util.ArrayList;
 
@@ -19,7 +17,7 @@ public class Pieces {
     private static final String ERR_INVALID_POSITION =
             "Fehler: Position ist 'null'";
 
-    //Konstanten für jeden der 6 Figurentypen
+    //Konstanten fÃ¼r jeden der 6 Figurentypen
     public static final int PAWN = 0;
     public static final int ROOK = 1;
     public static final int KNIGHT = 2;
@@ -30,7 +28,7 @@ public class Pieces {
     //Klasseninstanz
     private static Pieces INSTANCE;
 
-    //Array, das einen Prototypen jedes Figurentyps enthält
+    //Array, das einen Prototypen jedes Figurentyps enthÃ¤lt
     private Piece[] prototypes;
     //Liste mit allen bisher erstellten Figurenobjekten
     private ArrayList<Piece> existingPieces;
@@ -53,7 +51,7 @@ public class Pieces {
     }
 
     /**
-     * Prüft, ob ein Exemplar einer Schachfigur existiert und erstellt bei
+     * PrÃ¼ft, ob ein Exemplar einer Schachfigur existiert und erstellt bei
      * Bedarf ein neues Objekt.
      *
      * @param pieceType Figurentyp
@@ -63,34 +61,34 @@ public class Pieces {
      * @return  Ein Figurenobjekt mit den angegebenen Parametern
      */
     public Piece getPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws InvalidArgumentException {
+        throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
         if(position == null) {
-            throw new InvalidArgumentException(ERR_INVALID_POSITION);
+            throw new IllegalArgumentException(ERR_INVALID_POSITION);
         }
 
         Piece piece = getExistingPiece(pieceType, position, isWhite, hasMoved);
         if(piece == null) {
             piece = this.getPrototypeCopy(pieceType);
             piece.setPosition(position);
-            piece.setIsWhite(isWhite);
+            piece.setColor(isWhite);
             piece.setHasMoved(hasMoved);
             this.existingPieces.add(piece);
         }
         return piece;
     }
 
-    //Prüft, ob ein Figurenobjekt bereits existiert. Ist das der Fall wird es zurückgegeben, wenn nicht wird
-    //null zurückgegeben.
+    //PrÃ¼ft, ob ein Figurenobjekt bereits existiert. Ist das der Fall wird es zurÃ¼ckgegeben, wenn nicht wird
+    //null zurÃ¼ckgegeben.
     private Piece getExistingPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws InvalidArgumentException {
+        throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
         if(position == null) {
-            throw new InvalidArgumentException(ERR_INVALID_POSITION);
+            throw new IllegalArgumentException(ERR_INVALID_POSITION);
         }
 
         Piece foundPiece = null;
@@ -105,9 +103,9 @@ public class Pieces {
     }
 
     //Erzeugt eine Kopie des Prototypen von einem bestimmten Figurentyp
-    private Piece getPrototypeCopy(int pieceType) throws InvalidArgumentException {
+    private Piece getPrototypeCopy(int pieceType) throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
 
         if(this.prototypes[pieceType] == null) {
@@ -131,6 +129,8 @@ public class Pieces {
                 case KING:
                     newPrototype = new King();
                     break;
+                default:
+                    return null;
             }
             this.prototypes[pieceType] = newPrototype;
         }
