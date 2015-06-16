@@ -1,6 +1,12 @@
-package de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import java.util.*;
+import de.htwsaar.chessbot.engine.model.Piece;
+import de.htwsaar.chessbot.engine.model.Position;
+import de.htwsaar.chessbot.engine.model.Board;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
 * Der Bauer.
@@ -82,7 +88,7 @@ public final class Pawn extends Piece {
     }
 
     public final Collection<Position> getValidMoves(final Board context) {
-        List<Position> possibleMoves = new ArrayList<Position>(4);
+        Collection<Position> possibleMoves = new ArrayList<Position>(4);
         int increment = increment(); 
         Position p = getPosition();
         Position pn;

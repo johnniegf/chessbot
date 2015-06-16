@@ -5,6 +5,7 @@ CP="$(which cp)"
 tplDir="templates"
 classTemplate="$tplDir/Class.java"
 interfaceTemplate="$tplDir/Interface.java"
+exceptionTemplate="$tplDir/Exception.java"
 testTemplate="$tplDir/Test.java"
 parameterizedTemplate="$tplDir/Parameterized.java"
 
@@ -15,6 +16,7 @@ printUsage() {
     echo "Aufruf: $0 <Typ> <Paketname> <Dateiname>"
     echo "Verfügbare Typen:"
     echo "    class       -- Erstellt eine neue Klasse"
+    echo "    exception   -- Erstellt eine neue Ausnahmeklasse"
     echo "    interface   -- Erstellt eine neue Schnittstelle"
     echo "    test        -- Erstellt einen neuen Test"
     echo "    testp       -- Erstellt einen neuen parametrierten Test"
@@ -32,6 +34,11 @@ targetPath=""
 case "$operation" in
     "class")
         tplFile="$classTemplate"
+        targetPath="$src_path/$pkgPath"
+        targetFile="$targetPath/${className}.java"
+    ;;
+    "exception")
+        tplFile="$exceptionTemplate"
         targetPath="$src_path/$pkgPath"
         targetFile="$targetPath/${className}.java"
     ;;
@@ -62,6 +69,19 @@ then
     mkdir -p "$targetPath"
 fi
 
+if [ -f "$targetFile" ]
+then
+    read -n1 -p"Datei $targetFile existiert bereits. Überschreiben? (j/N) " answer
+    echo
+    case "$answer" in
+        [jJyY])
+        ;;
+        *)
+            echo "Abbruch."
+            exit 1
+        ;;
+    esac
+fi
 echo "Kopiere Vorlage \'$tplFile\' nach \'$targetFile\'"
 "$CP" "$tplFile" "$targetFile"
 

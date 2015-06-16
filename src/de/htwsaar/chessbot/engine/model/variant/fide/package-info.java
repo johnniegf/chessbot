@@ -1,5 +1,5 @@
 /**
-* Standardschach nach FIDE-Regeln.
+* Schach nach FIDE-Regeln.
 *
 * @author Kevin Alberts
 * @author Dominik Becker
@@ -8,4 +8,5 @@
 * @author Timo Klein
 * @author Henning Walte
 */
-package de.htwsaar.chessbot.engine.model.variant.fide;
+package de.htwsaar.chessbot.engine.model.variant;
+

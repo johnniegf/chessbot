@@ -1,4 +1,8 @@
-package de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.model.variant.fide;
+
+import de.htwsaar.chessbot.engine.model.Piece;
+import de.htwsaar.chessbot.engine.model.Position;
+import de.htwsaar.chessbot.engine.model.Board;
 
 import java.util.Collection;
 import java.util.ArrayList;

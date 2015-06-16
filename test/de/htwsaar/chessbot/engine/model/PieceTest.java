@@ -2,6 +2,7 @@ package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
 import static de.htwsaar.chessbot.engine.model.Position.P;
+import de.htwsaar.chessbot.engine.model.variant.fide.*;
 
 // Java-API
 import java.util.*;

@@ -1,6 +1,8 @@
-package de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.model.variant.fide;
 
 import static de.htwsaar.chessbot.engine.model.Position.*;
+import de.htwsaar.chessbot.engine.model.*;
+
 import java.util.*;
 import static java.util.Arrays.asList;
 
@@ -20,7 +22,7 @@ import org.junit.runners.Parameterized.Parameters;
 */
 
 @RunWith(Parameterized.class)
-public class ParameterizedPieceTest { 
+public class FidePiecesTest { 
 
     // Testvariablen
     private Piece currentPiece;
@@ -162,7 +164,7 @@ public class ParameterizedPieceTest {
     *
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
-    public ParameterizedPieceTest(
+    public FidePiecesTest(
         Piece currentPiece, 
         Collection<Position> possible, 
         Collection<Position> impossible,
