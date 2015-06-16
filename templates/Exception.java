@@ -1,4 +1,4 @@
-package de.htwsaar.engine.%PKGNAME;
+package de.htwsaar.chessbot.%PKGNAME;
 
 public class %CLASSNAME extends RuntimeException {
 

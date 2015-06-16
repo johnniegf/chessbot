@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 *
 * @author
 */
-public class %CLASSNAMETest { 
+public class %CLASSNAME { 
 
     // Testvariablen
 
