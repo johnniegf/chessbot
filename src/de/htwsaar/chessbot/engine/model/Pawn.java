@@ -83,7 +83,7 @@ public final class Pawn extends Piece {
 
     public final Collection<Position> getValidMoves(final Board context) {
         List<Position> possibleMoves = new ArrayList<Position>(4);
-        int increment = increment(); 
+        int increment = increment();
         Position p = getPosition();
         Position pn;
 

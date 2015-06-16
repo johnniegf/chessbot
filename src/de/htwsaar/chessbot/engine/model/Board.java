@@ -2,128 +2,132 @@ package de.htwsaar.chessbot.engine.model;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import de.htwsaar.chessbot.engine.exception.*;
 
 /**
-* Beschreibung.
+* Repraesentation des SpielBrettes
 *
-* @author
+* @author   Timo Klein
+* @author   Henning Walte
 */
-public class Board {
+public class Board
     
-    private static final String WHITE_KING = "K";
-    private static final String BLACK_KING = "k";
-
+{
+    
     private final int width;
     private final int height;
-    private boolean whiteMoving;
     private Piece[][] pieces;
 
     /**
     * Standardkonstruktor.
     */ 
-    public Board() {
+    public Board() {   
         this(8,8);
     }
 
     public Board(int width, int height) {
-        this(width, height, true);
-    }
-
-    public Board(int width, int height, boolean whiteMoving) {
-        this.whiteMoving = whiteMoving;
         this.width  = width;
         this.height = height;
         this.pieces = new Piece[width][height];
+        
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 pieces[x][y] = null;
             }
         }
     }
-
-    public boolean addPiece(Piece newPiece) {
-        if (newPiece == null)
+   
+    /**
+    *   Fuegt Spielfigur auf dem Spielbrett hinzu
+    *
+    *   @param piece    Spielfigur die auf dem Spielbrett 
+    *                   hinzugefuegt werden soll
+    */
+    public boolean addPiece(Piece piece) {
+        if ( piece == null)
             return false;
 
-        Position p = newPiece.getPosition();
-        if (!p.existsOn(this) || !isFree(p))
+        Position p = piece.getPosition();
+        if ( !p.existsOn(this) )
             return false;
-       
-        int x = p.getRow() - 1;
-        int y = p.getColumn() - 1;
-
-        pieces[x][y] = newPiece;
+        if ( !isFree(p) )
+            return false;
+        
+        int x = p.getColumn() -1;
+        int y = p.getRow() -1;
+    
+        pieces[x][y] = piece;
         return true;
     }
-
-    public boolean removePiece(Piece delPiece) {
-        Piece p = getPiece(delPiece);
-        if (p == null)
-            return false;
-
-        int x = p.getPosition().getRow() - 1;
-        int y = p.getPosition().getColumn() - 1;
-        pieces[x][y] = null;
-        return true;
-    }
-
+    
+    /**
+    *   Ist das Feld bedroht
+    *   
+    *   @param p        Feldposition die Ueberprueft werden soll
+    *   @param byWhite  
+    *   @return true falls Feld bedroht, false wenn nicht
+    */
     public boolean isAttacked(Position p, boolean byWhite) {
-        for (Piece pc : getPieces()) {
-            if (pc.isWhite() == byWhite && pc.attacks(p, this))
+        for (Piece piece : getPieces()) {
+            if (piece.isWhite() == byWhite && piece.attacks(p, this)) {
                 return true;
+            }
         }
         return false;
     }
-
+    
+    /**
+    *   Ist das Feld an der Position frei
+    *
+    *   @param p    Position die geprueft werden soll
+    *   @return true wenn Feld frei ist, false wenn Feld besetzt ist
+    */
     public boolean isFree(Position p) {
+        if (p == null)
+            throw new NullPointerException("Position ist null"); 
+
         return pieceAt(p) == null;
     }
-
+    
+    /**
+    *   Breite vom Spielbrett
+    *
+    *   @return Gibt die Breite des Spielbrettes zurueck
+    */
     public int getWidth() {
         return width;
     }
-
+    
+    /**
+    *   Hoehe vom Spielbrett
+    *
+    *   @return Gibt die Hoehe vom Spielbrett zurueck
+    */
     public int getHeight() {
         return height;
     }
-
-    public void togglePlayer() {
-        whiteMoving = !whiteMoving;
-    }
-
-    public boolean inCheck(boolean whitePlayer) {
-        String kingToSeek = (whitePlayer ? WHITE_KING : BLACK_KING);
-        Collection<Piece> kings = getPiecesByName(kingToSeek);
-        for (Piece k : kings) {
-            if (isAttacked(k.getPosition(), !whitePlayer))
-                return true;
-        }
-        return false;
-    }
-
-    public boolean isValid() {
-        return !inCheck(!whiteMoving);
-    }
-
-    public Collection<Piece> getPiecesByName(String fenName) {
-        Collection<Piece> result = new ArrayList<Piece>();
-        for (Piece p : getPieces()) {
-            if (p.toFEN().equals(fenName))
-                result.add(p);
-        }
-        return result;
-    }
-
+    
+    /**
+    *   Spielfigur an einer bestimmten Position
+    *
+    *   @param at   
+    *   @return Spielfigur an der mitgegeben Position
+    */
     public Piece pieceAt(Position at) {
-        if (at == null || !at.existsOn(this))
+        if (at == null || !at.existsOn(this)) 
             return null;
 
-        int x = at.getRow() - 1;
-        int y = at.getColumn() - 1;
-
+        int x = at.getColumn() -1;
+        int y = at.getRow() -1;
+        
         return pieces[x][y];
     }
-
+    
+    /**
+    *   Eine Sammlung von Spielfiguren die sich derzeit auf dem Spielbrett befinden
+    *   
+    *   @return Sammlung von Spielfiguren die auf dem Spielbrett sind
+    */
     public Collection<Piece> getPieces() {
         Collection<Piece> result = new ArrayList<Piece>();
         for (Piece[] col : pieces) {
@@ -132,9 +136,18 @@ public class Board {
                     result.add(p);
         }
         return result;
-        
     }
 
+    public int getPieceCount() {
+        return getPieces().size();
+    }
+    
+    /**
+    *   Gibt eine Spielfigur die sich auf dem Spielbrett befindet zurueck
+    *   
+    *   @param seek zu suchende Spielfigur
+    *   @return Spielfigur wenn sie sich auf dem Spielbrett befindet
+    */
     public Piece getPiece(Piece seek) {
         for (Piece p : getPieces()) {
             if (p.equals(seek))
@@ -142,15 +155,14 @@ public class Board {
         }
         return null;
     }
-
-    public Board clone() {
-        Board cloned = new Board(width, height);
-        for (Piece p : getPieces()) {
-            cloned.addPiece(p.clone());
-        }
-        return cloned;
-    }
-
+    
+    /**
+    *   Vergleich zweier Objekte
+    *
+    *   @param other    zu ueberpruefende Objekt
+    *   @return true falls Objekt gleich, false wenn nicht
+    */
+    
     public boolean equals(final Object other) {
         if (other == null)
             return false;
@@ -161,7 +173,7 @@ public class Board {
             Board b = (Board) other;
             Position p;
             Piece op;
-            if (pieceCount() != b.pieceCount())
+            if (getPieces().size() != b.getPieces().size())
                 return false;
 
             for (Piece mp : getPieces()) {
@@ -176,9 +188,40 @@ public class Board {
         }
 
     }
+    
+    /**
+    *   Prüft ob Brett leer ist
+    */
+    public boolean isEmpty() {
+        return getPieceCount() == 0;
+    }
+    
+    /**
+    *   Gibt eine Kopie vom Spielbrett zurueck
+    *   
+    *   @return tiefe Kopie des Board-Objektes
+    */
+    public Board clone() {
+        Board cloned = new Board(this.getWidth(),this.getHeight());
+        for (Piece p : getPieces())
+            cloned.addPiece(p.clone());
+        return cloned;
+    }
+    
+    /**
+    *   
+    *
+    */
+    public boolean removePiece(Piece piece) {
+        if (getPiece(piece) == null)
+            return false;
 
-    public int pieceCount() {
-        return getPieces().size();
+        int x = piece.getPosition().getColumn() -1;
+        int y = piece.getPosition().getRow() -1;
+    
+        pieces[x][y] = null;
+
+        return true;
     }
 
     /**
@@ -188,10 +231,20 @@ public class Board {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[").append(width).append("x").append(height).append("]");
+        sb.append("[").append(width).append("x").append(height).append("] ");
         for (Piece p : getPieces())
             sb.append(p).append(", ");
-
         return sb.toString();
+    }
+    
+    /**
+    *   Hilfmethode zur Ueberpruefung von Parameter
+    *
+    *   @param condition    Algebrahischer Ausdruck
+    *   @param exn_message  Exceptionmeldung die ausgegeben werden soll
+    */
+    private void checkParam(boolean condition, String exn_message) {
+        if (!condition)
+            throw new BoardException(exn_message);
     }
 }
