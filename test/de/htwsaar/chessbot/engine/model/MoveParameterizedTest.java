@@ -105,7 +105,7 @@ public class MoveParameterizedTest {
     // ====================================================
 
     @Test public void testIsMovePossible() {
-        assumeThat(board.pieceCount(), is(1));
+        assumeThat(board.getPieceCount(), is(1));
         assertEquals("Zug " + currentMove + " sollte möglich sein",
                      isPossible,
                      currentMove.isPossible(board));
@@ -117,7 +117,7 @@ public class MoveParameterizedTest {
     }
 
     @Test public void testConstructionFromBoard() {
-        assumeThat(board.pieceCount(), is(1));
+        assumeThat(board.getPieceCount(), is(1));
         Move move = new Move(board, 
                              expectedPiece.getPosition(),
                              expectedPosition);
