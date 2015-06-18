@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.*;
-import de.htwsaar.chessbot.engine.exception.BoardException;
+import de.htwsaar.chessbot.engine.model.*;
+import de.htwsaar.chessbot.engine.model.variant.fide.*;
+
 
 // JAVA-Util Packete
 import java.util.Arrays;

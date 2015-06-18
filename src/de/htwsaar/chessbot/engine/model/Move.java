@@ -45,6 +45,22 @@ public class Move {
         this.targetPosition = toPosition;
     }
 
+    public Move(final Board context,
+                final String sanMove)
+    {
+        if (!sanMove.matches(REGEX_SAN_MOVE))
+            throw new SanStringParseException();
+
+        String[] fields = sanMove.replaceAll(POS_REGEX, " $1 ")
+                                 .replaceAll("  ", " ")
+                                 .split(" ");
+        for (String f : fields) {
+            System.out.println("In Move(Board,String): " + f);
+        }
+        this.piece = extractPiece(context, fields[0], fields[1]);
+        this.targetPosition = extractTargetPosition(context, fields[2]);
+    }
+
     /**
     * Gib das Zielfeld zurück.
     *
@@ -128,6 +144,7 @@ public class Move {
 
         Piece movedPiece = piece.clone();
         movedPiece.setPosition(targetPosition);
+        movedPiece.setHasMoved(true);
         target.addPiece(movedPiece);
         return target;
     }
@@ -182,4 +199,31 @@ public class Move {
         }
         return sb.toString();
     }
+
+    private static Piece extractPiece(final Board context, 
+                                      final String pieceSAN,
+                                      final String posSAN) 
+    {
+        Position p = Position.P(posSAN);
+        Piece pc = context.pieceAt(p);
+        if (pc == null)
+            throw new InvalidMoveException();
+        if (pc.toSAN() != pieceSAN);
+
+        return pc;
+    }
+
+    private static Position extractTargetPosition(final Board context,
+                                                  final String posSAN)
+    {
+        return Position.P(posSAN);
+
+    }
+
+
+
+    private static final String POS_REGEX = 
+        "([a-z][1-9][0-9]?)";
+    private static final String REGEX_SAN_MOVE = 
+        "[A-Z]?[a-z][1-9][0-9]?[a-z][1-9][0-9]?[A-Z]?";
 }

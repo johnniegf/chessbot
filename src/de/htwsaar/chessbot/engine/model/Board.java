@@ -3,6 +3,7 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.Collection;
 import java.util.ArrayList;
 import de.htwsaar.chessbot.engine.exception.*;
+import static de.htwsaar.chessbot.engine.model.Position.*;
 
 /**
 *   Repraesentation des SpielBrettes
@@ -12,16 +13,21 @@ import de.htwsaar.chessbot.engine.exception.*;
 */
 public class Board
 {
-    
     private final int width;
     private final int height;
+    private boolean whiteMoving;
     private Piece[][] pieces;
 
     /**
     *   Standardkonstruktor.
     */ 
     public Board() {   
-        this(8,8);
+        this(8, 8);
+    }
+    
+
+    public Board(final int width, final int height) {
+        this(width, height, false);
     }
     
     /**
@@ -30,9 +36,16 @@ public class Board
     *   @param width    Spielfeldbreite
     *   @param height   Spielfeldhoehe
     */
-    public Board(int width, int height) {
+    public Board(final int width, 
+                 final int height, 
+                 final boolean whiteMoving) 
+    {
+        checkParam(width > 0, EXN_WIDTH_TOO_LOW);
+        checkParam(height > 0, EXN_HEIGHT_TOO_LOW);
+
         this.width  = width;
         this.height = height;
+        this.whiteMoving = whiteMoving;
         this.pieces = new Piece[width][height];
         
         for (int y = 0; y < height; y++) {
@@ -245,11 +258,25 @@ public class Board
     * @return Stringdarstellung dieses Objekts.
     */
     public String toString() {
+        return prettyPrint(); /*
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(width).append("x").append(height).append("] ");
         for (Piece p : getPieces())
             sb.append(p).append(", ");
         return sb.toString();
+*/
+    }
+
+    public Collection<Move> getMoveList() {
+        Collection<Move> moveList = new ArrayList<Move>();
+        Move currentMove;
+        for (Piece p : getPieces()) {
+            for (Position targetPosition : p.getValidMoves(this)) {
+                currentMove = new Move(p, targetPosition);
+                moveList.add(currentMove);
+            }
+        }
+        return moveList;
     }
     
     /**
@@ -262,4 +289,27 @@ public class Board
         if (!condition)
             throw new BoardException(exn_message);
     }
+
+    public String prettyPrint() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = height; i >= 1; i--) {
+            for (int j = 1; j <= width; j++) {
+                Position p = P(j,i);
+                Piece at = pieceAt(p);
+                String c = (at == null ? "_" : at.toFEN());
+                sb.append( c );
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    public static interface Formatter {
+        String format(final Board board);
+    }
+
+    private static final String EXN_WIDTH_TOO_LOW =
+        "Ungültige Breite.";
+    private static final String EXN_HEIGHT_TOO_LOW =
+        "Ungültige Höhe.";
 }
