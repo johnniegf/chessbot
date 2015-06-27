@@ -3,7 +3,7 @@ package de.htwsaar.chessbot.%PKGNAME;
 /**
 * Beschreibung.
 *
-* @author
+* @author %AUTHOR
 */
 public class %CLASSNAME {
     

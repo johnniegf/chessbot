@@ -11,6 +11,7 @@ parameterizedTemplate="$tplDir/Parameterized.java"
 
 src_path="src/de/htwsaar/chessbot"
 test_path="test/de/htwsaar/chessbot"
+author_name="$(git config user.name)"
 
 printUsage() {
     echo "Aufruf: $0 <Typ> <Paketname> <Dateiname>"
@@ -36,9 +37,10 @@ makePkgPath() {
 #targetFile=""
 #targetPath=""
 
+# Erzeuge ein Paketverzeichnis
 #
-# $1 => package root
-# $2 => package name
+# $1 => Wurzelverzeichnis der Pakethierarchie
+# $2 => Paketname
 #
 makePkgDir() {
     local pkgRoot="$1"
@@ -46,14 +48,25 @@ makePkgDir() {
     local pkgPath="$pkgRoot/`makePkgPath $pkgName`"
     if [ ! -d "$pkgPath" ]
     then
+        read -n1 -p"Neues Paketverzeichnis $pkgPath erstellen? (j/N) " answer
+        echo
+        case "$answer" in
+            [jJyY])
+            ;;
+            *)
+                echo "Abbruch."
+                exit 1
+            ;;  
+        esac
+        
         echo "Erzeuge Paketverzeichnis $pkgPath"
         test -d "$pkgPath" || mkdir -p "$pkgPath"
     fi
 }
 
+# Erzeuge die package-info.java eines Pakets
 #
-#
-# $1 => package name
+# $1 => Paketname
 #
 makePkgInfo() { 
     local pkgPath=`makePkgPath "$1"`
@@ -63,7 +76,8 @@ makePkgInfo() {
     if [ ! -f "$PI_TARGET" ]
     then
         echo "Erzeuge package-info.java"
-        test -f "$PI_TARGET" || "$CP" "$PI_TEMPLATE" "$PI_TARGET"
+        test -f "$PI_TEMPLATE" || echo "Warnung: Vorlage package-info.java nicht gefunden!"
+        "$CP" "$PI_TEMPLATE" "$PI_TARGET"
         
         echo "Schreibe Paketnamen $pkgName"
         sed -i "s/%PKGNAME/$pkgName/g" "$PI_TARGET"
@@ -71,12 +85,12 @@ makePkgInfo() {
     
 }
 
+# Erzeuge eine Quelldatei aus einer Vorlage
 #
-#
-# $1 => package root
-# $2 => package name
-# $3 => template file
-# $4 => class name
+# $1 => Wurzelverzeichnis der Pakethierarchie
+# $2 => Paketname
+# $3 => Vorlage
+# $4 => Klassenname
 #
 makeFile() {
     local src_root="$1"
@@ -109,10 +123,13 @@ makeFile() {
 
         echo "Ersetze Klassennamen"
         sed -i "s/%CLASSNAME/$className/g" "$targetFile"
+
+        echo "Ersetze Autor"
+        sed -i "s/%AUTHOR/$author_name/" "$targetFile"
     fi
 }
 
-#
+# Erzeuge eine Quelldatei des Produktionscodes
 #
 # $1 => package name
 # $2 => template file
@@ -128,7 +145,7 @@ makeSourceFile() {
     makeFile "$src_path" "$pkgName" "$tplFile" "$className"
 }
 
-#
+# Erzeuge eine Quelldatei für JUnit-Tests
 #
 # $1 => package name
 # $2 => template file
