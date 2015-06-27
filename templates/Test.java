@@ -7,7 +7,7 @@ import de.htwsaar.chessbot.*;
 import java.util.*;
 
 // JUnit-API
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import org.junit.*;
@@ -15,7 +15,7 @@ import org.junit.*;
 /**
 * Testklasse für ...
 *
-* @author
+* @author %AUTHOR
 */
 public class %CLASSNAMETest { 
 
