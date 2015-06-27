@@ -3,8 +3,8 @@ package de.htwsaar.chessbot.%PKGNAME;
 /**
 * Beschreibung.
 *
-* @author
+* @author %AUTHOR
 */
-public interface %IFNAME {
+public interface %CLASSNAME {
     
 }
