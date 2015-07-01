@@ -1,11 +1,10 @@
 package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import de.htwsaar.chessbot.engine.model.Piece;
-import de.htwsaar.chessbot.engine.model.Position;
-import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.*;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Iterator;
 
 /**
@@ -74,11 +73,37 @@ public final class King extends Piece {
                 }
             }
         }
-        return validAttacks;
-        
+        return validAttacks;   
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    public final Collection<Move> getMoveList(final Board context) {
+        if (context == null)
+            throw new NullPointerException();
+
+        Collection<Move> moveList = new LinkedList<Move>();
+        if (context.isWhiteMoving() == isWhite()) {
+            for (Position p : getNormalTargets(context)) {
+                moveList.add(new Move(this, p));
+            }
+            for (Position p: getCastlingTargets(context)) {
+                Move castle = new Castling(this, p);
+                if (castle.isPossible(context))
+                    moveList.add(castle);
+            }
+        }
+        return moveList;
+    }
+
+    public final Collection<Position> getValidTargets(final Board context) {
+        Collection<Position> validPositions = new LinkedList<Position>();
+        if (context.isWhiteMoving() == isWhite()) {
+            validPositions.addAll(getNormalTargets(context));
+            validPositions.addAll(getCastlingTargets(context));
+        }
+        return validPositions; 
+    }
+
+    private Collection<Position> getNormalTargets(final Board context) {
         Collection<Position> validPositions = getAttacks(context);
         Position pt, p = getPosition();
         Iterator<Position> it = validPositions.iterator();
@@ -88,6 +113,12 @@ public final class King extends Piece {
                 it.remove();
             }
         }
+        return validPositions;
+    }
+
+    private Collection<Position> getCastlingTargets(final Board context) {
+        Collection<Position> validPositions = new LinkedList<Position>();
+        Position pt, p = getPosition();
         if (!hasMoved() && !inCheck(context)) {
             for (int i = -1; i <= 1; i += 2) {
                 boolean possible = true;
@@ -111,8 +142,7 @@ public final class King extends Piece {
                     validPositions.add(p.transpose(2*i,0));
             }
         }
-
-        return validPositions; 
+        return validPositions;
     }
 
     public boolean inCheck(Board context) {

@@ -49,7 +49,7 @@ public class MoveParameterizedTest {
                 new Pawn(P("h7"), false, false),
                 P("h6"),
                 true,
-                new Board()
+                new Board(8,8,false)
             },
             {
                 new Bishop(P("c7"), true),
@@ -67,7 +67,7 @@ public class MoveParameterizedTest {
                 new Knight(P("d7"),false),
                 P("c6"),
                 false,
-                new Board()
+                new Board(8,8,false)
             }
         });
 
@@ -91,8 +91,10 @@ public class MoveParameterizedTest {
         if ( isPossible ) {
             Piece expectedPieceAfterMove = expectedPiece.clone();
             expectedPieceAfterMove.setPosition(expectedPosition);
+            expectedPieceAfterMove.setHasMoved(true);
             this.expectedBoard = new Board();
             this.expectedBoard.addPiece(expectedPieceAfterMove);
+            this.expectedBoard.togglePlayer();
         } else {
             this.expectedBoard = null;
         }

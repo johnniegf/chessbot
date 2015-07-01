@@ -61,7 +61,7 @@ public class FidePiecesTest {
                 new King(P("e1"),true,false),
                 PList("c1","d1", "d2", "e2","f2","f1","g1"),
                 PList("c2", "h1", "e3", "f3"),
-                null
+                PList("d1", "d2", "e2","f2","f1")
             },
             {
                 new King(P("b5"),true,true),
@@ -209,7 +209,7 @@ public class FidePiecesTest {
     
     @Test public void testMoveList() {
         Collection<Position> possibleMoves = 
-            currentPiece.getValidMoves(EMPTY_BOARD);
+            currentPiece.getValidTargets(EMPTY_BOARD);
 
         assertEquals("Länge der Zugliste ist falsch!",
                      this.possibleMoves.size(),

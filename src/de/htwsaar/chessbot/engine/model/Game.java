@@ -3,7 +3,7 @@ package de.htwsaar.chessbot.engine.model;
 /**
 * Stellt eine Schachpartie dar.
 *
-* @author
+* @author Johannes Haupt
 */
 public class Game {
     
@@ -15,10 +15,22 @@ public class Game {
     * Standardkonstruktor.
     */ 
     public Game(final ChessVariant chessVariant) {
+        this(chessVariant, null);
+    }
+
+    public Game(final ChessVariant chessVariant,
+                final String fenString) 
+    {
         if (chessVariant == null)
             throw new NullPointerException(EXN_NULL_VARIANT);
         this.chessVariant = chessVariant;
-        Board initial = chessVariant.getBoardBuilder().getStartingPosition();
+        Board initial;
+        if (fenString == null) {
+            initial = chessVariant.getBoardBuilder().getStartingPosition();
+        } else {
+            initial = chessVariant.getBoardBuilder().fromFenString(fenString);
+        }
+        chessVariant.checkBoard(initial);
         this.history = new History(initial);
     }
 

@@ -117,9 +117,13 @@ public class Move {
     *         sonst <code>false</code>
     */
     public boolean isPossible(Board context) {
+        if (context == null)
+            throw new NullPointerException();
         if (isNull())
             return false;
         if (context.getPiece(piece) == null)
+            return false;
+        if (context.isWhiteMoving() != piece.isWhite())
             return false;
 
         return piece.canMoveTo(targetPosition, context);
@@ -137,15 +141,15 @@ public class Move {
             return null;
 
         Board target = onBoard.clone();
-
-        target.removePiece(piece);
+        Piece movedPiece = piece.move(targetPosition, target);
+        
         if (!target.isFree(targetPosition))
-            target.removePiece(target.pieceAt(targetPosition));
-
-        Piece movedPiece = piece.clone();
-        movedPiece.setPosition(targetPosition);
-        movedPiece.setHasMoved(true);
+            target.removePieceAt(targetPosition);
+        
         target.addPiece(movedPiece);
+        target.removePiece(piece);
+        target.togglePlayer();
+        target.setEnPassant(Position.INVALID);
         return target;
     }
 
@@ -188,13 +192,15 @@ public class Move {
     *
     * @return algebraische Notation des Zugs
     */
-    public String toSAN() {
+    public String toSAN(Board context) {
         StringBuilder sb = new StringBuilder();
         if (isNull()) {
             sb.append("0000");
         } else {
+            String hits = (context.isFree(targetPosition) ? "" : "X" );
             sb.append(piece.toSAN())
               .append(piece.getPosition().toSAN())
+              .append(hits)
               .append(targetPosition.toSAN());
         }
         return sb.toString();
@@ -225,5 +231,5 @@ public class Move {
     private static final String POS_REGEX = 
         "([a-z][1-9][0-9]?)";
     private static final String REGEX_SAN_MOVE = 
-        "[A-Z]?[a-z][1-9][0-9]?[a-z][1-9][0-9]?[A-Z]?";
+        "[A-Z]?[a-z][1-9][0-9]?X?[a-z][1-9][0-9]?[A-Z]?";
 }

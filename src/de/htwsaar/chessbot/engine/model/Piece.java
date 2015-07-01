@@ -134,10 +134,17 @@ public abstract class Piece {
             throw new NullPointerException();
         Piece target = this.clone();
         if ( !target.canMoveTo(targetPosition, context) )
-            throw new InvalidMove();
+            throw new InvalidMove(toSAN()+getPosition().toSAN()+targetPosition.toSAN());
         
-        target.setPosition( targetPosition );
-        target.setHasMoved( true );
+        target.setPosition(targetPosition);
+        target.setHasMoved(true);
+        return target;
+    }
+
+    public Piece move(final Position targetPosition) {
+        Piece target = clone();
+        target.setPosition(targetPosition);
+        target.setHasMoved(true);
         return target;
     }
 
@@ -155,7 +162,7 @@ public abstract class Piece {
     {
         if (targetPosition == null || !targetPosition.isValid())
             return false;
-        Collection<Position> validMoves = getValidMoves(context);
+        Collection<Position> validMoves = getValidTargets(context);
         return validMoves != null 
             && validMoves.contains(targetPosition);
     }
@@ -262,5 +269,14 @@ public abstract class Piece {
     *
     * @return Liste aller möglichen Züge für die übergebene Stellung 
     */
-    public abstract Collection<Position> getValidMoves(Board context);
+    public abstract Collection<Position> getValidTargets(final Board context);
+
+    public Collection<Move> getMoveList(final Board context) {
+        Collection<Move> moveList = new LinkedList<Move>();
+        if (context.isWhiteMoving() == isWhite())
+            for (Position p : getValidTargets(context))
+                moveList.add(new Move(this, p));
+
+        return moveList;
+    }
 }

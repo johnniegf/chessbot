@@ -40,7 +40,7 @@ public final class Bishop extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    public final Collection<Position> getValidTargets(final Board context) {
         Collection<Position> result =  new ArrayList<Position>();
         Position p; 
         for (int i = -1; i <= 1; i += 2) {

@@ -1,12 +1,11 @@
 package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import de.htwsaar.chessbot.engine.model.Piece;
-import de.htwsaar.chessbot.engine.model.Position;
-import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.*;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
 * Der Bauer.
@@ -87,7 +86,56 @@ public final class Pawn extends Piece {
         return getAttacks(context).contains(targetPosition);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    private Collection<Move> makeMove(boolean conversion, Position targetSquare) {
+        Collection<Move> moves = new LinkedList<Move>();
+        if (conversion) {
+            Piece[] types = new Piece[]{ 
+                new Bishop(), new Knight(), new Rook(), new Queen() 
+            };
+            for (Piece type : types) 
+                moves.add(new PawnConversion(this, targetSquare, type));
+        } else {
+            moves.add(new Move(this, targetSquare));
+        }
+        return moves;
+    }
+
+    public final Collection<Move> getMoveList(final Board context) {
+        Collection<Move> moveList = new LinkedList<Move>();
+        if (context.isWhiteMoving() != isWhite())
+            return moveList;
+
+        boolean isConversion;
+        int increment = increment(); 
+        Position p = getPosition();
+        Position pn = p.transpose(0,increment);
+        isConversion = isWhite() && pn.getRow() == context.getHeight()
+                    || !isWhite() && pn.getRow() == 1;
+
+        if ( pn.existsOn(context) && context.isFree(pn) ) {
+            moveList.addAll(makeMove(isConversion, pn));
+            if (!hasMoved()) {
+                pn = p.transpose(0, 2*increment);
+                if (context.isFree(pn))
+                    moveList.add(new DoublePawnMove(this, pn));
+            }
+        }   
+
+        Collection<Position> attacks = getAttacks(context);
+        for (Position att : attacks) {
+            if (context.isFree(att)) {
+                if (att.equals(context.enPassant()))
+                    moveList.add(new EnPassant(this, att));
+            } else {
+                if (context.pieceAt(att).isWhite() != isWhite())
+                    moveList.addAll(makeMove(isConversion, att));
+            }
+        }
+
+        return moveList;
+    }
+
+    public final Collection<Position> getValidTargets(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(4);
         int increment = increment(); 
         Position p = getPosition();
@@ -106,6 +154,7 @@ public final class Pawn extends Piece {
 
         possibleMoves.addAll(getValidHits(context));
 
+        System.out.println(possibleMoves);
         return possibleMoves;
     }
 
@@ -131,8 +180,9 @@ public final class Pawn extends Piece {
         Iterator<Position> it = canHit.iterator();
         while(it.hasNext()) {
             Position p = it.next();
-            if (context.isFree(p) || 
-                context.pieceAt(p).isWhite() == isWhite()) 
+            if (context.isFree(p) && !p.equals(context.enPassant()) || 
+                !context.isFree(p) && context.pieceAt(p).isWhite() == isWhite()
+            )
             {
                 it.remove();
             }

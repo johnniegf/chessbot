@@ -29,7 +29,9 @@ public class History {
 
     public boolean addMove(final String sanMove) {
         Board b = getLastBoard();
-        Move move = new Move(b, sanMove);
+        Move move = b.getMove(sanMove);
+        if (move == null)
+            throw new InvalidMoveException(EXN_IMPOSSIBLE_MOVE + sanMove);
         HistEntry e = new HistEntry(move, b);
         return moves.add(e);
     }
@@ -98,6 +100,8 @@ public class History {
 
     private static final String EXN_INITIAL_POS_NULL =
         "Die Ausgangsstellung darf nicht null sein.";
+    private static final String EXN_IMPOSSIBLE_MOVE =
+        "Der übergebene Zug ist in dieser Stellung unmöglich.";
 }
 
 class HistEntry {
@@ -106,18 +110,22 @@ class HistEntry {
     public final Move  move;
 
     public HistEntry(final Move move, final Board boardBeforeMove) {
-        if (boardBeforeMove == null || move == null)
+        if (boardBeforeMove == null)
             throw new NullPointerException(EXN_BOARD_NULL);
+        if (move == null)
+            throw new NullPointerException(EXN_MOVE_NULL);
 
         if (!move.isPossible(boardBeforeMove))
-            throw new InvalidMoveException(EXN_IMPOSSIBLE);
+            throw new InvalidMoveException(EXN_IMPOSSIBLE_MOVE);
 
         this.move  = move;
         this.board = move.execute(boardBeforeMove);
     }
 
+    private static final String EXN_MOVE_NULL =
+        "Der Zug ist null.";
     private static final String EXN_BOARD_NULL =
         "Die übergebene Stellung ist null.";
-    private static final String EXN_IMPOSSIBLE =
+    private static final String EXN_IMPOSSIBLE_MOVE =
         "Der übergebene Zug ist in dieser Stellung unmöglich.";
 }

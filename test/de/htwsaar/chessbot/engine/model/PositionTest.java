@@ -80,22 +80,22 @@ public class PositionTest {
     // = Ausnahmetests
     // ====================================================
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = SanStringParseException.class)
     public void testMalformedSanReverse() {
         P("1a");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = SanStringParseException.class)
     public void testMalformedSanMissingNumber() {
         P("a");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = SanStringParseException.class)
     public void testMalformedSanLeadingZero() {
         P("a01");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = SanStringParseException.class)
     public void testMalformedSanMissingLetter() {
         P("12");
     }

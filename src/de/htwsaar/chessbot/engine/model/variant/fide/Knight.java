@@ -42,7 +42,7 @@ public final class Knight extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    public final Collection<Position> getValidTargets(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(8);
         Position p = getPosition();
         for (int d = -2; d <= 2; d += 4) {

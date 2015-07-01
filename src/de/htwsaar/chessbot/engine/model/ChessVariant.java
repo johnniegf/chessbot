@@ -32,6 +32,8 @@ public interface ChessVariant {
     */
     Pieces getPieceFactory();
 
+    void checkBoard(final Board board);
+
     /**
     * Gib die Figurprototypen dieser Variante zurück.
     *

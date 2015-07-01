@@ -15,22 +15,24 @@ public class BoardCLI {
 
     public static void main(String[] args) {
         BoardCLI cli = new BoardCLI();
-
-        String move = null;
-        do {
-            try {
-                cli.printBoard();
-                move = cli.queryMove();
-                cli.executeMove(move);
-            } catch (Exception e) {
-                output.println(e);
-                e.printStackTrace();
-            }
-        } while (move != null);
+        cli.run(args);
     }
+    
+    private static final String quitRegex = 
+        "([Qq][Uu][Ii][Tt])|([Ee][Xx][Ii][Tt])";
+    private static final String fenRegex =
+        "[BbKkNnPpQqRr1-8]+(/[BbKkNnPpQqRr1-8]+){7} " +
+        "[bw] (-|[KQkq]{1,4}) (-|[a-h][1-8]) \\d{1,2} \\d{1,2}";
+    private static final String moveRegex = 
+        "[QNBRK]?[a-h][1-8][X]?[a-h][1-8][QNBR]?";
+    private static final String showRegex = 
+        "[Ss][Hh][Oo][Ww] [a-h][1-8]";
+    private static final String NEWLINE = 
+        System.getProperty("line.separator");
 
-    private ChessVariant variant;
+    private ChessVariant VARIANT;
     private Game game;
+    private boolean quitting;
     private static Input input = Input.getInstance();
     private static Output output = new ConsoleOutput();
 
@@ -38,8 +40,87 @@ public class BoardCLI {
     * Standardkonstruktor.
     */ 
     public BoardCLI() {
-        this.variant = new FideChess();
-        this.game = new Game(variant);
+        this.VARIANT = new FideChess();
+        this.game = new Game(VARIANT);
+        this.quitting = false;
+    }
+
+    public void run(String[] args) {
+        do {
+            try {
+               mainMenu(); 
+            } catch (Exception e) {
+                output.println(e);
+                e.printStackTrace();
+            }
+        } while ( !quitting ); 
+    }
+
+    private void mainMenu() {
+        printOptions();
+        String choice = queryCommand("Auswahl");
+        executeSub(choice);
+    }
+
+    private void printOptions() {
+        StringBuilder options = new StringBuilder();
+        options.append("game").append(NEWLINE);
+        options.append("quit").append(NEWLINE);
+        output.println(options);
+    }
+
+    private void executeSub(String choice) {
+        switch(choice.trim()) {
+            case "game":
+                gameMenu();
+                break;
+            case "quit":
+                output.println("Beende");
+                this.quitting = true;
+                break;
+            default:
+                output.println("Unbekanntes Kommando! " + choice);
+        }
+    }
+
+    private void gameMenu() {
+        String command = null;
+        game = new Game(VARIANT);
+        do {
+            printBoard();
+            try {
+                command = queryCommand("Zug oder Stellung").trim();
+                if (command.matches(fenRegex)) {
+                    game = new Game(VARIANT, command);
+                } else if (command.matches(moveRegex)) {
+                    game.executeMove(command);
+                } else if (command.matches(quitRegex)) {
+                    output.println("Beende");
+                    break;
+                } else if (command.matches(showRegex)) {
+                    String[] args = command.split(" ");
+                    Position pos = new Position(args[1]);
+                    Piece p = game.getCurrentBoard().pieceAt(pos);
+                    if (p == null)
+                        output.println("Das Feld " + pos.toSAN() + " ist nicht besetzt!");
+                    else
+                        printPiece(p);
+                } else {
+                    output.println("Unbekanntes Kommando! " + command);
+                }
+            } catch (Exception e) {
+                output.println(e);
+                e.printStackTrace();
+            }
+        } while ( command != null );
+         game = null;
+    }
+
+    private static void printPiece(Piece p) {
+        output.println("Figur: " + p.getName());
+        output.println("Farbe: " + (p.isWhite() ? "weiß" : "schwarz"));
+        output.println("Position: " + p.getPosition().toSAN());
+        output.println("Wurde bewegt? " + (p.hasMoved() ? "ja" : "nein"));
     }
 
     private void printBoard() {
@@ -51,24 +132,13 @@ public class BoardCLI {
 
     }
 
-    private String queryMove() {
-        output.print("Move: ");
+    private String queryCommand(final String prompt) {
+        output.print(prompt + " $> ");
         return input.readLine().toString();
     }
 
     private void executeMove(String sanMove) {
         game.executeMove(sanMove);
-    }
-
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
     }
 
     private static final class ConsoleFormatter implements Board.Formatter {
@@ -101,6 +171,10 @@ public class BoardCLI {
             for (char c = 'a'; c - 'a' < w; c++) {
                 sb.append(c+" ");
             }
+            sb.append(lineSeparator);
+            sb.append(board.isWhiteMoving() ? "Weiß" : "Schwarz")
+              .append(" am Zug, en passant : ")
+              .append(board.enPassant() == null ? "keine" : board.enPassant().toSAN());
             sb.append(lineSeparator);
             return sb.toString();
         }

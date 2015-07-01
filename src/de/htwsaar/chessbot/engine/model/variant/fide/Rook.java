@@ -48,7 +48,7 @@ public final class Rook extends Piece {
         return super.hashCode() * (hasMoved() ? 61 : 67);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    public final Collection<Position> getValidTargets(final Board context) {
         Collection<Position> possibleMoves = new ArrayList<Position>(14);
         Position p = getPosition();
         

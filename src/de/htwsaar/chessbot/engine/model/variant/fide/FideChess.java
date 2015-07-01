@@ -11,6 +11,8 @@ import java.util.*;
 */
 public class FideChess implements ChessVariant {
     
+    private static final BoardChecker CHECKER = new FideBoardChecker();
+
     /**
     * Standardkonstruktor.
     */ 
@@ -39,6 +41,10 @@ public class FideChess implements ChessVariant {
 
     public final BoardBuilder getBoardBuilder() {
         return new FideBoardBuilder();
+    }
+
+    public final void checkBoard(final Board board) {
+        CHECKER.check(board);
     }
 
     /**
