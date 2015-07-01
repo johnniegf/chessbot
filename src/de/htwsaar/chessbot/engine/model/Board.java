@@ -7,10 +7,11 @@ import de.htwsaar.chessbot.engine.exception.*;
 import static de.htwsaar.chessbot.engine.model.Position.*;
 
 /**
-*   Repraesentation des SpielBrettes
+* Interne Darstellung eines Schachbretts
 *
-*   @author Timo Klein
-*   @author Henning Walte
+* @author Johannes Haupt
+* @author Timo Klein
+* @author Henning Walte
 */
 public class Board
 {
@@ -21,7 +22,10 @@ public class Board
     private Piece[][] pieces;
 
     /**
-    *   Standardkonstruktor.
+    * Standardkonstruktor.
+    *
+    * Erzeuge ein leeres Schachbrett der Breite und Höhe 8, wobei weiß
+    * am Zug ist.
     */ 
     public Board() {   
         this(8, 8);
@@ -33,10 +37,10 @@ public class Board
     }
     
     /**
-    *   Konstruktor um Boardobjekt mit Feldgroesse zu erstellen 
+    * Erzeuge ein leeres Schachbrett mit den übergebenen Dimensionen 
     *
-    *   @param width    Spielfeldbreite
-    *   @param height   Spielfeldhoehe
+    * @param width    Breite des Schachbretts
+    * @param height   Höhe des Schachbretts
     */
     public Board(final int width, 
                  final int height, 
@@ -59,10 +63,11 @@ public class Board
     }
    
     /**
-    *   Fuegt Spielfigur auf dem Spielbrett hinzu
+    * Stelle eine Spielfigur auf das Spielbrett.
     *
-    *   @param piece    Spielfigur die auf dem Spielbrett 
-    *                   hinzugefuegt werden soll
+    * @param piece    Schachfigur, die auf das Brett gestellt werden soll.
+    * @return true, genau dann wenn die Figur auf das Schachbrett gestellt
+    *         wurde.
     */
     public boolean addPiece(Piece piece) {
         if ( piece == null)
@@ -82,11 +87,13 @@ public class Board
     }
     
     /**
-    *   Ist das Feld bedroht
+    * Gib aus, ob das übergebene Feld von der übergebenen Farbe
+    * bedroht wird.
     *   
-    *   @param p        Feldposition die Ueberprueft werden soll
-    *   @param byWhite  
-    *   @return true falls Feld bedroht, false wenn nicht
+    * @param p        Feldposition die überprueft werden soll
+    * @param byWhite  
+    * @return true genau dann wenn das Feld von der übergebenen Farbe
+    *         bedroht wird, sonst false
     */
     public boolean isAttacked(Position p, boolean byWhite) {
         for (Piece piece : getPieces()) {
@@ -97,10 +104,23 @@ public class Board
         return false;
     }
 
+    /**
+    * Gib die erste Figur zurück, die das übergebene FEN-Kürzel hat.
+    *
+    * @param fenName    FEN-Kürzel der zu suchenden Figur.
+    * @return die Figur mit den übergebenen FEN-Kürzel oder <code>null</code>
+    */
     public Piece getPieceByName(final String fenName) {
         return getPieceByName(fenName, 0);
     }
 
+    /**
+    * Gib eine Figur zurück, die das übergebene FEN-Kürzel hat.
+    *
+    * @param fenName    FEN-Kürzel der zu suchenden Figur.
+    * @param offset     Index der Figur, die zurückgegeben werden soll.
+    * @return die Figur mit den übergebenen FEN-Kürzel oder <code>null</code>
+    */
     public Piece getPieceByName(final String fenName, final int offset) {
         if (fenName == null)
             throw new NullPointerException();
@@ -116,6 +136,13 @@ public class Board
         return null;
     }
   
+    /**
+    * Gib alle Figuren zurück, die vom übergebenen Typ sind.
+    *
+    * @param pieceType  prototyp der zu suchenden Figuren
+    * @return eine Liste von Figuren, die derselben Klasse angehören
+    *         wie <code>pieceType</code>
+    */
     public Collection<Piece> getPiecesByType(Piece pieceType) {
         Collection<Piece> result = new LinkedList<Piece>();
         for (Piece p : getPieces()) {
@@ -125,10 +152,20 @@ public class Board
         return result;
     }
 
+    /**
+    * Gib aus, an welcher Position en passant möglich ist.
+    *
+    * @return en passant-Zielfeld
+    */
     public Position enPassant() {
         return enPassant;
     }
 
+    /**
+    * Lege fest, an welcher Position en passant möglich ist.
+    *
+    * @param position   en-passant-Zielfeld
+    */
     public void setEnPassant(final Position position) {
         if (position == null || !position.existsOn(this))
             enPassant = null;
@@ -136,14 +173,28 @@ public class Board
             enPassant = position;
     }
 
+    /**
+    * Gib aus, ob weiß am Zug ist.
+    *
+    * @return <code>true</code> wenn weiß am Zug ist, sonst <code>false</code>
+    */
     public boolean isWhiteMoving() {
         return whiteMoving;
     }
 
+    /**
+    * Wechsele den Spieler, der am Zug ist.
+    */
     public void togglePlayer() {
         whiteMoving = !whiteMoving;
     }
 
+    /**
+    * Lege fest, wer am Zug ist.
+    *
+    * @param whiteMoving    <code>true</code> für den weißen Spieler, <code>
+    *                       false</code> für schwarz.
+    */
     public boolean setWhiteMoving(boolean whiteMoving) {
         if (this.whiteMoving == whiteMoving)
             return false;
@@ -153,10 +204,10 @@ public class Board
     }
 
     /**
-    *   Ist das Feld an der Position frei
+    * Gib aus, ob das übergebene Feld besetzt ist.
     *
-    *   @param p    Position die geprueft werden soll
-    *   @return true wenn Feld frei ist, false wenn Feld besetzt ist
+    * @param p    Position die geprueft werden soll
+    * @return true wenn das Feld frei ist, sonst false
     */
     public boolean isFree(Position p) {
         if (p == null)
@@ -166,28 +217,28 @@ public class Board
     }
     
     /**
-    *   Breite vom Spielbrett
+    * Breite des Schachbretts
     *
-    *   @return Gibt die Breite des Spielbrettes zurueck
+    * @return die Breite des Spielbrettes
     */
     public int getWidth() {
         return width;
     }
     
     /**
-    *   Hoehe vom Spielbrett
+    * Höhe des Schachbretts
     *
-    *   @return Gibt die Hoehe vom Spielbrett zurueck
+    * @return die Hoehe des Spielbrettes
     */
     public int getHeight() {
         return height;
     }
     
     /**
-    *   Spielfigur an einer bestimmten Position
+    * Gib die Spielfigur an der übergebenen Position zurück
     *
-    *   @param at   
-    *   @return Spielfigur an der mitgegeben Position
+    * @param at Position der auszugebenden Figur
+    * @return Spielfigur an der übergebenen Position
     */
     public Piece pieceAt(Position at) {
         if (at == null || !at.existsOn(this)) 
@@ -200,9 +251,10 @@ public class Board
     }
     
     /**
-    *   Eine Sammlung von Spielfiguren die sich derzeit auf dem Spielbrett befinden
+    * Gib aus, welche Figuren zur Zeit auf dem Spielfeld stehen.
     *   
-    *   @return Sammlung von Spielfiguren die auf dem Spielbrett sind
+    * @return eine <code>Collection</code> aller Figuren, die auf 
+    *         dem Spielbrett stehen
     */
     public Collection<Piece> getPieces() {
         Collection<Piece> result = new ArrayList<Piece>();
@@ -215,21 +267,21 @@ public class Board
     }
     
     /**
-    *   Gibt die Anzahl der Figuren die sich derzeit auf dem Spielbrett
-    tag*   befinden zurueck
+    * Gib die Anzahl der Figuren, die sich derzeit auf dem Spielbrett
+    * befinden zurück.
     *
-    *   @return Anzahl der Spielfiguren
+    * @return Anzahl der Spielfiguren auf dem Brett
     */
     public int getPieceCount() {
         return getPieces().size();
     }
     
     /**
-    *   Gibt eine Spielfigur die sich auf dem Spielbrett befindet zurueck
+    * Gib eine Spielfigur, die sich auf dem Spielbrett befindet zurück.
     *   
-    *   @param seek zu suchende Spielfigur
-    *   @return Spielfigur wenn sie sich auf dem Spielbrett befindet, 
-    *           ansonsten null
+    * @param seek zu suchende Spielfigur
+    * @return die Spielfigur wenn sie sich auf dem Spielbrett befindet, 
+    *         ansonsten <code>null</code>
     */
     public Piece getPiece(Piece seek) {
         for (Piece p : getPieces()) {
@@ -240,10 +292,12 @@ public class Board
     }
     
     /**
-    *   Vergleich zweier Objekte
+    * Vergleiche diese Stellung mit einem anderen Objekt
     *
-    *   @param other    zu ueberpruefende Objekt
-    *   @return true falls Objekt gleich, ansonsten false
+    * @param other    zu ueberpruefende Objekt
+    * @return true falls <code>other</code> ein Objekt der Klasse <code>
+    *         Board</code> ist, und sich die Stellungen gleichen ansonsten
+    *         <code>false</code>
     */
     
     public boolean equals(final Object other) {
@@ -274,18 +328,18 @@ public class Board
     }
     
     /**
-    *   Prüft ob Spielbrett leer ist
+    * Gib aus ob das Spielbrett leer ist.
     *
-    *   @return true falls 
+    * @return true genau dann, wenn sich keine Figuren auf dem Brett befinden.
     */
     public boolean isEmpty() {
         return getPieceCount() == 0;
     }
     
     /**
-    *   Gibt eine Kopie vom Spielbrett zurueck
+    * Gib eine Kopie dieser Stellung zurück.
     *   
-    *   @return tiefe Kopie des Board-Objektes
+    * @return eine Kopie dieser Stellung
     */
     public Board clone() {
         Board cloned = new Board(this.getWidth(),this.getHeight());
@@ -297,10 +351,10 @@ public class Board
     }
     
     /**
-    *   Loescht eine Spielfigur vom Spielbrett 
+    * Nimm eine Figur vom Spielbrett 
     *
-    *   @param piece    Spielfigur die geloescht werden soll
-    *   @return true wenn Figur geloescht wurde, ansonsten false
+    * @param piece    Spielfigur die entfernt werden soll
+    * @return true wenn die Figur entfernt wurde, ansonsten false
     */
     public boolean removePiece(Piece piece) {
         if (piece == null)
@@ -313,6 +367,14 @@ public class Board
             return false;
     }
 
+    /**
+    * Nimm die Figur an der übergebenen Position vom Brett.
+    *
+    * @param pos    Position der zu entfernenden Figur.
+    * @return <code>true</code> genau dann, wenn eine Figur vom Brett entfernt
+    *         wurde, d.h. dieses Objekt durch den Aufruf dieser Methode
+    *         verändert wurde.
+    */
     public boolean removePieceAt(Position pos) {
         if (pos == null || !pos.existsOn(this))
             return false;
@@ -338,6 +400,13 @@ public class Board
 //*/
     }
 
+    /**
+    * Gib den Zug aus der Zugliste zurück, der die übergebene Notation hat.
+    *
+    * @param sanMove    Stringform des Zugs
+    * @return den Zug zur übergebenen Stringrepräsentation oder <code>
+    *         null</code>, falls der übergebene Zug nicht möglich ist.
+    */
     public Move getMove(String sanMove) {
         if (sanMove == null)
             return null;
@@ -349,6 +418,11 @@ public class Board
         return null;
     }
 
+    /**
+    * Erzeuge die Zugliste für diese Stellung.
+    *
+    * @return die Zugliste für die aktuelle Stellung
+    */
     public Collection<Move> getMoveList() {
         Collection<Move> moveList = new ArrayList<Move>();
         Move currentMove;
@@ -360,6 +434,12 @@ public class Board
         return moveList;
     } 
     
+    /**
+    * Gib zurück, ob diese Stellung regelkonform ist.
+    *
+    * @return <code>true</code> genau dann, wenn diese Stellung den Regeln
+    *         entspricht.
+    */
     public boolean isValid() {
         boolean whiteMoving = isWhiteMoving();
         Piece king = getPieceByName(whiteMoving ? "k" : "K");
@@ -368,28 +448,14 @@ public class Board
     }
     
     /**
-    *   Hilfmethode zur Ueberpruefung von Parameter
+    * Hilfmethode zur Ueberpruefung von Parameter
     *
-    *   @param condition    Algebrahischer Ausdruck
-    *   @param exn_message  Exceptionmeldung die ausgegeben werden soll
+    * @param condition    Algebrahischer Ausdruck
+    * @param exn_message  Exceptionmeldung die ausgegeben werden soll
     */
     private void checkParam(boolean condition, String exn_message) {
         if (!condition)
             throw new BoardException(exn_message);
-    }
-
-    public String prettyPrint() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = height; i >= 1; i--) {
-            for (int j = 1; j <= width; j++) {
-                Position p = P(j,i);
-                Piece at = pieceAt(p);
-                String c = (at == null ? "_" : at.toFEN());
-                sb.append( c );
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
     }
 
     public static interface Formatter {

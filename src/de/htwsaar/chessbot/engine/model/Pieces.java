@@ -64,6 +64,18 @@ public class Pieces {
     }
 
     /**
+    * Erzeuge eine neue Figur mit dem übergebenen FEN-Kürzel.
+    *
+    * @param fen      FEN-Kürzel der neuen Figur
+    * @return neue Figur mit der angegebenen Konfiguration, oder 
+    *         <code>null</code> falls aus der übergebenen Konfiguration
+    *         keine Figur erzeugt werden kann.
+    */
+    public Piece getPiece(final String fen) {
+        return getPiece(fen, Position.INVALID, false);
+    }
+
+    /**
     * Erzeuge eine neue Figur aus den übergebenen Parametern.
     *
     * @param fen      FEN-Kürzel der neuen Figur

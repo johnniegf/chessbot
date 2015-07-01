@@ -3,7 +3,12 @@ package de.htwsaar.chessbot.engine.model.variant.fide;
 import de.htwsaar.chessbot.engine.model.*;
 
 /**
-* Beschreibung.
+* Bauernumwandlung.
+*
+* Erreicht ein weißer Bauer die 8., bzw. ein schzwarzer Bauer die 1. Reihe,
+* so wird er in eine Dame, einen Turm, einen Springer oder einen Läufer 
+* umgewandelt. Der Bauer wird vom Spielbrett genommen und die Figur an 
+* dieselbe Stelle gestellt.
 *
 * @author Johannes Haupt
 */
@@ -11,9 +16,6 @@ public class PawnConversion extends Move {
    
     private Piece conversionTarget;
 
-    /**
-    * Standardkonstruktor.
-    */ 
     public PawnConversion(final Piece pawn,
                           final Position target,
                           final Piece convertTo) 

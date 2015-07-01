@@ -1,7 +1,11 @@
 package de.htwsaar.chessbot.engine.model;
 
 /**
-* Spielzug.
+* Interne Repräsentation eines Spielzugs.
+*
+* Oberklasse aller Züge für jedes Regelwerk. Spezifika der Zugarten (für 
+* FIDE-Regeln z.B. en passant, Rochade, Bauernumwandlung) können in 
+* Unterklassen behandelt werden.
 *
 * @author Johannes Haupt
 */
@@ -35,7 +39,7 @@ public class Move {
     *
     * @param context        Stellung, aus der der Zug generiert wird
     * @param fromPosition   Startfeld des Zugs
-    * @param targetPosition Zielfeld des Zugs
+    * @param toPosition     Zielfeld des Zugs
     */
     public Move(final Board context, 
                 final Position fromPosition, 
@@ -141,20 +145,13 @@ public class Move {
         if ( !isPossible(onBoard) )
             return null;
 
-        Board target = onBoard.clone();
-        Piece movedPiece = piece.move(targetPosition, target);
-        
-        if (!target.isFree(targetPosition))
-            target.removePieceAt(targetPosition);
-        
-        target.addPiece(movedPiece);
-        target.removePiece(piece);
-        target.togglePlayer();
-        target.setEnPassant(Position.INVALID);
-        return target;
+        return tryExecute(onBoard);
     }
 
-    public Board tryExecute(final Board onBoard) {
+    /**
+    * Versuche, diesen Zug auszuführen.
+    */
+    protected Board tryExecute(final Board onBoard) {
         Board target = onBoard.clone();
         Piece movedPiece = piece.move(targetPosition, target);
         if (!target.isFree(targetPosition))
@@ -221,7 +218,16 @@ public class Move {
     }
 
     /**
+    * Gib diesen Zug in UCI-Notation zurück.
     *
+    * Lange algebraische Notation ohne Figurkürzel. Beispiele:
+    * <ul>
+    *   <li>e2e4 - Bauernzug</li>
+    *   <li>e1g1 - Rochade, weiß auf Königsseite</li>
+    *   <li>a2a1Q - Bauernumwandlung auf a1 zu schwarzer Dame </li>
+    * </ul>
+    *
+    * @return UCI-Notation
     */
     public String toUCI() {
         StringBuilder sb = new StringBuilder();
