@@ -2,7 +2,9 @@ package de.htwsaar.chessbot.engine.model;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import de.htwsaar.chessbot.engine.exception.*;
+import static de.htwsaar.chessbot.engine.model.Position.*;
 
 /**
 *   Repraesentation des SpielBrettes
@@ -12,16 +14,22 @@ import de.htwsaar.chessbot.engine.exception.*;
 */
 public class Board
 {
-    
     private final int width;
     private final int height;
+    private boolean   whiteMoving;
+    private Position  enPassant;
     private Piece[][] pieces;
 
     /**
     *   Standardkonstruktor.
     */ 
     public Board() {   
-        this(8,8);
+        this(8, 8);
+    }
+    
+
+    public Board(final int width, final int height) {
+        this(width, height, true);
     }
     
     /**
@@ -30,9 +38,17 @@ public class Board
     *   @param width    Spielfeldbreite
     *   @param height   Spielfeldhoehe
     */
-    public Board(int width, int height) {
+    public Board(final int width, 
+                 final int height, 
+                 final boolean whiteMoving) 
+    {
+        checkParam(width > 0, EXN_WIDTH_TOO_LOW);
+        checkParam(height > 0, EXN_HEIGHT_TOO_LOW);
+
         this.width  = width;
         this.height = height;
+        this.enPassant = null;
+        this.whiteMoving = whiteMoving;
         this.pieces = new Piece[width][height];
         
         for (int y = 0; y < height; y++) {
@@ -80,7 +96,43 @@ public class Board
         }
         return false;
     }
-    
+  
+    public Collection<Piece> getPiecesByType(Piece pieceType) {
+        Collection<Piece> result = new LinkedList<Piece>();
+        for (Piece p : getPieces()) {
+            if (pieceType.getClass().isInstance(p))
+                result.add(p);
+        }
+        return result;
+    }
+
+    public Position enPassant() {
+        return enPassant;
+    }
+
+    public void setEnPassant(final Position position) {
+        if (position == null || !position.existsOn(this))
+            enPassant = null;
+        else
+            enPassant = position;
+    }
+
+    public boolean isWhiteMoving() {
+        return whiteMoving;
+    }
+
+    public void togglePlayer() {
+        whiteMoving = !whiteMoving;
+    }
+
+    public boolean setWhiteMoving(boolean whiteMoving) {
+        if (this.whiteMoving == whiteMoving)
+            return false;
+
+        this.whiteMoving = whiteMoving;
+        return true;
+    }
+
     /**
     *   Ist das Feld an der Position frei
     *
@@ -145,7 +197,7 @@ public class Board
     
     /**
     *   Gibt die Anzahl der Figuren die sich derzeit auf dem Spielbrett
-    *   befinden zurueck
+    tag*   befinden zurueck
     *
     *   @return Anzahl der Spielfiguren
     */
@@ -183,6 +235,8 @@ public class Board
 
         try {
             Board b = (Board) other;
+            if (b.isWhiteMoving() != isWhiteMoving())
+                return false;
             Position p;
             Piece op;
             if (getPieces().size() != b.getPieces().size())
@@ -216,6 +270,8 @@ public class Board
     */
     public Board clone() {
         Board cloned = new Board(this.getWidth(),this.getHeight());
+        cloned.setWhiteMoving(isWhiteMoving());
+        cloned.setEnPassant(enPassant());
         for (Piece p : getPieces())
             cloned.addPiece(p.clone());
         return cloned;
@@ -228,14 +284,23 @@ public class Board
     *   @return true wenn Figur geloescht wurde, ansonsten false
     */
     public boolean removePiece(Piece piece) {
-        if (getPiece(piece) == null)
+        if (piece == null)
             return false;
 
-        int x = piece.getPosition().getColumn() -1;
-        int y = piece.getPosition().getRow() -1;
-    
-        pieces[x][y] = null;
+        Position p = piece.getPosition();
+        if (piece.equals(pieceAt(p)))
+            return removePieceAt(p);
+        else
+            return false;
+    }
 
+    public boolean removePieceAt(Position pos) {
+        if (pos == null || !pos.existsOn(this))
+            return false;
+
+        int x = pos.getColumn() - 1;
+        int y = pos.getRow() - 1;
+        pieces[x][y] = null;
         return true;
     }
 
@@ -245,11 +310,33 @@ public class Board
     * @return Stringdarstellung dieses Objekts.
     */
     public String toString() {
+        //return prettyPrint(); /*
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(width).append("x").append(height).append("] ");
         for (Piece p : getPieces())
             sb.append(p).append(", ");
         return sb.toString();
+//*/
+    }
+
+    public Move getMove(String sanMove) {
+        if (sanMove == null)
+            return null;
+
+        for (Move m : getMoveList())
+            if (sanMove.equals(m.toSAN()))
+                return m;
+
+        return null;
+    }
+
+    public Collection<Move> getMoveList() {
+        Collection<Move> moveList = new ArrayList<Move>();
+        Move currentMove;
+        for (Piece p : getPieces()) {
+            moveList.addAll(p.getMoveList(this));
+        }
+        return moveList;
     }
     
     /**
@@ -262,4 +349,27 @@ public class Board
         if (!condition)
             throw new BoardException(exn_message);
     }
+
+    public String prettyPrint() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = height; i >= 1; i--) {
+            for (int j = 1; j <= width; j++) {
+                Position p = P(j,i);
+                Piece at = pieceAt(p);
+                String c = (at == null ? "_" : at.toFEN());
+                sb.append( c );
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    public static interface Formatter {
+        String format(final Board board);
+    }
+
+    private static final String EXN_WIDTH_TOO_LOW =
+        "Ungültige Breite.";
+    private static final String EXN_HEIGHT_TOO_LOW =
+        "Ungültige Höhe.";
 }

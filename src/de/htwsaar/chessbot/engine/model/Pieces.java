@@ -1,141 +1,148 @@
 package de.htwsaar.chessbot.engine.model;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
- * Fabrik zur Bereitstellung von Schachfiguren-Objekten.
- *
- * @author David Holzapfel
- * @author Dominik Becker
- * @version 0.2
- */
+* Figurfabrik.
+*
+* Erzeugt neue Figuren durch Klonen konfigurierter Prototypen.
+*
+* @author Dominik Becker
+* @author Johannes Haupt
+* @author David Holzapfel
+*/
 public class Pieces {
 
-    //Fehlermeldungen
-    private static final String ERR_INVALID_PIECETYPE =
-            "Fehler: Ungueltiger Figurentyp: %d";
-    private static final String ERR_INVALID_POSITION =
-            "Fehler: Position ist 'null'";
+    private Map<String, Piece> prototypes;
+    private Map<String, Map<Position, List<Piece>>> existingPieces;
+    
+    /**
+    * Erzeuge eine Fabrik mit der übergebenen Prototypkonfiguration.
+    *
+    * @param prototypes Prototypenkonfiguration für diese Fabrik
+    * @return neue Fabrik mit übergebener Konfiguration
+    * @throws NullPointerException  falls die Liste der übergebenen 
+    *           Prototypen <code>null</code> ist
+    * @throws PieceFactoryException falls keine Prototypen angegeben wurden
+    */
+    public static Pieces getFactoryForPrototypes(final Collection<Piece> prototypes) {
+        if (prototypes == null)
+            throw new NullPointerException(EXN_PROTOTYPES_NULL);
+        if (prototypes.size() < 1)
+            throw new PieceFactoryException(EXN_NO_PROTOTYPES_SPECIFIED);
 
-    //Konstanten für jeden der 6 Figurentypen
-    public static final int PAWN = 0;
-    public static final int ROOK = 1;
-    public static final int KNIGHT = 2;
-    public static final int BISHOP = 3;
-    public static final int QUEEN = 4;
-    public static final int KING = 5;
+        return new Pieces(prototypes);
+    }
 
-    //Klasseninstanz
-    private static Pieces INSTANCE;
 
-    //Array, das einen Prototypen jedes Figurentyps enthält
-    private Piece[] prototypes;
-    //Liste mit allen bisher erstellten Figurenobjekten
-    private ArrayList<Piece> existingPieces;
+    /**
+    * Erzeuge eine neue Figurfabrik für die übergebenen Prototypen.
+    *
+    * @param prototypes Prototypen der Fabrik
+    */
+    private Pieces(final Collection<Piece> prototypes) {
+        this.prototypes = new HashMap<String, Piece>();
+        this.existingPieces = new HashMap<String, Map<Position, List<Piece>>>();
+        
+        for (Piece p : prototypes) {
+            this.prototypes.put(p.toFEN(), p.clone());
+            p.setColor(!p.isWhite());
+            this.prototypes.put(p.toFEN(), p.clone());
+        }
 
-    //Privater Konstruktor, da die Klasse als Singleton implementiert ist.
-    private Pieces() {
-        this.prototypes = new Piece[6];
-        this.existingPieces = new ArrayList<Piece>();
+        for (String fen : this.prototypes.keySet()) {
+            Map<Position, List<Piece>> m = new TreeMap<Position, List<Piece>>();
+            
+            this.existingPieces.put(fen, m);
+        }
     }
 
     /**
-     * @return Die Klasseninstanz der Fabrik
-     */
-    public static Pieces getInstance() {
-        if(INSTANCE == null) {
-            INSTANCE = new Pieces();
-        }
-
-        return INSTANCE;
-    }
-
-    /**
-     * Prüft, ob ein Exemplar einer Schachfigur existiert und erstellt bei
-     * Bedarf ein neues Objekt.
-     *
-     * @param pieceType Figurentyp
-     * @param position  Position auf dem Schachbrett
-     * @param isWhite   Farbe der Schachfigur
-     * @param hasMoved  Ob die Figur bereits bewegt wurde
-     * @return  Ein Figurenobjekt mit den angegebenen Parametern
-     */
-    public Piece getPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
-        }
-        if(position == null) {
-            throw new IllegalArgumentException(ERR_INVALID_POSITION);
-        }
-
-        Piece piece = getExistingPiece(pieceType, position, isWhite, hasMoved);
+    * Erzeuge eine neue Figur aus den übergebenen Parametern.
+    *
+    * @param fen      FEN-Kürzel der neuen Figur
+    * @param position Feld, das die neue Figur besetzt
+    * @param hasMoved wurde die Figur bereits gezogen?
+    * @return neue Figur mit der angegebenen Konfiguration, oder 
+    *         <code>null</code> falls aus der übergebenen Konfiguration
+    *         keine Figur erzeugt werden kann.
+    */
+    public Piece getPiece(final String fen,
+                          final Position position,
+                          final boolean hasMoved) 
+    {
+        Position p = (position == null ? Position.INVALID : position);
+        Piece piece = getExistingPiece(fen, p, hasMoved);
         if(piece == null) {
-            piece = this.getPrototypeCopy(pieceType);
-            piece.setPosition(position);
-            piece.setColor(isWhite);
-            piece.setHasMoved(hasMoved);
-            this.existingPieces.add(piece);
+            piece = this.getPrototype(fen);
+            if (piece != null) {
+                piece.setPosition(position);
+                piece.setHasMoved(hasMoved);
+                this.addExistingPiece(piece);
+            }
         }
         return piece;
     }
 
-    //Prüft, ob ein Figurenobjekt bereits existiert. Ist das der Fall wird es zurückgegeben, wenn nicht wird
-    //null zurückgegeben.
-    private Piece getExistingPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+    /**
+    * Suche nach einer gespeicherten Figur mit der übergebenen
+    * Konfiguration.
+    *
+    */
+    private Piece getExistingPiece(final String fen, 
+                                   final Position position, 
+                                   final boolean hasMoved) 
+    {
+        List<Piece> pieceList = this.existingPieces.get(fen).get(position);
+        if (pieceList == null)
+            return null;
+        for (Piece p : pieceList) {
+            if (p.hasMoved() == hasMoved)
+                return p;
         }
-        if(position == null) {
-            throw new IllegalArgumentException(ERR_INVALID_POSITION);
-        }
-
-        Piece foundPiece = null;
-        for(int i = 0; i < existingPieces.size() && foundPiece == null; i++) {
-            Piece piece = existingPieces.get(i);
-            if(piece.getPosition().equals(position) && piece.isWhite() == isWhite && piece.hasMoved() == hasMoved) {
-                foundPiece = piece;
-            }
-        }
-
-        return foundPiece;
+        return null;
     }
 
-    //Erzeugt eine Kopie des Prototypen von einem bestimmten Figurentyp
-    private Piece getPrototypeCopy(int pieceType) throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
-        }
-
-        if(this.prototypes[pieceType] == null) {
-            Piece newPrototype;
-            switch(pieceType) {
-                case PAWN:
-                    newPrototype = new Pawn();
-                    break;
-                case ROOK:
-                    newPrototype = new Rook();
-                    break;
-                case KNIGHT:
-                    newPrototype = new Knight();
-                    break;
-                case BISHOP:
-                    newPrototype = new Bishop();
-                    break;
-                case QUEEN:
-                    newPrototype = new Queen();
-                    break;
-                case KING:
-                    newPrototype = new King();
-                    break;
-                default:
-                    return null;
-            }
-            this.prototypes[pieceType] = newPrototype;
-        }
-
-        return this.prototypes[pieceType].clone();
+    /**
+    * Füge eine neue Figur in den Zwischenspeicher ein.
+    */
+    private void addExistingPiece(final Piece piece) {
+        String fen = piece.toFEN();
+        Position p = piece.getPosition();
+        List<Piece> target = this.existingPieces.get(fen).get(p);
+        if (target == null) {
+            target = new ArrayList<Piece>();
+            target.add(piece);
+            this.existingPieces.get(fen).put(p, target);
+        } else 
+            target.add(piece);
     }
+
+    /**
+    * Gib den gespeicherten Prototyp für den übergebenen FEN-String zurück.
+    *
+    * @param fen Figurkürzel in FEN-Notation
+    * @param den Prototyp der Figur mit dem übergebenen FEN-Kürzel oder
+    *        <code>null</code> wenn zu <code>fen</code> keine Figur
+    *        existiert
+    */
+    private Piece getPrototype(String fen) {
+        Piece proto = this.prototypes.get(fen);
+        if (proto == null)
+            return null;
+        else
+            return proto.clone();
+    }
+
+    private static final String EXN_PROTOTYPES_NULL =
+        "Die Liste der Prototypen ist null.";
+    private static final String EXN_NO_PROTOTYPES_SPECIFIED =
+        "Keine Prototypen angegeben.";
 
 }
