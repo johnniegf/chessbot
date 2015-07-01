@@ -1,6 +1,11 @@
-package de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import java.util.*;
+import de.htwsaar.chessbot.engine.model.Piece;
+import de.htwsaar.chessbot.engine.model.Position;
+import de.htwsaar.chessbot.engine.model.Board;
+
+import java.util.Collection;
+import java.util.ArrayList;
 
 /**
 * Die Dame.
@@ -38,12 +43,12 @@ public final class Queen extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
+    public final Collection<Position> getValidTargets(final Board context) {
         Collection<Position> result = new ArrayList<Position>();
         Bishop b = new Bishop(getPosition(), isWhite());
         Rook   r = new Rook(getPosition(), isWhite(), true);
-        result.addAll(b.getValidMoves(context));
-        result.addAll(r.getValidMoves(context));
+        result.addAll(b.getValidTargets(context));
+        result.addAll(r.getValidTargets(context));
         return result;
     }
 
