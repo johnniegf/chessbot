@@ -104,40 +104,35 @@ public class FideBoardBuilder implements BoardBuilder {
     private static boolean setCastlings(final String castleString, final Board context) {
         String castlings = castleString.trim();
         if (castlings == "-") {
-            for (Piece p : context.getPiecesByType(new King())) {
+            for (Piece p : context.getPiecesByType(FACTORY.getPiece("k", null, false))) {
                 p.setHasMoved(false);
             }
             return true;
         }
         
         Position kingPos, rookPos;
+        int col, row;
         for (int i = 0; i < castlings.length(); i++) {
             char c = castlings.charAt(i);
-            switch(c) {
+            row = (Character.isUpperCase(c) ? 1 : 8);
+            switch(Character.toUpperCase(c)) {
                 case 'Q':
-                    kingPos = P("e1");
-                    rookPos = P("a1");
+                    col = 1;
                     break;
                 case 'K':
-                    kingPos = P("e1");
-                    rookPos = P("h1");
-                    break;
-                case 'q':
-                    kingPos = P("e8");
-                    rookPos = P("a8");
-                    break;
-                case 'k':
-                    kingPos = P("e8");
-                    rookPos = P("h8");
+                    col = 8;
                     break;
                 default:
-                    rookPos = Position.INVALID;
-                    kingPos = Position.INVALID;
+                    col = 0;
             }
+            rookPos = new Position(col, row);
+            kingPos = new Position(5, row);
             if (rookPos.isValid()) {
                 Piece p = context.pieceAt(rookPos);
                 if (p instanceof Rook) {
                     p.setHasMoved(false);
+                } else {
+                    throw new FenStringParseException();
                 }
                 p = context.pieceAt(kingPos);
                 if (p instanceof King) {
