@@ -154,7 +154,6 @@ public final class Pawn extends Piece {
 
         possibleMoves.addAll(getValidHits(context));
 
-        System.out.println(possibleMoves);
         return possibleMoves;
     }
 

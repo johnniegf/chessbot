@@ -11,7 +11,7 @@ import java.util.ArrayList;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Position {
+public final class Position implements Comparable<Position> {
 
     /**
     * Eine ungültige Position.
@@ -77,9 +77,9 @@ public final class Position {
     public Position(final String sanString) {
         String san = sanString.trim();
         if (san.length() < 2)
-            throw SAN_STRING_TOO_SHORT;
+            throw new SanStringParseException(SAN_STRING_TOO_SHORT + sanString);
         if (!REGEX_SAN.matcher(san).matches()) {
-            throw SAN_FORMAT_ERROR;
+            throw new SanStringParseException(SAN_FORMAT_ERROR + sanString);
         }
 
         char col   = san.charAt(0);
@@ -182,6 +182,29 @@ public final class Position {
     }
 
     /**
+    * Vergleiche diese Position mit einer anderen.
+    *
+    * Positionen werden zunächst nach ihrer Zeile, dann nach ihrer
+    * Spalte geordnet.
+    *
+    * @param other zu vergleichende Position
+    * @return -1, falls <code>this &lt; other</code>,
+    *          0, falls <code>this == other</code>,
+    *          1, falls <code>this &gt; other</code>,
+    */
+    public int compareTo(final Position other) {
+        if (other == null)
+            throw new NullPointerException();
+
+        int colComp = Integer.compare(getColumn(), other.getColumn());
+        if (colComp != 0)
+            return colComp;
+        else
+            return Integer.compare(getRow(), other.getRow());
+
+    }
+
+    /**
     * Prüfe, ob diese Position auf einem Schachbrett existiert.
     *
     * @param context das zu prüfende Schachbrett
@@ -264,9 +287,9 @@ public final class Position {
     private static final Pattern REGEX_SAN = 
         Pattern.compile("[a-z][1-9][0-9]?");
 
-    private static final IllegalArgumentException SAN_STRING_TOO_SHORT =
-        new IllegalArgumentException("Die algebraische Notation ist zu kurz!");
-    private static final IllegalArgumentException SAN_FORMAT_ERROR =
-        new IllegalArgumentException("Die algebraische Notation ist ungültig!");
+    private static final String SAN_STRING_TOO_SHORT =
+        "Die algebraische Notation ist zu kurz! ";
+    private static final String SAN_FORMAT_ERROR =
+        "Die algebraische Notation ist ungültig!";
 
 }

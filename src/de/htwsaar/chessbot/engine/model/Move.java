@@ -58,9 +58,6 @@ public class Move {
         String[] fields = sanMove.replaceAll(POS_REGEX, " $1 ")
                                  .replaceAll("  ", " ")
                                  .split(" ");
-        for (String f : fields) {
-            System.out.println("In Move(Board,String): " + f);
-        }
         this.piece = extractPiece(context, fields[0], fields[1]);
         this.targetPosition = extractTargetPosition(context, fields[2]);
     }
