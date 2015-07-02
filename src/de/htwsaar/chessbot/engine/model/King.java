@@ -58,25 +58,52 @@ public final class King extends Piece {
                     continue;
 
                 pt = p.transpose(x,y);
-                if (pt.existsOn(context))
+                if (!pt.existsOn(context)) continue;
+                if (context.isAttacked(pt, !isWhite())) continue;
+
+                if (context.isFree(pt) || 
+                    context.pieceAt(pt).isWhite() != isWhite())
+                {
                     validPositions.add(pt);
+                }
             }
         }
-        if (!hasMoved()) {
-            pt = p.transpose(2,0);
-            if (pt.existsOn(context))validPositions.add(pt);
-            pt = p.transpose(-2,0);
-            if (pt.existsOn(context))validPositions.add(pt);
+        if (!hasMoved() && !inCheck(context)) {
+            for (int i = -1; i <= 1; i += 2) {
+                boolean possible = true;
+                for (int d = 1; d <= 2; d++) {
+                    pt = p.transpose(d*i,0);
+                    if ( 
+                    !(
+                        ( 
+                            context.isFree(pt) ||
+                            context.pieceAt(pt).isWhite() != isWhite() 
+                        ) &&
+                        !context.isAttacked(pt, !isWhite()) 
+                    )
+                    )
+                    {
+                        possible = false;
+                        break;
+                    }
+                }
+                if (possible)
+                    validPositions.add(p.transpose(2*i,0));
+            }
         }
 
         return validPositions; 
+    }
+
+    public boolean inCheck(Board context) {
+        return context.isAttacked(getPosition(), !isWhite());
     }
 
     public final String getName() {
         return "König";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "K";
     }
 

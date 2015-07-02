@@ -67,8 +67,18 @@ public final class Pawn extends Piece {
         return "Bauer";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "";
+    }
+
+    public final String toFEN() {
+        return "P";
+    }
+
+    public final boolean canHit(final Position targetPosition,
+                                final Board context)
+    {
+        return getValidHits(context).contains(targetPosition);
     }
 
     public final Collection<Position> getValidMoves(final Board context) {
@@ -76,13 +86,40 @@ public final class Pawn extends Piece {
         int increment = isWhite() ? 1 : -1;
         Position p = getPosition();
         Position pn;
-        for (int i = -1; i <= 1; ++i) {
-            pn = p.transpose(i, increment);
-            if (pn.existsOn(context))
-                possibleMoves.add(pn);
+
+        // Zugmöglichkeiten prüfen
+        pn = p.transpose(0,increment);
+        if ( context.isFree(pn) ) {
+            possibleMoves.add(pn);
+            if (!hasMoved()) {
+                pn = p.transpose(0, 2*increment);
+                if (context.isFree(pn))
+                    possibleMoves.add(pn);
+            }
+        }   
+
+        possibleMoves.addAll(getValidHits(context));
+
+        return possibleMoves;
+    }
+
+    private Collection<Position> getValidHits(final Board context) {
+        Collection<Position> possibleMoves = new ArrayList<Position>(2);
+        int increment = isWhite() ? 1 : -1;
+        Position p = getPosition();
+
+        // Schlagmöglichkeiten durchprobieren.
+        Position[] canHit = new Position[] { 
+            p.transpose(-1, increment),
+            p.transpose(1, increment)
+        };
+        for (Position ph : canHit) {
+            if (ph.existsOn(context) && !context.isFree(ph)) {
+                Piece tp = context.pieceAt(ph);
+                if (tp.isWhite() != isWhite())
+                    possibleMoves.add(ph);
+            }
         }
-        if (!hasMoved())
-            possibleMoves.add(p.transpose(0, 2*increment));
 
         return possibleMoves;
     }

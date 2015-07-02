@@ -51,7 +51,7 @@ public final class Queen extends Piece {
         return "Dame";
     }
 
-    public final String getShortName() {
+    public final String toSAN() {
         return "Q";
     }
     
