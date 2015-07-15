@@ -37,8 +37,8 @@ public final class Knight extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> possibleMoves = new ArrayList<Position>(8);
+    public final Collection<Move> getValidMoves(final Board context) {
+        Collection<Move> possibleMoves = new ArrayList<Move>();
         Position p = getPosition();
         for (int d = -2; d <= 2; d += 4) {
             for (int e = -1; e <= 1; e += 2) {
@@ -47,7 +47,7 @@ public final class Knight extends Piece {
                         if (context.isFree(pn) || 
                             context.pieceAt(pn).isWhite() != isWhite() )
                         {
-                            possibleMoves.add(pn);
+                            possibleMoves.add(new Move(this, pn));
                         }
             }
         }

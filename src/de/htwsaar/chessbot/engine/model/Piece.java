@@ -155,9 +155,15 @@ public abstract class Piece {
     {
         if (targetPosition == null || !targetPosition.isValid())
             return false;
-        Collection<Position> validMoves = getValidMoves(context);
+        Collection<Move> validMoves = getValidMoves(context);
+        boolean hasTargetPosition = false;
+        for(Move move : validMoves) {
+        	if(move.getTarget().equals(targetPosition)) {
+        		hasTargetPosition = true;
+        	}
+        }
         return validMoves != null 
-            && validMoves.contains(targetPosition);
+            && hasTargetPosition;
     }
 
     public boolean attacks(final Position targetPosition,
@@ -262,5 +268,5 @@ public abstract class Piece {
     *
     * @return Liste aller möglichen Züge für die übergebene Stellung 
     */
-    public abstract Collection<Position> getValidMoves(Board context);
+    public abstract Collection<Move> getValidMoves(Board context);
 }

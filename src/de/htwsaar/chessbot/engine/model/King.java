@@ -49,8 +49,8 @@ public final class King extends Piece {
         super(position, isWhite, hasMoved);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> validPositions = new ArrayList<Position>(8);
+    public final Collection<Move> getValidMoves(final Board context) {
+        Collection<Move> validPositions = new ArrayList<Move>();
         Position pt, p = getPosition();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
@@ -64,7 +64,7 @@ public final class King extends Piece {
                 if (context.isFree(pt) || 
                     context.pieceAt(pt).isWhite() != isWhite())
                 {
-                    validPositions.add(pt);
+                    validPositions.add(new Move(this, pt));
                 }
             }
         }
@@ -88,7 +88,7 @@ public final class King extends Piece {
                     }
                 }
                 if (possible)
-                    validPositions.add(p.transpose(2*i,0));
+                    validPositions.add(new Move(this, p.transpose(2*i,0)));
             }
         }
 

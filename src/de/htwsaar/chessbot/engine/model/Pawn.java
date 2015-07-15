@@ -81,8 +81,8 @@ public final class Pawn extends Piece {
         return getAttacks(context).contains(targetPosition);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        List<Position> possibleMoves = new ArrayList<Position>(4);
+    public final Collection<Move> getValidMoves(final Board context) {
+        List<Move> possibleMoves = new ArrayList<Move>();
         int increment = increment();
         Position p = getPosition();
         Position pn;
@@ -90,15 +90,19 @@ public final class Pawn extends Piece {
         // Zugmöglichkeiten prüfen
         pn = p.transpose(0,increment);
         if ( context.isFree(pn) ) {
-            possibleMoves.add(pn);
+            possibleMoves.add(new Move(this, pn));
             if (!hasMoved()) {
                 pn = p.transpose(0, 2*increment);
                 if (context.isFree(pn))
-                    possibleMoves.add(pn);
+                    possibleMoves.add(new Move(this, pn));
             }
-        }   
+        }  
+        
+        //TODO: En-Passant-Moves pruefen. Hierzu ist ein Zugverlauf erforderlich
 
-        possibleMoves.addAll(getValidHits(context));
+        for(Position validHit : getValidHits(context)) {
+        	possibleMoves.add(new Move(this, validHit));
+        }
 
         return possibleMoves;
     }

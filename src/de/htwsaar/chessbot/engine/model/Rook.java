@@ -43,8 +43,8 @@ public final class Rook extends Piece {
         return super.hashCode() * (hasMoved() ? 61 : 67);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> possibleMoves = new ArrayList<Position>(14);
+    public final Collection<Move> getValidMoves(final Board context) {
+        Collection<Move> possibleMoves = new ArrayList<Move>();
         Position p = getPosition();
         
         for (int i = -1; i <= 1; i++) {
@@ -55,9 +55,9 @@ public final class Rook extends Piece {
                 while(p.existsOn(context)) 
                 {
                     if (context.isFree(p))
-                       possibleMoves.add(p);
+                       possibleMoves.add(new Move(this, p));
                     else if (context.pieceAt(p).isWhite() != isWhite()) {
-                        possibleMoves.add(p);
+                        possibleMoves.add(new Move(this, p));
                         break;
                     } else {
                         break;

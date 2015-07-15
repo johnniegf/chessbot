@@ -1,4 +1,4 @@
-package de.htwsaar.chessbot.engine.exception;
+package de.htwsaar.chessbot.exception;
 
 /**
 *   Brettfehler

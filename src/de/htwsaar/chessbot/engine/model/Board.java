@@ -1,14 +1,16 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.Collection;
 import java.util.ArrayList;
-import de.htwsaar.chessbot.engine.exception.*;
+import java.util.Collection;
+
+import de.htwsaar.chessbot.exception.BoardException;
 
 /**
 *   Repraesentation des SpielBrettes
 *
 *   @author Timo Klein
 *   @author Henning Walte
+*   @author David Holzapfel
 */
 public class Board
 {
@@ -16,12 +18,13 @@ public class Board
     private final int width;
     private final int height;
     private Piece[][] pieces;
+    private boolean whiteMoves;
 
     /**
     *   Standardkonstruktor.
     */ 
     public Board() {   
-        this(8,8);
+        this(8,8, true);
     }
     
     /**
@@ -30,10 +33,11 @@ public class Board
     *   @param width    Spielfeldbreite
     *   @param height   Spielfeldhoehe
     */
-    public Board(int width, int height) {
+    public Board(int width, int height, boolean whiteStarts) {
         this.width  = width;
         this.height = height;
         this.pieces = new Piece[width][height];
+        this.whiteMoves = whiteStarts;
         
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -201,7 +205,7 @@ public class Board
     }
     
     /**
-    *   PrÃ¼ft ob Spielbrett leer ist
+    *   Prüft ob Spielbrett leer ist
     *
     *   @return true falls 
     */
@@ -215,7 +219,7 @@ public class Board
     *   @return tiefe Kopie des Board-Objektes
     */
     public Board clone() {
-        Board cloned = new Board(this.getWidth(),this.getHeight());
+        Board cloned = new Board(this.getWidth(),this.getHeight(), this.whiteMoves);
         for (Piece p : getPieces())
             cloned.addPiece(p.clone());
         return cloned;
@@ -237,6 +241,26 @@ public class Board
         pieces[x][y] = null;
 
         return true;
+    }
+
+    /**
+    * Erzeugt eine Liste mit allen gueltigen Zuegen, die der
+    * aktive Spieler ausfuehren kann.
+    *
+    * @return Move-Liste
+    */
+    public Collection<Move> getMoveList() {
+        Collection<Move> moveList = new ArrayList<Move>();
+
+        ArrayList<Piece> pieces = (ArrayList<Piece>)this.getPieces();
+        for(Piece piece : pieces) {
+            if(piece.isWhite() == whiteMoves) {
+                ArrayList<Move> validMoves = (ArrayList<Move>)piece.getValidMoves(this);
+                moveList.addAll(validMoves);
+            }
+        }
+
+        return moveList;
     }
 
     /**

@@ -35,8 +35,8 @@ public final class Bishop extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> result =  new ArrayList<Position>();
+    public final Collection<Move> getValidMoves(final Board context) {
+        Collection<Move> result =  new ArrayList<Move>();
         Position p; 
         for (int i = -1; i <= 1; i += 2) {
             for (int j = -1; j <= 1; j += 2) {
@@ -45,9 +45,9 @@ public final class Bishop extends Piece {
                 while(p.existsOn(context)) 
                 {
                     if (context.isFree(p))
-                       result.add(p);
+                       result.add(new Move(this, p));
                     else if (context.pieceAt(p).isWhite() != isWhite()) {
-                        result.add(p);
+                        result.add(new Move(this, p));
                         break;
                     } else {
                         break;

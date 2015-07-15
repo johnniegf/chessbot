@@ -38,8 +38,8 @@ public final class Queen extends Piece {
         super(position, isWhite);
     }
 
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> result = new ArrayList<Position>();
+    public final Collection<Move> getValidMoves(final Board context) {
+        Collection<Move> result = new ArrayList<Move>();
         Bishop b = new Bishop(getPosition(), isWhite());
         Rook   r = new Rook(getPosition(), isWhite(), true);
         result.addAll(b.getValidMoves(context));
