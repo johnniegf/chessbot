@@ -1,7 +1,7 @@
-package de.htwsaar.chessbot.%PKGNAME;
+package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
-import de.htwsaar.chessbot.*;
+import static de.htwsaar.chessbot.engine.model.Position.P;
 
 // Java-API
 import java.util.*;
@@ -15,9 +15,9 @@ import org.junit.*;
 /**
 * Testklasse für ...
 *
-* @author %AUTHOR
+* @author Johannes Haupt
 */
-public class %CLASSNAME { 
+public class PositionTest { 
 
     // Testvariablen
 
@@ -56,8 +56,27 @@ public class %CLASSNAME {
     // = Funktionstests
     // ====================================================
 
-    @Test public void test...() {
-    
+    @Test public void testInvalidSanString() {
+        final String[] invalidPositions = {
+            "", "55", " b 7 ", "c88", "3d", "? ", "c8 )", "ab7"
+        };
+        for (String san : invalidPositions) {
+            assertFalse("SAN-String '" + san + "' darf nicht gültig sein.",
+                        P(san).isValid());
+        }
+    }
+
+    @Test public void testInvalidIndices() {
+        final byte[] invalidFiles = { 0, -4, 100, 27 };
+        final byte[] invalidRanks = { 0, -4, 100, 41 };
+        for (byte f : invalidFiles) {
+            for (byte r : invalidRanks) {
+                assertFalse("Position " + f + "," + r + 
+                            " darf nicht gültig sein.",
+                            P(f,r).isValid());
+                
+            }
+        }
     }
 
 }
