@@ -1,7 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
-    import java.util.*;
-    /**
+import java.util.*;
+/**
 * Beschreibung.
 *
 * @author Johannes Haupt
@@ -9,20 +9,43 @@ package de.htwsaar.chessbot.engine.model;
 public final class Position 
         implements Comparable<Position> 
 {
-
+    /** Maximale Anzahl Spalten */
     public static final byte MAX_FILE = Board.MAX_WIDTH;
+
+    /** Maximale Anzahl Reihen */
     public static final byte MAX_RANK = Board.MAX_HEIGHT;
 
     private static PositionCache sCache = new PositionCache(); 
 
+    /**
+    * Erzeuge ein Positionsobjekt aus der übergebenen algebraischen Notation.
+    *
+    * @param sanPosition Standard-algebraische Notation der Position.
+    * @return die zu sanPosition gehörige Position oder eine ungültige
+    *         Position, falls sanPosition nicht existiert.
+    */
     public static Position P(final String sanPosition) {
         return sCache.get(sanPosition);
     }
 
+    /**
+    * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
+    *
+    * @param file Spalte der Position
+    * @param rank Zeile der Position
+    * @return Position mit den übergebenen Koordinaten
+    */
     public static Position P(int file, int rank) {
         return P((byte) file, (byte) rank);
     }
-
+    
+    /**
+    * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
+    *
+    * @param file Spalte der Position
+    * @param rank Zeile der Position
+    * @return Position mit den übergebenen Koordinaten
+    */
     public static Position P(byte file, byte rank) {
         return sCache.get(file,rank);
     }
@@ -32,56 +55,96 @@ public final class Position
             && rank > 0 && rank <= MAX_RANK;
     }
 
-    public static final Position INVALID = new Position();
-
+    public static final Position INVALID 
+        = new Position((byte) 0, (byte) 0);
 
     private final byte mFile;
     private final byte mRank;
 
     /**
-    * Standardkonstruktor.
-    */ 
-    protected Position() {
-        this((byte) 0,(byte) 0);   
-    }
-
+    * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
+    *
+    * @param file Spalte der Position
+    * @param rank Zeile der Position
+    * @return Position mit den übergebenen Koordinaten
+    */
     protected Position(final byte file, final byte rank) {
         mFile = file;
         mRank = rank;
     }
 
+    /**
+    * Gib zurück, ob diese Position gültig ist.
+    *
+    * Eine Position ist gültig, wenn gilt: 
+    * <code>0 &lt; file() &lt;= MAX_FILE</code> und 
+    * <code>0 &lt; rank() &lt;= MAX_RANK</code>
+    *
+    * @return <code>true</code>, wenn die Position gültig ist,
+    *         sonst <code>false</code>
+    */
     public boolean isValid() {
         return isValidPos(mFile,mRank);
     }
 
+    /**
+    * Gib zurück, ob die Position auf dem übergebenen Brett existiert.
+    *
+    * @param board das zu prüfende Brett
+    * @return <code>true</code>, wenn die Position innerhalb der
+    *         Dimensionen des Bretts liegt, sonst <code>false</code>
+    */
     public boolean existsOn(final Board board) {
         return isValid()
             && mFile <= board.width()
             && mRank <= board.height();
     }
 
+    /**
+    * Verschiebe diese Position um die übergebenen Deltas.
+    *
+    * @param deltaFile Verschiebung in x-Richtung
+    * @param deltaRank Verschiebung in y-Richtung
+    * @return die verschobene Position
+    */
     public Position transpose(int deltaFile, int deltaRank) {
         return transpose((byte) deltaFile, (byte) deltaRank);
     }
 
+    /**
+    * Verschiebe diese Position um die übergebenen Deltas.
+    *
+    * @param deltaFile Verschiebung in x-Richtung
+    * @param deltaRank Verschiebung in y-Richtung
+    * @return die verschobene Position
+    */
     public Position transpose(byte deltaFile, byte deltaRank) {
         return P((byte) (mFile + deltaFile), (byte) (mRank + deltaRank));
     }
 
+    /**
+    * Gib die x-Koordinate dieser Position zurück.
+    */
     public byte file() {
         return mFile;
     }
 
+    /**
+    * Gib die y-Koordinate dieser Position zurück.
+    */
     public byte rank() {
         return mRank;
     }
 
+    /**
+    * Gib zurück, ob dieses Feld weiß ist.
+    */
     public boolean isWhite() {
         return (file() + rank()) % 2 != 0; 
     }
 
     public int hashCode() {
-        return (Board.MAX_WIDTH * (mRank-1)) + mFile;
+        return (MAX_FILE * (mRank-1)) + mFile;
     }
 
     public int compareTo(final Position other) {

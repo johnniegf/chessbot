@@ -1,8 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
 /**
-* Ein <code>BoardBuilder</code> erzeugt Stellungen für je eine
-* Spielvariante.
+* Stellungserbauer.
+*
+* Erzeugt Stellungen für eine Spielvariante.
 *
 * @author Johannes Haupt
 */

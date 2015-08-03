@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Random;
 
 /**
-* Beschreibung.
+* Abstrakter Figurtyp (zur Vereinfachung der Implementierung).
 *
 * @author Johannes Haupt
 */
@@ -17,21 +17,32 @@ public abstract class AbstractPiece
     private boolean mIsWhite;
     private boolean mHasMoved;
 
+    /**
+    * Erzeuge eine neue uninitialisierte Figur.
+    */
     protected AbstractPiece() {
         this(Position.INVALID, false, false);
     }
 
+    /**
+    *
+    */
     protected AbstractPiece(final Position position,
                             final boolean isWhite,
                             final boolean hasMoved)
     {
-        mPosition = position;
-        mIsWhite  = isWhite;
-        mHasMoved = hasMoved;
-        //Pieces.register(id(), this);
+        setPosition(position);
+        setIsWhite(isWhite);
+        setHasMoved(hasMoved);
         init();
     }
 
+    /**
+    * Initialisierungsroutine.
+    *
+    * Zur Nutzung durch Unterklassen. Falls weitere Initialisierung
+    * der Figur im Konstruktor dieser Klasse benötigt wird.
+    */
     protected void init() {
     }
 
@@ -61,13 +72,17 @@ public abstract class AbstractPiece
         mHasMoved = hasMoved;
     }
  
-    public boolean attacks(final Board context, final Position targetSquare) {
+    public boolean attacks(final Board context, 
+                           final Position targetSquare) 
+    {
         return getAttacks(context).contains(targetSquare);
     }
 
-    public boolean canMoveTo(final Board context, final Position targetSquare) {
+    public boolean canMoveTo(final Board context, 
+                             final Position targetSquare) 
+    {
         for ( Move m : getMoves(context) ) {
-            if (m.getTarget() == targetSquare)
+            if (m.getTarget().equals(targetSquare))
                 return true;
         }
         return false;
@@ -100,11 +115,13 @@ public abstract class AbstractPiece
                           : Character.toLowerCase(fen()));
     }
 
+    /**
+    * Hilfsmethode, gib den FEN-Schlüssel der Figur zurück.
+    */
     protected abstract char fen();
 
     public Piece move(final Position targetSquare) {
-        Piece copy = PC(fenShort(), targetSquare, true);
-        return copy;
+        return PC(fenShort(), targetSquare, true);
     }
 
     public Piece clone() {

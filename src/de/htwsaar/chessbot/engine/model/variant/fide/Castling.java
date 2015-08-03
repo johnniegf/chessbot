@@ -8,7 +8,9 @@ import de.htwsaar.chessbot.engine.model.*;
 * @author Johannes Haupt
 */
 public class Castling extends Move {
-    
+
+    public static final char flag = 'C';
+
     /**
     * Standardkonstruktor.
     */ 

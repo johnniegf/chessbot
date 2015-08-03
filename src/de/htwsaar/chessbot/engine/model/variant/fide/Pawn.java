@@ -1,10 +1,10 @@
 package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import static de.htwsaar.chessbot.engine.model.Move.M;
+import static de.htwsaar.chessbot.engine.model.ChessVariant.MV;
 import de.htwsaar.chessbot.engine.model.*;
 
-import java.util.Collection;
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 /**
 * Beschreibung.
 *
@@ -19,8 +19,8 @@ public class Pawn
         return HASH;
     }
 
-    public Collection<Position> getAttacks(final Board context) {
-        Collection<Position> attacks = new ArrayList<Position>();
+    public Set<Position> getAttacks(final Board context) {
+        Set<Position> attacks = new HashSet<Position>();
         
         Position p0 = getPosition();
         Position pt;
@@ -33,8 +33,8 @@ public class Pawn
         return attacks;
     }
 
-    private Collection<Position> getTargets(final Board context) {
-        Collection<Position> targets = new ArrayList<Position>(2);
+    private Set<Position> getTargets(final Board context) {
+        Set<Position> targets = new HashSet<Position>();
 
         Position p0 = getPosition();
         Position pt;
@@ -50,14 +50,14 @@ public class Pawn
         return targets;
     }
 
-    public Collection<Move> getMoves(final Board context) {
-        Collection<Move> moves = new ArrayList<Move>();
+    public Set<Move> getMoves(final Board context) {
+        Set<Move> moves = new HashSet<Move>();
         Position myPos = getPosition();
         for (Position p : getAttacks(context)) {
-            moves.add( M(myPos,p) );
+            moves.add( MV(myPos,p) );
         }
         for (Position p : getTargets(context)) {
-            moves.add( M(myPos,p) );
+            moves.add( MV(myPos,p) );
         }
         return moves;
     }

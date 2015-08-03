@@ -1,16 +1,26 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 /**
-* Beschreibung.
+* Figurfabrik.
 *
+* Erzeugt und verwaltet Figuren. Hierbei kommt <em>lazy loading</em>
+* zum Einsatz, d.h. Figuren werden erst erzeugt und im 
+* Zwischenspeicher abgelegt, sobald sie das erste Mal angefordert
+* werden.
+*
+* Figuren werden durch Kopieren von Prototypen, welche beim Erstellen
+* der Fabrik übergeben werden, erzeugt.
+*
+* @author Dominik Becker
+* @author David Holzapfel
 * @author Johannes Haupt
 */
 public final class Pieces {
     
-    public static Pieces getFactory(final Collection<Piece> prototypes) {
+    public static Pieces getFactory(final Set<Piece> prototypes) {
         return new Pieces(prototypes);
     }
 
@@ -38,7 +48,7 @@ public final class Pieces {
     private Map<Character,Piece> mPrototypes;
     private Map<Integer,Piece>   mCache;
 
-    private Pieces(final Collection<Piece> prototypes) {
+    private Pieces(final Set<Piece> prototypes) {
         if ( prototypes == null )
             throw new NullPointerException("prototypes");
 
@@ -49,7 +59,7 @@ public final class Pieces {
         mCache = new HashMap<Integer,Piece>();
     }
 
-    public boolean addPrototype(final Piece prototype) {
+    private boolean addPrototype(final Piece prototype) {
         Piece current;
         for (int i = 0; i < 2; i++) {
             current = prototype.clone();
@@ -73,6 +83,21 @@ public final class Pieces {
         return newPiece;
     }
 
+    /**
+    * Gib die Figur mit den übergebenen Eigenschaften zurück.
+    *
+    * Falls die Figur nicht existiert, wird sie zunächst erzeugt
+    * und im Zwischenspeicher abgelegt.
+    *
+    * @param fenShort FEN-Kürzel der Figur
+    * @param position Feld der Figur
+    * @param hasMoved ob die Figur bereits gezogen wurde
+    * @return die Figur mit den übergebenen Eigenschaften
+    * @throws NullPointerException falls <code>position == null</code>
+    * @throws PieceFactoryException falls die Figur nicht erzeugt 
+    *           werden kann, z.B. wenn für das FEN-Kürzel kein 
+    *           Prototyp hinterlegt ist
+    */
     public Piece get(final char fenShort,
                      final Position position,
                      final boolean hasMoved)

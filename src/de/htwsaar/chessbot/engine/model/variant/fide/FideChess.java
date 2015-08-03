@@ -49,8 +49,8 @@ public class FideChess extends ChessVariant {
         return Arrays.asList( new Move[]{
             new Move(),
             new DoublePawnMove(),
-            new PawnConversion(),
-            new EnPassant(),
+            //new PawnConversion(),
+            //new EnPassant(),
             new Castling()
         });
     }
