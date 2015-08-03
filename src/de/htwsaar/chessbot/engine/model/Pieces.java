@@ -35,6 +35,9 @@ public final class Pieces {
         boolean isWhite = Character.isUpperCase(fenShort);
         index += (isWhite  ? 1 : 0);
 
+        index = index << 1;
+        index += (hasMoved ? 1 : 0); 
+
         index = index << 5;
         index += (int) (fenShort - (isWhite ? 'A' : 'a'));
 

@@ -32,7 +32,7 @@ public class DoublePawnMove extends Move {
             super.setStart(start);
             super.setTarget(start.transpose(0,-2));
         } else {
-            throw new InvalidMoveException();
+            throw new MoveException("Invalid move!");
         }
     }
 
@@ -53,7 +53,7 @@ public class DoublePawnMove extends Move {
     public Board tryExecute(final Board onBoard) {
         Board result = super.tryExecute(onBoard);
         if (result != null) {
-            int inc = context.getPieceAt(getTarget()).isWhite() ? -1 : 1;
+            int inc = result.getPieceAt(getTarget()).isWhite() ? -1 : 1;
             Position enPassant = getTarget().transpose(0, inc);
             result.setEnPassant(enPassant);
         }

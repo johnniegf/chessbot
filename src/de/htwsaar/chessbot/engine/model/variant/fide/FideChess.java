@@ -11,34 +11,36 @@ import java.util.*;
 */
 public class FideChess extends ChessVariant {
     
-    private static final Collection<Piece> PROTOTYPES;
+    private static final Set<Piece> PROTOTYPES;
     static {
-        PROTOTYPES = Arrays.asList(new Piece[] {
+        Piece[] pcs = new Piece[] {
             new Pawn(),
             new King(),
             new Queen(),
             new Rook(),
             new Knight(),
             new Bishop()
-        });
+        };
+        Set<Piece> proto = new HashSet<Piece>();
+        for (Piece p : pcs)
+            proto.add(p);
+        PROTOTYPES = proto;
     }
 
-    private final Pieces mFactory;
     private final BoardBuilder mBuilder;
     /**
     * Standardkonstruktor.
     */ 
     public FideChess() {
-        mFactory = Pieces.getFactory(PROTOTYPES);
         mBuilder = new FideBoardBuilder();
+    }
+
+    public Set<Piece> getPieces() {
+        return PROTOTYPES;
     }
 
     public Board getBoard() {
         return new Board(8,8);
-    }
-
-    public Pieces getPieceFactory() {
-        return mFactory;
     }
 
     public final BoardBuilder getBoardBuilder() {

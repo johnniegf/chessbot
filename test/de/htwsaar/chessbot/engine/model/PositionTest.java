@@ -47,9 +47,10 @@ public class PositionTest {
     // = Ausnahmetests
     // ====================================================
 
-    @Test(expected = MyException.class)
-    public void test...() {
+    @Test(expected = NullPointerException.class)
+    public void testN() {
         // Fehlerhafte Anweisung, die MyException auslöst
+        Position.P(null);
     }
 
     // ====================================================
