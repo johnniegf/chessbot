@@ -59,4 +59,8 @@ public class Castling extends Move {
         return (Rook) r;
     }
 
+    public final char flag() {
+    	return FLAG;
+    }
+    
 }

@@ -53,13 +53,29 @@ public class Pawn
     public Set<Move> getMoves(final Board context) {
         Set<Move> moves = new HashSet<Move>();
         Position myPos = getPosition();
+        char flag = (isPromotion(myPos) ? MovePromotion.FLAG : Move.FLAG);
         for (Position p : getAttacks(context)) {
-            moves.add( MV(myPos,p) );
+        	if (p.equals(context.getEnPassant()))
+        		moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
+        	else
+        		moves.add( MV(myPos,p,flag) );
         }
         for (Position p : getTargets(context)) {
-            moves.add( MV(myPos,p) );
+        	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
+        		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
+        	else
+        		moves.add( MV(myPos,p,flag) );
         }
         return moves;
+    }
+    
+    private boolean isPromotion(final Position start) {
+    	if ( isWhite() )
+    		if (start.rank() == 7) return true;
+    	else
+    		if (start.rank() == 2) return true;
+    	
+    	return false;
     }
 
     protected char fen() {

@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model.variant.fide;
 
 import static de.htwsaar.chessbot.engine.model.ChessVariant.MV;
+import static de.htwsaar.chessbot.engine.model.Position.P;
 import de.htwsaar.chessbot.engine.model.*;
 import java.util.Set;
 import java.util.HashSet;
@@ -50,6 +51,22 @@ public class King
 
     private Set<Move> getCastlings(final Board context) {
         Set<Move> castlings = new HashSet<Move>();
+        if ( !hasMoved() ) {
+        	Position p = getPosition();
+        	for (int i : new int[]{1,8}) {
+        		Position r = P(i,p.rank());
+        		Piece rook = context.getPieceAt(r);
+        		if ( rook == null ) continue;
+        		if ( rook.hasMoved() ) continue;
+        		if ( rook.isWhite() != isWhite() ) continue;
+        		int d = p.compareTo(r);
+        		for (int c = 1; c <= 2; c++) {
+        			if ( 0 < context.isAttacked(!isWhite(), p.transpose(c*d, 0)) )
+        				continue;
+        		}
+        		castlings.add( MV(p, p.transpose(d*2,0), Castling.FLAG) );
+        	}
+        }
         return castlings;
     }
 

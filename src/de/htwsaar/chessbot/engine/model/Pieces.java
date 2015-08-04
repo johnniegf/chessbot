@@ -35,9 +35,6 @@ public final class Pieces {
         boolean isWhite = Character.isUpperCase(fenShort);
         index += (isWhite  ? 1 : 0);
 
-        index = index << 1;
-        index += (hasMoved ? 1 : 0); 
-
         index = index << 5;
         index += (int) (fenShort - (isWhite ? 'A' : 'a'));
 
@@ -105,8 +102,8 @@ public final class Pieces {
                      final Position position,
                      final boolean hasMoved)
     {
-        if ( !isFenLetter(fenShort) )
-            throw new IllegalArgumentException("fenShort");
+        if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
+            throw new IllegalArgumentException("fenShort '" + fenShort + "'");
         if ( position == null )
             throw new NullPointerException("position");
         

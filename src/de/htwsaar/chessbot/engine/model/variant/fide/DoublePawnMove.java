@@ -25,15 +25,16 @@ public class DoublePawnMove extends Move {
     public void setStart(final Position start) {
         if (start == null)
             throw new NullPointerException("start");
+        int d;
         if (start.rank() == 2) {
-            super.setStart(start);
-            super.setTarget(start.transpose(0,2));
+        	d = 1;
         } else if (start.rank() == 7) {
-            super.setStart(start);
-            super.setTarget(start.transpose(0,-2));
+            d = -1;
         } else {
             throw new MoveException("Invalid move!");
         }
+        super.setStart(start);
+        super.setTarget(start.transpose(0,d*2));
     }
 
     public void setTarget(final Position unused) {
