@@ -2,7 +2,9 @@ package de.htwsaar.chessbot.engine.model;
 
 import java.util.*;
 /**
-* Beschreibung.
+* Feld auf dem Schachbrett.
+*
+*  
 *
 * @author Johannes Haupt
 */
@@ -18,7 +20,7 @@ public final class Position
     private static PositionCache sCache = new PositionCache(); 
 
     /**
-    * Erzeuge ein Positionsobjekt aus der übergebenen algebraischen Notation.
+    * Gib das Feld mit der übergebenen algebraischen Notation zurück.
     *
     * @param sanPosition Standard-algebraische Notation der Position.
     * @return die zu sanPosition gehörige Position oder eine ungültige
@@ -40,7 +42,7 @@ public final class Position
     }
     
     /**
-    * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
+    * Gib das Feld mit den übergebenen Koordinaten zurück.
     *
     * @param file Spalte der Position
     * @param rank Zeile der Position
@@ -55,6 +57,7 @@ public final class Position
             && rank > 0 && rank <= MAX_RANK;
     }
 
+    /** Ugültige Position */
     public static final Position INVALID 
         = new Position((byte) 0, (byte) 0);
 

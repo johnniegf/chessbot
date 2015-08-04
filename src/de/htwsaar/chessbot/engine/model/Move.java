@@ -1,8 +1,13 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
 /**
-* Beschreibung.
+* Schachzug.
+*
+* Das Caching der Züge geschieht über einen durch die Spielvariante 
+* als quasi-Singleton vorgehaltenenen <code>Move.Cache</code>.
 *
 * @author Johannes Haupt
 */
@@ -100,12 +105,24 @@ public class Move {
             throw new NullPointerException("context");
         Board result = context.clone();
         Piece pc = context.getPieceAt(getStart());
-        if ( pc.isWhite() != context.isWhiteAtMove()) return null;
+        // Existiert die Figur?
         if ( pc == null ) return null;
+        // Ist die Farbe überhaupt am Zug?
+        if ( pc.isWhite() != context.isWhiteAtMove()) return null;
+        // Kann die Figur auf das Zielfeld ziehen?
         if ( !pc.canMoveTo(context, getTarget())) return null;
-        if ( !context.isFree(mTarget) )
-            context.removePieceAt(getTarget());
 
+        // Ist das Zielfeld besetzt...
+        if ( !context.isFree(mTarget) ) {
+            // ... und die Figur darauf von der selben Farbe wie die gezogene?
+            if ( context.getPieceAt(getTarget()).isWhite() == pc.isWhite() )
+                return null;
+            // Wenn nein, dann schlage die Figur auf dem Zielfeld
+            else
+                context.removePieceAt(getTarget());
+        }
+
+        // Ist die resultierende Stellung regelkonform?
         if (!ChessVariant.getActive().isLegal(result))
             return null;
         else
@@ -199,7 +216,7 @@ public class Move {
         }
     
         /**
-        *
+        * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
         public Move get(char flag, Position start, Position target) {
             if (start == null)
