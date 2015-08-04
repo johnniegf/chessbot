@@ -12,10 +12,7 @@ import java.util.regex.*;
 * @author
 */
 public class FideBoardBuilder implements BoardBuilder {
-
-    private static final ChessVariant VARIANT = new FideChess();
-
-
+	
     private Collection<Piece> pieces;
 
     public Board getBoard() {
@@ -26,7 +23,7 @@ public class FideBoardBuilder implements BoardBuilder {
         if (!fenString.matches(REGEX_FEN_STRING))
             throw new FenStringParseException(EXN_BAD_FORMAT + fenString);
 
-        Board    result = VARIANT.getBoard();
+        Board    result = ChessVariant.getActive().getBoard();
         String[] fields = fenString.split(" ");
         String[] rows   = fields[0].split("/");
         

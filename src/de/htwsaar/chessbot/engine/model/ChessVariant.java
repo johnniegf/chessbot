@@ -23,7 +23,7 @@ import java.util.Arrays;
 */
 public abstract class ChessVariant {
 
-    private static final ChessVariant DEFAULT = new FideChess();
+    //private static final ChessVariant DEFAULT = new FideChess();
 
     private static ChessVariant sCurrent;
 
@@ -85,7 +85,7 @@ public abstract class ChessVariant {
     */
     public static ChessVariant getActive() {
         if (sCurrent == null)
-            sCurrent = DEFAULT;
+            sCurrent = FideChess.getInstance();
         return sCurrent;
     }
 

@@ -11,28 +11,35 @@ import java.util.*;
 */
 public class FideChess extends ChessVariant {
     
-    private static final Set<Piece> PROTOTYPES;
-    static {
-        Piece[] pcs = new Piece[] {
+    private static Set<Piece> PROTOTYPES = new HashSet<Piece>(
+    	Arrays.asList(new Piece[] {
             new Pawn(),
             new King(),
             new Queen(),
             new Rook(),
             new Knight(),
             new Bishop()
-        };
-        Set<Piece> proto = new HashSet<Piece>();
-        for (Piece p : pcs)
-            proto.add(p);
-        PROTOTYPES = proto;
+        })
+    );
+    
+    private static FideChess sInstance;
+    
+    public static FideChess getInstance() {
+    	if (sInstance == null)
+    		sInstance = new FideChess();
+    	return sInstance;
+    }
+    
+    static {
+    	ChessVariant.setActive(getInstance());    	
     }
 
-    private final BoardBuilder mBuilder;
+    private BoardBuilder mBuilder;
     /**
     * Standardkonstruktor.
     */ 
     public FideChess() {
-        mBuilder = new FideBoardBuilder();
+        
     }
 
     public Set<Piece> getPieces() {
@@ -44,6 +51,8 @@ public class FideChess extends ChessVariant {
     }
 
     public final BoardBuilder getBoardBuilder() {
+    	if (mBuilder == null)
+    		mBuilder = new FideBoardBuilder();
         return mBuilder;
     }
 
