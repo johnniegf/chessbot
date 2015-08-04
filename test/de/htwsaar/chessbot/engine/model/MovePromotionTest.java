@@ -20,7 +20,7 @@ import org.junit.runner.RunWith;
 /**
 * Testklasse für ...
 *
-* @author
+*@author Dominik Becker
 */
 @RunWith(Parameterized.class)
 public class MovePromotionTest { 
@@ -35,6 +35,11 @@ public class MovePromotionTest {
             },
             {
             	new MovePromotion(new Pawn(P("d2"), false), P("d1"), new Bishop()),
+            	new Board(),
+            	true
+            },
+            {
+            	new MovePromotion(new Pawn(P("e7")), P("e8"), new Knight()),
             	new Board(),
             	true
             }
@@ -76,6 +81,20 @@ public class MovePromotionTest {
     				 isPossible,
     				 promotion.isPossible(board))
     }
+    
+    @Test public void testEquality() {
+    	MovePromotion m;
+    	Board b;
+    	boolean isPos;
+    	m = this.promotion;
+    	b = this.board;
+    	t = this.isPossible;
+    	
+    			
+    	
+    }
+    
+    
 
 }
 

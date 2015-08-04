@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry kind="src" output="build" path="src"/>
 	<classpathentry kind="var" path="JRE_LIB" rootpath="JRE_SRCROOT" sourcepath="JRE_SRC"/>
-	<classpathentry kind="con" path="C:/Users/sedoom/workspace/Chessbot/build"/>
+	<classpathentry kind="con" path="C:/Users/sedoom/git/chessbot/build"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,6 +1,8 @@
 package de.htwsaar.chessbot.engine.model;
 /**
 *Klasse zur Bauernumwandlung. 
+*Wandelt einen Bauern, wenn er auf die hinterste Reihe bewegt wird, in die angebebene Figur um.
+*Dabei sind Koenig und Bauer nicht möglich.
 *
 *@author Dominik Becker
 */
@@ -24,6 +26,9 @@ public class MovePromotion extends Move {
 
 	}
 
+	/**
+	 * fuehrt die Bauernumwandlung durch und gibt das Board mit der neuen Stellung zurueck.
+	 */
     @Override
 	public Board execute(Board onBoard) {
 

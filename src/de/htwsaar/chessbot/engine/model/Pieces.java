@@ -1,6 +1,5 @@
-package src.de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.model;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 
 import java.util.ArrayList;
 
@@ -63,12 +62,12 @@ public class Pieces {
      * @return  Ein Figurenobjekt mit den angegebenen Parametern
      */
     public Piece getPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws InvalidArgumentException {
+        throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
         if(position == null) {
-            throw new InvalidArgumentException(ERR_INVALID_POSITION);
+            throw new IllegalArgumentException(ERR_INVALID_POSITION);
         }
 
         Piece piece = getExistingPiece(pieceType, position, isWhite, hasMoved);
@@ -85,12 +84,12 @@ public class Pieces {
     //Prüft, ob ein Figurenobjekt bereits existiert. Ist das der Fall wird es zurückgegeben, wenn nicht wird
     //null zurückgegeben.
     private Piece getExistingPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws InvalidArgumentException {
+        throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
         if(position == null) {
-            throw new InvalidArgumentException(ERR_INVALID_POSITION);
+            throw new IllegalArgumentException(ERR_INVALID_POSITION);
         }
 
         Piece foundPiece = null;
@@ -105,9 +104,9 @@ public class Pieces {
     }
 
     //Erzeugt eine Kopie des Prototypen von einem bestimmten Figurentyp
-    private Piece getPrototypeCopy(int pieceType) throws InvalidArgumentException {
+    private Piece getPrototypeCopy(int pieceType) throws IllegalArgumentException {
         if(pieceType < 0 || pieceType > 5) {
-            throw new InvalidArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
+            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
         }
 
         if(this.prototypes[pieceType] == null) {
