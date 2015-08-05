@@ -1,11 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
-
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
+
+import de.htwsaar.chessbot.engine.model.variant.fide.FideChess;
 /**
 * Schachspielvariante.
 *
@@ -90,7 +88,6 @@ public abstract class ChessVariant {
     * @return die aktive Spielvariante.
     */
     public static ChessVariant getActive() {
-        System.out.println("ChessVariant.getActive");
         if (sCurrent == null)
             sCurrent = FideChess.getInstance();
         return sCurrent;
@@ -175,8 +172,8 @@ public abstract class ChessVariant {
     * @return eine <code>Collection</code> der Zugprototypen dieser 
     *         Variante
     */
-    protected Set<Move> getMoves() {
-        Set<Move> movePrototypes = new HashSet<Move>();
+    protected Collection<Move> getMoves() {
+        Collection<Move> movePrototypes = new ArrayList<Move>();
         movePrototypes.add(new Move());
         return movePrototypes;
     }

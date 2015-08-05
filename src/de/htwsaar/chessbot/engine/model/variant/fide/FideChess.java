@@ -1,8 +1,15 @@
 package de.htwsaar.chessbot.engine.model.variant.fide;
 
-import de.htwsaar.chessbot.engine.model.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
-import java.util.*;
+import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.BoardBuilder;
+import de.htwsaar.chessbot.engine.model.ChessVariant;
+import de.htwsaar.chessbot.engine.model.Move;
+import de.htwsaar.chessbot.engine.model.Piece;
+import de.htwsaar.chessbot.engine.model.Pieces;
 
 /**
 * Beschreibung.
@@ -52,7 +59,7 @@ public class FideChess extends ChessVariant {
         return mBuilder;
     }
 
-    public final Collection<Move> getMoveTypes() {
+    public final Collection<Move> getMoves() {
         return Arrays.asList( new Move[]{
             new Move(),
             new DoublePawnMove(),

@@ -54,7 +54,7 @@ public class FideBoardBuilder implements BoardBuilder {
             if (Character.isLetter(current)) {
                 Piece p = ChessVariant.getActive()
                                       .getPieceFactory()
-                                      .get(current, currentPosition, false);
+                                      .get(current, currentPosition, true);
                 checkForStartingPos(p);
                 if (p == null)
                     throw new FenStringParseException(EXN_UNKOWN_PIECE);

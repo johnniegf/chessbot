@@ -403,19 +403,29 @@ public class Board {
 
         if (other instanceof Board) {
             final Board b = (Board) other;
+            System.out.print("1");
             if ( b.width() != width() ) return false;
+            System.out.print("2");
             if ( b.height() != height() ) return false;
+            System.out.print("3");
             if ( b.getHalfMoves() != getHalfMoves() ) return false;
+            System.out.print("4");
             if ( b.getFullMoves() != getFullMoves() ) return false;
+            System.out.print("5");
             if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
-            if ( b.getEnPassant() != getEnPassant() )
-                if (b.getEnPassant().isValid() != getEnPassant().isValid())
-                    return false;
+            System.out.print("6");
+            if ( !b.getEnPassant().equals(getEnPassant()) ) return false;
+            System.out.print("7");
             if ( b.getPieceCount() != getPieceCount() ) return false;
+            System.out.print("8");
             for ( Piece op : b.getPieces() ) {
-                if ( !op.equals(getPieceAt(op.getPosition())) )
+                if ( !op.equals(getPieceAt(op.getPosition())) ) {
+                	System.out.println(op);
+                	System.out.println(getPieceAt(op.getPosition()));
                     return false;
+                }
             }
+            System.out.println("9");
             return true;   
         } else {
             return false;
@@ -429,7 +439,35 @@ public class Board {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-
+        for (int y = height(); y > 0; y--) {
+        	int ec = 0;
+        	for (int x = 1; x <= width(); x++) {
+        		Piece pc = getPieceAt(P(x,y));
+        		if (pc == null)
+        			ec++;
+        		else {
+        			if (ec > 0) {
+        				sb.append(ec);
+        				ec = 0;
+        			}
+        			sb.append(pc.fenShort());
+        		}
+        			
+        	}
+        	if (ec > 0) {
+				sb.append(ec);
+				ec = 0;
+			}
+        	if (y > 1)
+        		sb.append("/");
+        }
+        sb.append(isWhiteAtMove() ? " w" : " b");
+        sb.append(" -");
+        sb.append(" ").append(getEnPassant().isValid() ? getEnPassant() : "-");
+        sb.append(" ").append(getHalfMoves());
+        sb.append(" ").append(getFullMoves());
+        sb.append("\n ").append(getPieceCount()).append(getPieces());
+        
         return sb.toString();
     }
 

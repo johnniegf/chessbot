@@ -1,8 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Map;
 /**
 * Schachzug.
 *
@@ -89,6 +90,7 @@ public class Move {
     * Gib zurück, ob dieser Zug in der übergebenen Stellung möglich ist.
     */
     public boolean isPossible(final Board context) {
+    	System.out.println("Move.isPossible("+context+")");
         return tryExecute(context) != null;        
     }
 
@@ -101,32 +103,41 @@ public class Move {
     * @throws NullPointerException falls <code>context == null</code>
     */
     protected Board tryExecute(final Board context) {
+        System.out.println("Move.tryExecute("+context+")");
+
         if (context == null)
             throw new NullPointerException("context");
         Board result = context.clone();
-        Piece pc = context.getPieceAt(getStart());
+        Piece pc = result.getPieceAt(getStart());
+        System.out.println(pc);
         // Existiert die Figur?
         if ( pc == null ) return null;
         // Ist die Farbe überhaupt am Zug?
-        if ( pc.isWhite() != context.isWhiteAtMove()) return null;
+        if ( pc.isWhite() != result.isWhiteAtMove()) return null;
         // Kann die Figur auf das Zielfeld ziehen?
-        if ( !pc.canMoveTo(context, getTarget())) return null;
+        if ( !pc.canMoveTo(result, getTarget()) ) return null;
 
         // Ist das Zielfeld besetzt...
-        if ( !context.isFree(mTarget) ) {
+        if ( !result.isFree(mTarget) ) {
             // ... und die Figur darauf von der selben Farbe wie die gezogene?
-            if ( context.getPieceAt(getTarget()).isWhite() == pc.isWhite() )
+            if ( result.getPieceAt(getTarget()).isWhite() == pc.isWhite() )
                 return null;
             // Wenn nein, dann schlage die Figur auf dem Zielfeld
             else
-                context.removePieceAt(getTarget());
+                result.removePieceAt(getTarget());
         }
+        Piece moved = pc.move(getTarget());
+        result.removePieceAt(getStart());
+        result.putPiece(moved);
 
         // Ist die resultierende Stellung regelkonform?
         if (!ChessVariant.getActive().isLegal(result))
             return null;
-        else
-            return result;
+        
+        result.togglePlayer(); 
+        if (result.isWhiteAtMove())
+        	result.setFullMoves(result.getFullMoves() + 1);
+        return result;
     }
 
     /**
@@ -140,6 +151,7 @@ public class Move {
     */
     public Board execute(final Board context) {
         return tryExecute(context);
+
     }
 
     /**
@@ -203,7 +215,7 @@ public class Move {
         private Map<Integer,Move> mCache;
         private Map<Character,Move> mPrototypes;
     
-        public Cache(Set<Move> prototypes) {
+        public Cache(Collection<Move> prototypes) {
             if (prototypes == null)
                 throw new NullPointerException("prototypes");
             if (prototypes.size() < 1)
@@ -219,6 +231,7 @@ public class Move {
         * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
         public Move get(char flag, Position start, Position target) {
+        	System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
             if (start == null)
                 throw new NullPointerException("start");
             if (target == null)

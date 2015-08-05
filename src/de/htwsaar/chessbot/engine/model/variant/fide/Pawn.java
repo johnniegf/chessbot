@@ -49,22 +49,44 @@ public class Pawn
         }
         return targets;
     }
+    
+    public boolean canMoveTo(final Board context,
+    				 final Position targetSquare) 
+    {
+    	for (Move m : getMoves(context))
+    		if (m.getTarget().equals(targetSquare))
+    			return true;
+    	
+    	return false;
+    }
 
     public Set<Move> getMoves(final Board context) {
         Set<Move> moves = new HashSet<Move>();
         Position myPos = getPosition();
-        char flag = (isPromotion(myPos) ? MovePromotion.FLAG : Move.FLAG);
         for (Position p : getAttacks(context)) {
         	if (p.equals(context.getEnPassant()))
         		moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
         	else
-        		moves.add( MV(myPos,p,flag) );
+        		if (isPromotion(myPos)) {
+        			char[] flags = {'Q', 'N', 'R', 'B'};
+        			for ( char c : flags )
+        				moves.add( MV(myPos,p,c) );
+        		} else {
+        			moves.add( MV(myPos,p) );
+        		}
         }
         for (Position p : getTargets(context)) {
         	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
         		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
-        	else
-        		moves.add( MV(myPos,p,flag) );
+        	else {
+        		if (isPromotion(myPos)) {
+        			char[] flags = {'Q', 'N', 'R', 'B'};
+        			for ( char c : flags )
+        				moves.add( MV(myPos,p,c) );
+        		} else {
+        			moves.add( MV(myPos,p) );
+        		}
+        	}
         }
         return moves;
     }
