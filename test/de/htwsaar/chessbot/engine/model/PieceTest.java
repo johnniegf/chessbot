@@ -2,12 +2,13 @@ package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
 import static de.htwsaar.chessbot.engine.model.Position.P;
+import de.htwsaar.chessbot.engine.model.variant.fide.*;
 
 // Java-API
 import java.util.*;
 
 // JUnit-API
-import static org.hamcrest.CoreMatchers.*;
+//import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import org.junit.*;
@@ -22,8 +23,13 @@ import org.junit.runner.RunWith;
 @RunWith(Parameterized.class)
 public class PieceTest { 
 
+    
     // Testvariablen
-    Piece currentPrototype;
+    private Piece currentPrototype;
+    private char fen;
+    private boolean isWhite;
+    private boolean hasMoved;
+    private Position position;
     
     // Kontrollwerte
     private static final Board TEST_BOARD = new Board();
@@ -33,12 +39,13 @@ public class PieceTest {
     @Parameters
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] { 
-            { new Pawn()   },
-            { new Knight() },
-            { new Rook()   },
-            { new Queen()  },
-            { new Bishop() },
-            { new King()   }
+            // piece, fen, isWhite, hasMoved, position
+            { new Pawn(),   "P", true,  false, P("h2") },
+            { new Knight(), "n", false, true,  P("c3") },
+            { new Rook(),   "R", true,  true,  P("e8") },
+            { new Queen(),  "q", false, true,  P("f1") },
+            { new Bishop(), "B", true,  true,  P("a6") },
+            { new King(),   "k", false, false, P("e8") }
         });
     }
     
@@ -47,8 +54,17 @@ public class PieceTest {
     *
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
-    public PieceTest(Piece prototype) {
-        currentPrototype = prototype;
+    public PieceTest(final Piece prototype,
+                     final char fen,
+                     final boolean isWhite,
+                     final boolean hasMoved,
+                     final Position position) 
+    {
+        this.currentPrototype = prototype;
+        this.fen = fen;
+        this.isWhite = isWhite;
+        this.hasMoved = hasMoved;
+        this.position = position;
     }
 
     /**
@@ -72,38 +88,65 @@ public class PieceTest {
     }
     @Test(expected = NullPointerException.class)
     public void testMoveToNullPosition() {
-        currentPrototype.move(null, TEST_BOARD);
+        currentPrototype.move(null);
     }
 
     // ====================================================
     // = Funktionstests
     // ====================================================
 
+    @Test public void testPosition() {
+        Piece p = currentPrototype.clone();
+        p.setPosition(position);
+        assertEquals("",
+                     p.getPosition(),
+                     position);
+    }
+
+    @Test public void testIsWhite() {
+        Piece p = currentPrototype.clone();
+        p.setIsWhite(isWhite);
+        assertEquals("",
+                     p.isWhite(),
+                     isWhite);
+    }
+
+    @Test public void testHasMoved() {
+        Piece p = currentPrototype.clone();
+        p.setHasMoved(hasMoved);
+        assertEquals("",
+                     p.hasMoved(),
+                     hasMoved);
+    }
+
+    @Test public void testFen() {
+        Piece p = currentPrototype.clone();
+        p.setIsWhite(isWhite);
+        assertEquals("",
+                     p.fenShort(),
+                     fen);
+    }
+
     @Test public void testEquality() {
-        Piece a, b, c;
-        a = currentPrototype.clone();
-        b = a.clone();
-        b.setColor(!a.isWhite());
-        c = b.clone();
-        c.setHasMoved(!b.hasMoved());
+        Piece a = currentPrototype.clone();
+        a.setPosition(position);
+        a.setIsWhite(isWhite);
+        a.setHasMoved(hasMoved);
         
+        Piece b = currentPrototype.clone();
+        b.setPosition(position);
+        b.setIsWhite(isWhite);
+        b.setHasMoved(hasMoved);
+        
+        Piece c = a.clone();
+        c.setIsWhite(!isWhite);
+
         assertFalse(a.equals(null));
         assertTrue(a.equals(a));
+        assertEquals(a,b);
         assertEquals(a.equals(b), b.equals(a));
         assertEquals(a.equals(b) && b.equals(c),
                      a.equals(c) );                
-    }
-
-    @Test public void testHashFunction() {
-        Piece a, b, c;
-        a = currentPrototype.clone();
-        b = a.clone();
-
-        assertTrue("Hashwert ist kleiner als 0 : " + a.hashCode(),
-                   a.hashCode() > 0 );
-        assertEquals("Hashwerte stimmen nicht überein", 
-                     a.hashCode(), 
-                     b.hashCode());
     }
 
     @Test public void testCloning() {
@@ -112,36 +155,21 @@ public class PieceTest {
         assertFalse(currentPrototype == cloned);
     }
 
-    @Test public void testColor() {
-        Piece piece = currentPrototype.clone();
-        piece.setColor(true);
-        assertTrue("Die Figur " + piece + " sollte weiß sein",
-                   piece.isWhite());
-        piece.setColor(false);
-        assertFalse("Die Figur " + piece + " sollte schwarz sein",
-                    piece.isWhite());
-    }
-
-    @Test public void testPositions() {
-        for (Position p : TEST_POSITIONS) {
-            currentPrototype.setPosition(p);
-            assertEquals(p,
-                         currentPrototype.getPosition());
-        }
-    }
-
     @Test public void testMove() {
-        assertFalse(currentPrototype.canMoveTo(null, TEST_BOARD));
-    }
-
-    @Test public void testHasMovedFlag() {
-        Piece piece = currentPrototype.clone();
-        piece.setHasMoved(true);
+        Position pos = P("g6");
+        Piece p = currentPrototype.clone();
+        Piece pm = p.move(pos);
+        assertNotEquals("",
+                        p,
+                        pm);
+        assertNotSame("",
+                      p,
+                      pm);
+        assertEquals("",
+                     pm.getPosition(),
+                     pos);
         assertTrue("",
-                   piece.hasMoved() );
-        piece.setHasMoved(false);
-        assertFalse("",
-                    piece.hasMoved() );
+                   pm.hasMoved());
     }
 
 }

@@ -40,6 +40,10 @@ public abstract class ChessVariant {
         return pc;
     }
 
+    public static Piece PC(final char fenShort, final Position pos) {
+        return PC(fenShort, pos, true);
+    }
+
     /**
     * Gib den Zug mit den übergebenen Eigenschaften zurück, erzeuge
     * ihn, falls er nicht existiert.

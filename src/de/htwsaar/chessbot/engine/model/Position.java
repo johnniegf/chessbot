@@ -27,6 +27,8 @@ public final class Position
     *         Position, falls sanPosition nicht existiert.
     */
     public static Position P(final String sanPosition) {
+        if (sanPosition == null)
+            throw new NullPointerException("sanPosition");
         return sCache.get(sanPosition);
     }
 
@@ -49,10 +51,31 @@ public final class Position
     * @return Position mit den übergebenen Koordinaten
     */
     public static Position P(byte file, byte rank) {
+        if ( !isValid(file,rank) )
+            return INVALID;
         return sCache.get(file,rank);
     }
+
+    /**
+    *
+    */
+    public static Collection<Position> PList(String... sanStrings) {
+        Collection<Position> positions = new ArrayList<Position>();
+        if (sanStrings == null)
+            throw new NullPointerException("sanStrings");
         
-    private static boolean isValidPos(final byte file, final byte rank) {
+        for (String san : sanStrings) {
+            if (san == null)
+                continue;
+            positions.add(P(san));
+        }
+        return positions;
+    }
+        
+    /**
+    *
+    */
+    public static boolean isValid(final byte file, final byte rank) {
         return file > 0 && file <= MAX_FILE
             && rank > 0 && rank <= MAX_RANK;
     }
@@ -87,7 +110,7 @@ public final class Position
     *         sonst <code>false</code>
     */
     public boolean isValid() {
-        return isValidPos(mFile,mRank);
+        return isValid(mFile,mRank);
     }
 
     /**
@@ -126,6 +149,20 @@ public final class Position
     }
 
     /**
+    * Verschiebe diese Position um die übergebenen Deltas.
+    *
+    * @param delta Verschiebung in x/y-Richtung
+    * @return die verschobene Position
+    */
+    public Position transpose(final Position delta) {
+        if (delta == null)
+            throw new NullPointerException("delta");
+        if (!delta.isValid())
+            return INVALID;
+        return P( delta.file(), delta.rank() );
+    }
+
+    /**
     * Gib die x-Koordinate dieser Position zurück.
     */
     public byte file() {
@@ -150,12 +187,29 @@ public final class Position
         return (MAX_FILE * (mRank-1)) + mFile;
     }
 
+    /**
+    * Vergleiche mit einem anderen Feld.
+    *
+    * Felder mit gültigen Positionen werden zweistufig geordnet, 
+    * zunächst nach der Zeile auf der sie liegen und dann nach der 
+    * Spalte. 
+    * Eine ungültige Position ist immer kleiner als eine gültige
+    * und gleich (sogar identisch zu) jeder ungültigen Position.
+    *
+    * @param other zu vergleichendes Feld
+    * @return Ergebnis des Vergleichs.
+    * @see java.lang.Comparable#compareTo
+    */
     public int compareTo(final Position other) {
-        int result = Byte.compare(mRank, other.rank());
-        if (result == 0) {
-            result = Byte.compare(mFile, other.file());
+        if (isValid()) {
+            int result = Byte.compare(mRank, other.rank());
+            if (result == 0) {
+                result = Byte.compare(mFile, other.file());
+            }
+            return result;
+        } else {
+            return (other.isValid() ? -1 : 0);
         }
-        return result;
     }
 
     public boolean equals(final Object other) {
@@ -164,8 +218,7 @@ public final class Position
 
         if (other instanceof Position) {
             Position p = (Position) other;
-            return this.compareTo(p) == 0
-                || this.isValid() == p.isValid();
+            return this.compareTo(p) == 0;
         } else {
             return false;
         }

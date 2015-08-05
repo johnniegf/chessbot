@@ -6,8 +6,10 @@ import de.htwsaar.chessbot.engine.model.*;
 import java.util.Set;
 import java.util.HashSet;
 /**
-* Beschreibung.
+* Der König.
 *
+* @author Kevin Alberts
+* @author Dominik Becker
 * @author Johannes Haupt
 */
 public class King
@@ -47,6 +49,15 @@ public class King
         }
         moves.addAll(getCastlings(context));
         return moves;
+    }
+
+    public boolean canMoveTo(final Board context,
+                             final Position targetSquare)
+    {
+        if ( super.canMoveTo(context, targetSquare) )
+            return context.isAttacked(!isWhite(), targetSquare) == 0;
+        else
+            return false;
     }
 
     private Set<Move> getCastlings(final Board context) {

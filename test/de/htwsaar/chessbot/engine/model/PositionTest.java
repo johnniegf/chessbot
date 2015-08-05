@@ -7,7 +7,7 @@ import static de.htwsaar.chessbot.engine.model.Position.*;
 import java.util.*;
 
 // JUnit-Pakete
-import static org.hamcrest.CoreMatchers.*;
+//import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import org.junit.*;
@@ -80,24 +80,27 @@ public class PositionTest {
     // = Ausnahmetests
     // ====================================================
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testMalformedSanReverse() {
-        P("1a");
+    @Test(expected = NullPointerException.class)
+    public void test() {
+        P(null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testMalformedSanMissingNumber() {
-        P("a");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testMalformedSanLeadingZero() {
-        P("a01");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testMalformedSanMissingLetter() {
-        P("12");
+    @Test public void testMalformedSanMissingNumber() {
+        final Position[] invalids = new Position[]{
+            P("a"), P(""), P("e 4"), P("7a"), P("h41"), P("A11")
+        };
+        for (Position p : invalids) {
+            assertFalse("",
+                        p.isValid());
+            assertFalse("",
+                        p.existsOn(STANDARD_BOARD));
+            assertEquals("",
+                         p,
+                         Position.INVALID);
+            assertSame("",
+                       p,
+                       Position.INVALID);
+        }          
     }
 
     // ====================================================
@@ -128,18 +131,8 @@ public class PositionTest {
         }
     }
 
-    @Test public void testCons() {
-        for (int y = 1; y <= 8; ++y) {
-            for (int x = 1; x <= 8; ++x) {
-                Position p = positions.get(8*(y-1)+(x-1));
-                assertEquals("Zeile stimmt nicht",
-                             x,
-                             p.getRow());
-                assertEquals("Spalte stimmt nicht",
-                             y,
-                             p.getColumn());
-            }
-        }
+    @Test public void testRank() {
+        
     }
 
     @Test public void testTranslation() {
@@ -151,23 +144,47 @@ public class PositionTest {
             assertEquals("",
                          translationResults[i],
                          result);
+            assertSame("",
+                       translationResults[i],
+                       result);
         }
     }
 
-    @Test public void testClone() {
-        Position orig = P(5,5);
-        Position clon = orig.clone();
-        assertEquals("Position wurde beim Kopieren verändert: ",
-                     orig,
-                     clon);
-        assertNotSame("Original und Kopie sind dasselbe Objekt",
-                      orig,
-                      clon );
-        orig = orig.setColumn(2);
-        assertNotEquals("Änderung am Original wirkt sich auf Kopie aus",
-                        orig,
-                        clon );
-                    
+    @Test public void testIdentity() {
+        final String pos = "e4";
+        Position a = P(pos);
+        Position b = P(pos);
+        Position c = a.transpose(-2,1);
+        assertSame("a und b sollten auf dasselbe Objekt zeigen",
+                   a,
+                   b);
+        assertNotSame("a und c sollte auf verschiedene Objekte zeigen",
+                      a,
+                      c);
+    }
+
+    @Test public void testEquality() {
+        final String pos = "e4";
+        Position a = P(pos);
+        Position b = P(pos);
+        Position c = a.transpose(-2,1);
+        Position d = Position.INVALID;
+     
+        assertEquals("a und b sollten gleich sein",
+                     a,
+                     b);
+        assertNotEquals("a und c sollten verschieden sein",
+                        a,
+                        c);
+        assertNotEquals("",
+                        a,
+                        d);
+        assertEquals("",
+                     d,
+                     P(-1,50));
+        assertSame("",  
+                   d,
+                   P("e42"));
     }
 
 }

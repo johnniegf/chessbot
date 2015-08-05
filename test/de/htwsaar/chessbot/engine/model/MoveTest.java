@@ -2,12 +2,13 @@ package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
 import de.htwsaar.chessbot.engine.model.Position.*;
+import de.htwsaar.chessbot.engine.model.variant.fide.*;
 
 // Java-API
 import java.util.*;
 
 // JUnit-API
-import static org.hamcrest.CoreMatchers.*;
+//import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import org.junit.*;
@@ -18,6 +19,13 @@ import org.junit.*;
 * @author
 */
 public class MoveTest { 
+
+    private static ChessVariant VARIANT;
+
+    @BeforeClass
+    public static void setUpClass() {
+        VARIANT = FideChess.getInstance();
+    }
 
     // Testvariablen
 

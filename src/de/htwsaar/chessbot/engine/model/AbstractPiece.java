@@ -75,17 +75,18 @@ public abstract class AbstractPiece
     public boolean attacks(final Board context, 
                            final Position targetSquare) 
     {
+        if (context == null)
+            throw new NullPointerException("context");
+        if (targetSquare == null)
+            throw new NullPointerException("targetSquare");
+        
         return getAttacks(context).contains(targetSquare);
     }
 
     public boolean canMoveTo(final Board context, 
                              final Position targetSquare) 
     {
-        for ( Move m : getMoves(context) ) {
-            if (m.getTarget().equals(targetSquare))
-                return true;
-        }
-        return false;
+        return attacks(context, targetSquare);
     }
 
     public long hash() {
