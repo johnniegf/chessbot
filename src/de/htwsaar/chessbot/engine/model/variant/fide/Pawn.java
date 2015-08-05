@@ -97,15 +97,4 @@ public class Pawn
     protected Pawn create() {
         return new Pawn();
     }
-
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
-    }
 }

@@ -11,39 +11,35 @@ import java.util.*;
 */
 public class FideChess extends ChessVariant {
     
-    private static Set<Piece> PROTOTYPES = new HashSet<Piece>(
-    	Arrays.asList(new Piece[] {
-            new Pawn(),
-            new King(),
-            new Queen(),
-            new Rook(),
-            new Knight(),
-            new Bishop()
-        })
-    );
-    
+    private static Collection<Piece> PROTOTYPES = new ArrayList<Piece>();
+
+
     private static FideChess sInstance;
-    
+
     public static FideChess getInstance() {
+        System.out.println("FideChess.getInstance");
     	if (sInstance == null)
     		sInstance = new FideChess();
     	return sInstance;
     }
     
     static {
-    	ChessVariant.setActive(getInstance());    	
+        System.out.println("FideChess.<clinit>");
+    	Piece[] proto = new Piece[] { new Pawn(), new King(), new Queen(), new Rook(), new Knight(), new Bishop() };
+        for (Piece p : proto) {
+            PROTOTYPES.add(p);
+        }
+        System.out.println("FideChess.PROTOTYPES = " + PROTOTYPES);
+    	//ChessVariant.setActive(getInstance());    	
     }
 
     private BoardBuilder mBuilder;
     /**
     * Standardkonstruktor.
     */ 
-    public FideChess() {
-        
-    }
-
-    public Set<Piece> getPieces() {
-        return PROTOTYPES;
+    private FideChess() {
+        System.out.println("FideChess.<init>");
+        setPieceFactory(Pieces.getFactory(PROTOTYPES));    
     }
 
     public Board getBoard() {
@@ -60,8 +56,11 @@ public class FideChess extends ChessVariant {
         return Arrays.asList( new Move[]{
             new Move(),
             new DoublePawnMove(),
-            //new PawnConversion(),
-            //new EnPassant(),
+            new MovePromotion(new Queen()),
+            new MovePromotion(new Rook()),
+            new MovePromotion(new Bishop()),
+            new MovePromotion(new Knight()),
+            new MoveEnPassant(),
             new Castling()
         });
     }

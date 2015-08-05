@@ -1,6 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 /**
@@ -20,7 +20,7 @@ import java.util.HashMap;
 */
 public final class Pieces {
     
-    public static Pieces getFactory(final Set<Piece> prototypes) {
+    public static Pieces getFactory(final Collection<Piece> prototypes) {
         return new Pieces(prototypes);
     }
 
@@ -48,14 +48,17 @@ public final class Pieces {
     private Map<Character,Piece> mPrototypes;
     private Map<Integer,Piece>   mCache;
 
-    private Pieces(final Set<Piece> prototypes) {
+    private Pieces(final Collection<Piece> prototypes) {
         if ( prototypes == null )
             throw new NullPointerException("prototypes");
 
+        System.out.println("Pieces.<init>("+prototypes+")");
         mPrototypes = new HashMap<Character,Piece>();
         for ( Piece pc : prototypes ) {
+            System.out.println("Adding ("+pc+")");
             addPrototype(pc);
         }
+        System.out.println("Prototypes: " + mPrototypes);
         mCache = new HashMap<Integer,Piece>();
     }
 
@@ -102,6 +105,7 @@ public final class Pieces {
                      final Position position,
                      final boolean hasMoved)
     {
+        System.out.println("Pieces.get(" + fenShort +","+ position +","+ hasMoved +")");
         if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
             throw new IllegalArgumentException("fenShort '" + fenShort + "'");
         if ( position == null )

@@ -2,6 +2,8 @@ package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
 import static de.htwsaar.chessbot.engine.model.Position.*;
+import static de.htwsaar.chessbot.engine.model.ChessVariant.*;
+import de.htwsaar.chessbot.engine.model.variant.fide.*;
 
 // Java-API
 import java.util.*;
@@ -19,11 +21,13 @@ import org.junit.*;
 */
 public class PositionTest { 
 
+    private static ChessVariant V = FideChess.getInstance();
+
     // Testvariablen
     private List<Position> positions;
     private Position a1, h8;
     // Kontrollwerte
-    private static final Board EMPTY_BOARD    = null;
+    private static final Board EMPTY_BOARD    = V.getBoard();
     private static final Board STANDARD_BOARD = null;
     
     private static final Position[] validPositions = {
@@ -32,8 +36,8 @@ public class PositionTest {
     private static final Position[] standardPositions = {
         P(1,2), P(5,7), P(4,8), P(5,6), P(2,3)
     };
-    private static final Position[] translationDeltas = {
-        P(1,2), P(-2,-5), P(2,-2), P(-4,1), P(6,0)
+    private static final int[] translationDeltas = {
+        1,2, -2,-5, 2,-2, -4,1, 6,0
     };
     private static final Position[] translationResults = {
         P(2,4), P(3,2), P(6,6), P(1,7), P(8,3)
@@ -136,11 +140,15 @@ public class PositionTest {
     }
 
     @Test public void testTranslation() {
-        Position source, delta, result;
+        int deltaX, deltaY;
+        Position source, result;
         for (int i = 0; i < standardPositions.length; i++) {
             source = standardPositions[i];
-            delta  = translationDeltas[i];
-            result = source.transpose(delta);
+            deltaX = translationDeltas[2*i];
+            deltaY = translationDeltas[2*i+1];
+            result = source.transpose(deltaX, deltaY);
+            assertTrue("",
+                       result.isValid());
             assertEquals("",
                          translationResults[i],
                          result);

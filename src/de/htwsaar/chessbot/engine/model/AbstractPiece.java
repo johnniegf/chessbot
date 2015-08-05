@@ -105,6 +105,7 @@ public abstract class AbstractPiece
             Piece p = (Piece) other;
             return p.id() == id()
                 && p.isWhite() == isWhite()
+                && p.getPosition().equals(getPosition())
                 && p.hasMoved() == hasMoved();
         } else {
             return false;
@@ -131,6 +132,15 @@ public abstract class AbstractPiece
         copy.setPosition(getPosition());
         copy.setHasMoved(hasMoved());
         return copy;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getName());
+        sb.append(isWhite() ? " w " : " b ");
+        sb.append(getPosition());
+        sb.append(hasMoved() ? " m" : "");
+        return sb.toString();
     }
 
     protected abstract Piece create();

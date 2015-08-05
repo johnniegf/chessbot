@@ -101,14 +101,4 @@ public class King
         return new King();
     }
 
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
-    }
 }

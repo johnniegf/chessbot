@@ -35,6 +35,7 @@ public abstract class ChessVariant {
                            final Position position,
                            final boolean hasMoved)
     {
+        System.out.println("ChessVariant.PC");
         Pieces factory = getActive().getPieceFactory();
         Piece pc = factory.get(fenShort,position,hasMoved);
         return pc;
@@ -77,6 +78,7 @@ public abstract class ChessVariant {
     * @param variant die zu aktivierende Spielvariante.
     */
     public static void setActive(final ChessVariant variant) {
+        System.out.println("ChessVariant.setActive");
         if (variant == null)
             throw new NullPointerException("variant");
         sCurrent = variant;   
@@ -88,17 +90,18 @@ public abstract class ChessVariant {
     * @return die aktive Spielvariante.
     */
     public static ChessVariant getActive() {
+        System.out.println("ChessVariant.getActive");
         if (sCurrent == null)
             sCurrent = FideChess.getInstance();
         return sCurrent;
     }
 
     private Move.Cache mMoveCache;
-    private Pieces    mPieceFactory;
+    private Pieces     mPieceFactory;
 
     protected ChessVariant() {
+        System.out.println("ChessVariant.<init>");
         mMoveCache = new Move.Cache(getMoves());
-        mPieceFactory = Pieces.getFactory(getPieces());
     }
 
     /**
@@ -152,13 +155,19 @@ public abstract class ChessVariant {
         return mPieceFactory;
     }
 
+    protected void setPieceFactory(final Pieces factory) {
+        if (factory == null)
+            throw new NullPointerException("factory");
+        mPieceFactory = factory;
+    }
+
     /**
     * Gib die Figurprototype dieser Variante zurück.
     *
     * @return eine <code>Collection</code> der Figurprototypen dieser
     *         Variante
     */
-    protected abstract Set<Piece> getPieces();
+    //protected abstract Set<Piece> getPieces();
 
     /**
     * Gib die Zugprototypen dieser Variante zurück.

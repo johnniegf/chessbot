@@ -140,4 +140,6 @@ public interface Piece {
     * @return Hashwert der Figur
     */
     long hash();
+
+    String toString();
 }

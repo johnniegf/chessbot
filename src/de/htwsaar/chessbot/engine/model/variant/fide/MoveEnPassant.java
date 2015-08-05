@@ -9,7 +9,11 @@ import de.htwsaar.chessbot.engine.model.Position;
 public class MoveEnPassant extends Move {
 
 	public static final char FLAG = 'E';
-	
+
+    public MoveEnPassant() {
+
+    }
+
 	public MoveEnPassant(final Position startPosition, final Position targetPosition) {
 		super(startPosition, targetPosition);
 		

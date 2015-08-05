@@ -149,20 +149,6 @@ public final class Position
     }
 
     /**
-    * Verschiebe diese Position um die übergebenen Deltas.
-    *
-    * @param delta Verschiebung in x/y-Richtung
-    * @return die verschobene Position
-    */
-    public Position transpose(final Position delta) {
-        if (delta == null)
-            throw new NullPointerException("delta");
-        if (!delta.isValid())
-            return INVALID;
-        return P( delta.file(), delta.rank() );
-    }
-
-    /**
     * Gib die x-Koordinate dieser Position zurück.
     */
     public byte file() {
@@ -240,7 +226,7 @@ public final class Position
     }
 
     private static char getLetter(final byte file) {
-        if ( file < 'a' || file > 'z' )
+        if ( file < 1 || file > MAX_FILE )
             throw new IllegalArgumentException("file");
         return (char) ('a' + (file-1));
     }

@@ -76,14 +76,4 @@ public class Queen
         return new Queen();
     }
 
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
-    }
 }

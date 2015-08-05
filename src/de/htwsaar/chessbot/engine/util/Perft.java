@@ -15,8 +15,7 @@ public class Perft {
             return;
         String fen = args[0];
         int depth = Integer.valueOf(args[1]);
-        if (ChessVariant.getActive() == null)
-            ChessVariant.setActive(new FideChess());
+        if (ChessVariant.getActive() == null);
         Perft pf = new Perft();
         long result = 0;
         long time = System.currentTimeMillis();

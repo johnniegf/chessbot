@@ -17,6 +17,10 @@ public class MovePromotion extends Move {
 	
 	private Piece promoted;
 
+    public MovePromotion(final Piece promoted) {
+        this.promoted = promoted;
+    }
+
 	public MovePromotion(final Position startposition, final Position endposition, Piece promoted){
 		if(!(endposition.rank() == 8 || endposition.rank() == 1)) {
 			throw new MoveException("kein gueltiger Zug!");
