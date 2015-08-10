@@ -12,10 +12,10 @@ public final class Position
         implements Comparable<Position> 
 {
     /** Maximale Anzahl Spalten */
-    public static final byte MAX_FILE = Board.MAX_WIDTH;
+    public static final byte MAX_FILE = Board.WIDTH;
 
     /** Maximale Anzahl Reihen */
-    public static final byte MAX_RANK = Board.MAX_HEIGHT;
+    public static final byte MAX_RANK = Board.HEIGHT;
 
     private static PositionCache sCache = new PositionCache(); 
 

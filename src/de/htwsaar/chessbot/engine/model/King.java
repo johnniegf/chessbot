@@ -1,10 +1,10 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
+package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.ChessVariant.MV;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 import static de.htwsaar.chessbot.engine.model.Position.P;
-import de.htwsaar.chessbot.engine.model.*;
-import java.util.Set;
-import java.util.HashSet;
+
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Der König.
 *
@@ -21,8 +21,8 @@ public class King
         return HASH;
     }
 
-    public Set<Position> getAttacks(final Board context) {
-        Set<Position> attacks = new HashSet<Position>();
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
         
         Position p0 = getPosition();
         Position pt;
@@ -31,37 +31,31 @@ public class King
                 if (dy == 0 && dx == 0)
                     continue;
                 pt = p0.transpose(dx,dy);
-                if (pt.existsOn(context))
+                if (pt.isValid())
                     attacks.add(pt);
             }
         }
         return attacks;
     }
 
-    public Set<Move> getMoves(final Board context) {
-        Set<Move> moves = new HashSet<Move>();
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
         Position myPos = getPosition();
         for (Position p : getAttacks(context)) {
             if ( context.isAttacked(!isWhite(), p) > 0 )
                 continue;
-            else
-                moves.add( MV(myPos,p) );
+            if ( !context.isFree(p) ) {
+                if (context.getPieceAt(p).isWhite() == isWhite())
+                    continue;
+            }
+            moves.add( MV(myPos,p) );
         }
         moves.addAll(getCastlings(context));
         return moves;
     }
 
-    public boolean canMoveTo(final Board context,
-                             final Position targetSquare)
-    {
-        if ( super.canMoveTo(context, targetSquare) )
-            return context.isAttacked(!isWhite(), targetSquare) == 0;
-        else
-            return false;
-    }
-
-    private Set<Move> getCastlings(final Board context) {
-        Set<Move> castlings = new HashSet<Move>();
+    private Collection<Move> getCastlings(final Board context) {
+        Collection<Move> castlings = new ArrayList<Move>();
         if ( !hasMoved() ) {
         	Position p = getPosition();
         	for (int i : new int[]{1,8}) {
@@ -70,12 +64,16 @@ public class King
         		if ( rook == null ) continue;
         		if ( rook.hasMoved() ) continue;
         		if ( rook.isWhite() != isWhite() ) continue;
-        		int d = p.compareTo(r);
+        		int d = r.compareTo(p) < 0 ? -1 : 1;
+                boolean possible = true;
         		for (int c = 1; c <= 2; c++) {
+                    if ( !context.isFree(p.transpose(c*d,0)) )
+                        possible = false;
         			if ( 0 < context.isAttacked(!isWhite(), p.transpose(c*d, 0)) )
-        				continue;
+        				possible = false;
         		}
-        		castlings.add( MV(p, p.transpose(d*2,0), Castling.FLAG) );
+                if (possible)
+        		    castlings.add( MV(p, p.transpose(d*2,0), Castling.FLAG) );
         	}
         }
         return castlings;

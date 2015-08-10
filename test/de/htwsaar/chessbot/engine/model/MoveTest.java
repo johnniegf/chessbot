@@ -1,8 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
-import de.htwsaar.chessbot.engine.model.Position.*;
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
+import static de.htwsaar.chessbot.engine.model.Position.*;
 
 // Java-API
 import java.util.*;
@@ -19,13 +18,6 @@ import org.junit.*;
 * @author
 */
 public class MoveTest { 
-
-    private static ChessVariant VARIANT;
-
-    @BeforeClass
-    public static void setUpClass() {
-        VARIANT = FideChess.getInstance();
-    }
 
     // Testvariablen
 

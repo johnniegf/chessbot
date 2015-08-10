@@ -1,6 +1,4 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
-
-import de.htwsaar.chessbot.engine.model.*;
+package de.htwsaar.chessbot.engine.model;
 
 /**
 * Beschreibung.
@@ -9,6 +7,8 @@ import de.htwsaar.chessbot.engine.model.*;
 */
 public class DoublePawnMove extends Move {
     
+    public static final char FLAG = 'D';
+
     /**
     * Standardkonstruktor.
     */ 
@@ -41,17 +41,13 @@ public class DoublePawnMove extends Move {
         // We do nothing here, because target is derived from start
     }
 
-    public boolean isPossible(final Board context) {
-        
-        Piece pc = context.getPieceAt(getStart());
-        if ( !(pc instanceof Pawn) ) 
-            return false;
-        if ( pc.hasMoved() )
-            return false;
-        return super.isPossible(context);
-    }
-
     public Board tryExecute(final Board onBoard) {
+        Piece pc = onBoard.getPieceAt(getStart());
+        if ( !(pc instanceof Pawn) ) 
+            return null;
+        if ( pc.hasMoved() )
+            return null;
+    
         Board result = super.tryExecute(onBoard);
         if (result != null) {
             int inc = result.getPieceAt(getTarget()).isWhite() ? -1 : 1;
@@ -59,6 +55,15 @@ public class DoublePawnMove extends Move {
             result.setEnPassant(enPassant);
         }
         return result;
+    }
+
+    @Override
+    protected char flag() {
+        return FLAG;
+    }
+
+    protected final Move create() {
+        return new DoublePawnMove();
     }
 
 }

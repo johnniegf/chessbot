@@ -1,10 +1,4 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
-
-import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.Move;
-import de.htwsaar.chessbot.engine.model.MoveException;
-import de.htwsaar.chessbot.engine.model.Piece;
-import de.htwsaar.chessbot.engine.model.Position;
+package de.htwsaar.chessbot.engine.model;
 
 public class MoveEnPassant extends Move {
 
@@ -36,7 +30,7 @@ public class MoveEnPassant extends Move {
 	public Board tryExecute(Board onBoard) {
 
         
-        int direction = getStart().compareTo(getTarget());
+        int direction = getStart().compareTo(getTarget()) < 0 ? -1 : 1;
         if (onBoard.isFree(getStart())) return null;
         if (!getTarget().equals(onBoard.getEnPassant())) return null;
         boolean isWhite = onBoard.getPieceAt(getStart()).isWhite();
@@ -58,5 +52,9 @@ public class MoveEnPassant extends Move {
 	public final char flag() {
 		return FLAG;
 	}
-	
+
+    protected final Move create() {
+        return new MoveEnPassant();
+    }
+
 }

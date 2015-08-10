@@ -1,9 +1,8 @@
 package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
-import static de.htwsaar.chessbot.engine.model.Position.*;
-import static de.htwsaar.chessbot.engine.model.ChessVariant.*;
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
+import static de.htwsaar.chessbot.engine.model.Position.P;
+import static de.htwsaar.chessbot.engine.model.Board.B;
 
 // Java-API
 import java.util.*;
@@ -20,18 +19,17 @@ import org.junit.*;
 * @author
 */
 public class PositionTest { 
-
-    private static ChessVariant V = FideChess.getInstance();
-
+    
     // Testvariablen
     private List<Position> positions;
     private Position a1, h8;
+    
     // Kontrollwerte
-    private static final Board EMPTY_BOARD    = V.getBoard();
+    private static final Board EMPTY_BOARD    = new Board();
     private static final Board STANDARD_BOARD = null;
     
     private static final Position[] validPositions = {
-        P(1,2), P(5,7), P(12,8), P(5,32), P(15,4)
+        P(1,2), P(5,7), P(8,8), P(5,3), P(4,6)
     };
     private static final Position[] standardPositions = {
         P(1,2), P(5,7), P(4,8), P(5,6), P(2,3)

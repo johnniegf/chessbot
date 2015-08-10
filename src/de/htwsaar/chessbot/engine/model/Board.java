@@ -15,20 +15,21 @@ import java.util.HashMap;
 * @author Johannes Haupt
 */
 public class Board {
-    
+
+    public static final BoardBuilder BUILDER = new BoardBuilder();
+
+    public static Board B(final String fenString) {
+        return BUILDER.fromFenString(fenString);
+    }
+
     /** Maximale Breite des Schachbretts. */
-    public static final byte MAX_WIDTH  = 26;
+    public static final byte WIDTH  = 8;
 
     /** Maximale Höhe des Schachbretts. */
-    public static final byte MAX_HEIGHT = 40;
-
-    private static final byte DEFAULT_WIDTH  = 8;
-    private static final byte DEFAULT_HEIGHT = 8;
+    public static final byte HEIGHT = 8;
 
 //---------------------------------------------------------
 
-    private final byte mWidth;
-    private final byte mHeight;
     private Map<Position,Piece> mPieces;
     private short mPieceCount;
     private boolean mWhiteAtMove;
@@ -38,40 +39,14 @@ public class Board {
     private long mZobristHash;
 
     /**
-    * Standardkonstruktor.
-    */ 
+    * Erzeuge ein leeres Schachbrett. 
+    */
     public Board() {
-        this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-    }
-
-    /**
-    * Erzeuge ein Schachbrett mit den übergebenen Dimensionen.
-    *
-    * Konvertiert die Aufrufparameter nach <code>byte</code>
-
-    * @param width Breite des Schachbretts
-    * @param height Höhe des Schachbretts
-    */
-    public Board(final int width, final int height) {
-        this((byte) width, (byte) height);
-    }
-
-    /**
-    * Erzeuge ein Schachbrett mit den übergebenen Dimensionen.
-    *
-    * @param width Breite des Schachbretts
-    * @param height Höhe des Schachbretts
-    */
-    public Board(final byte width, final byte height) {
-        checkDimensions(width, height);
-
-        mWidth  = width;
-        mHeight = height;
         mWhiteAtMove = true;
         mEnPassant = Position.INVALID;
         mHalfMoves = 0;
         mFullMoves = 1;
-        mPieces = new HashMap<Position,Piece>(16);
+        mPieces = new HashMap<Position,Piece>();
         mPieceCount = 0;
     }
 
@@ -81,7 +56,7 @@ public class Board {
     * @return die Breite des Schachfelds.
     */
     public byte width() {
-        return mWidth;
+        return WIDTH;
     }
 
     /**
@@ -90,7 +65,7 @@ public class Board {
     * @return die Höhe des Schachfelds.
     */
     public byte height() {
-        return mHeight;
+        return HEIGHT;
     }
 
     /* ================================
@@ -255,11 +230,21 @@ public class Board {
     * @return ein <code>Set</code> aller möglichen Züge
     *         in dieser Stellung.
     */
-    public Set<Move> getMoveList() {
-        Set<Move> moves = new HashSet<Move>();
+    public Collection<Move> getMoveList() {
+        Collection<Move> moves = new ArrayList<Move>();
+        Board b;
         for (Piece pc : getPieces()) {
-            moves.addAll(pc.getMoves(this));
+            Collection<Move> pieceMoves = pc.getMoves(this);
+            System.out.println(pc.getClass().getSimpleName()+"@"+pc.getPosition()+": "+pieceMoves.size()+" "+pieceMoves);
+            for (Move m : pieceMoves) {
+                if (!m.isPossible(this))
+                    continue;
+                b = m.execute(this);
+                if (isOk(b))
+                    moves.add(m);
+            }
         }
+        System.out.println("Move list size = " + moves.size());
         return moves;
     }
 
@@ -377,7 +362,7 @@ public class Board {
     * @return eine Kopie dieser Stellung
     */
     public Board clone() {
-        Board copy = new Board(width(), height());
+        Board copy = new Board();
         copy.setHalfMoves(getHalfMoves());
         copy.setFullMoves(getFullMoves());
         copy.setWhiteAtMove(isWhiteAtMove());
@@ -429,14 +414,62 @@ public class Board {
     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
-
+        final String blank = " ";
+        final String slash = "/";
+        Position p;
+        for (byte y = 8; y >= 1; y--) {
+            byte freeCount = 0;
+            for (byte x = 1; x <= 8; x++) {
+                p = P(x,y);
+                if ( isFree(p) )
+                    freeCount++;
+                else {
+                    if (freeCount > 0)
+                        sb.append(freeCount);
+                    sb.append( getPieceAt(p).fenShort() );
+                    freeCount = 0;
+                }
+            }
+            if (freeCount > 0)
+                sb.append(freeCount);
+            if (y != 1)
+                sb.append(slash);
+        }
+        sb.append(blank);
+        sb.append(isWhiteAtMove() ? "w" : "b");
+        sb.append(blank);
+        sb.append("-");
+        sb.append(blank);
+        sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
+        sb.append(blank);
+        sb.append(getHalfMoves());
+        sb.append(blank);
+        sb.append(getFullMoves());
         return sb.toString();
     }
 
-    private void checkDimensions(byte width, byte height) {
-        if (width < 1 || width > MAX_WIDTH)
-            throw new InvalidDimensions(width, height);
-        if (height < 1 || height > MAX_HEIGHT)
-            throw new InvalidDimensions(width, height);
+    private static boolean isOk(final Board context) {
+        return !kingInCheck(context);
+
     }
+
+    private static boolean kingInCheck(final Board context) {
+        boolean w = !context.isWhiteAtMove();
+
+        Piece king = null;
+
+        for (Piece pc : context.getPieces()) {
+            if (pc instanceof King) {
+                if (pc.isWhite() == w) {
+                    king = pc;
+                    break;
+                }
+            }
+        }
+        if (king == null)
+            throw new NullPointerException("king: " + context);
+
+        return 0 < context.isAttacked(!w, king.getPosition());
+    }
+
 }

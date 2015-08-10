@@ -2,7 +2,6 @@ package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
 import static de.htwsaar.chessbot.engine.model.Position.P;
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
 
 // Java-API
 import java.util.*;
@@ -40,12 +39,12 @@ public class PieceTest {
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] { 
             // piece, fen, isWhite, hasMoved, position
-            { new Pawn(),   "P", true,  false, P("h2") },
-            { new Knight(), "n", false, true,  P("c3") },
-            { new Rook(),   "R", true,  true,  P("e8") },
-            { new Queen(),  "q", false, true,  P("f1") },
-            { new Bishop(), "B", true,  true,  P("a6") },
-            { new King(),   "k", false, false, P("e8") }
+            { new Pawn(),   'P', true,  false, P("h2") },
+            { new Knight(), 'n', false, true,  P("c3") },
+            { new Rook(),   'R', true,  true,  P("e8") },
+            { new Queen(),  'q', false, true,  P("f1") },
+            { new Bishop(), 'B', true,  true,  P("a6") },
+            { new King(),   'k', false, false, P("e8") }
         });
     }
     

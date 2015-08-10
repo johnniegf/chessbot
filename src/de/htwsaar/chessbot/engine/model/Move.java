@@ -1,8 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
+import java.util.Collection;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 /**
 * Schachzug.
 *
@@ -12,6 +13,36 @@ import java.util.Set;
 * @author Johannes Haupt
 */
 public class Move {
+
+    private static Move.Cache sCache;
+
+    private static Move.Cache getCache() {
+        if (sCache == null) {
+            Collection<Move> proto = Arrays.asList( new Move[] {
+                new Move(), 
+                new DoublePawnMove(), 
+                new Castling(),
+                new MoveEnPassant(),
+                new MovePromotion(new Queen()),
+                new MovePromotion(new Rook()),
+                new MovePromotion(new Bishop()),
+                new MovePromotion(new Knight())
+            });
+            sCache = new Move.Cache(proto);
+        }
+        return sCache;
+    }
+
+    public static Move MV(final Position from, 
+                          final Position to, 
+                          final char flag) 
+    {
+        return getCache().get(flag, from, to);
+    }
+
+    public static Move MV(final Position from, final Position to) {
+        return MV(from, to, Move.FLAG);
+    }
 
     public static final char FLAG = '0';
 
@@ -108,25 +139,35 @@ public class Move {
         // Existiert die Figur?
         if ( pc == null ) return null;
         // Ist die Farbe überhaupt am Zug?
-        if ( pc.isWhite() != context.isWhiteAtMove()) return null;
+        if ( pc.isWhite() != result.isWhiteAtMove()) return null;
         // Kann die Figur auf das Zielfeld ziehen?
-        if ( !pc.canMoveTo(context, getTarget())) return null;
+        if ( !pc.canMoveTo(result, getTarget())) return null;
 
+        boolean isTake = false;
         // Ist das Zielfeld besetzt...
-        if ( !context.isFree(mTarget) ) {
+        if ( !result.isFree(getTarget()) ) {
             // ... und die Figur darauf von der selben Farbe wie die gezogene?
-            if ( context.getPieceAt(getTarget()).isWhite() == pc.isWhite() )
+            if ( result.getPieceAt(getTarget()).isWhite() == pc.isWhite() )
                 return null;
             // Wenn nein, dann schlage die Figur auf dem Zielfeld
-            else
-                context.removePieceAt(getTarget());
+            else {
+                result.removePieceAt(getTarget());
+                result.setHalfMoves(0);
+                isTake = true;
+            }
+        } else {
+            if (!(pc instanceof Pawn))
+                result.setHalfMoves(result.getHalfMoves()+1);
         }
-
-        // Ist die resultierende Stellung regelkonform?
-        if (!ChessVariant.getActive().isLegal(result))
-            return null;
-        else
-            return result;
+        result.putPiece( pc.move(getTarget()) );
+        result.removePieceAt(getStart());
+        result.togglePlayer();
+        if (result.isWhiteAtMove())
+            result.setFullMoves(result.getFullMoves()+1);
+        result.setEnPassant(Position.INVALID);
+        //System.out.print(isTake ? "Take" : "Move");
+        //System.out.println("("+this+").tryExecute("+context+context.getPieceCount()+") = "+result+result.getPieceCount());
+        return result;
     }
 
     /**
@@ -139,19 +180,26 @@ public class Move {
     * @throws MoveException falls der Zug nicht ausgeführt werden kann.
     */
     public Board execute(final Board context) {
-        return tryExecute(context);
+        Board result = tryExecute(context);
+        if (result == null)
+            throw new MoveException("Unmöglicher Zug");
+        return result;
     }
 
     /**
     * Kopiere diesen Zug.
     */
     public Move clone() {
-        Move copy = new Move();
+        Move copy = create();
         if (isInitialized()) {
             copy.setStart(getStart());
             copy.setTarget(getTarget());
         }
         return copy;
+    }
+
+    protected Move create() {
+        return new Move();
     }
 
     public boolean isInitialized() {
@@ -203,7 +251,7 @@ public class Move {
         private Map<Integer,Move> mCache;
         private Map<Character,Move> mPrototypes;
     
-        public Cache(Set<Move> prototypes) {
+        public Cache(Collection<Move> prototypes) {
             if (prototypes == null)
                 throw new NullPointerException("prototypes");
             if (prototypes.size() < 1)
@@ -237,7 +285,7 @@ public class Move {
                             final Position target) 
         {
             if (!mPrototypes.containsKey(flag))
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("flag = " + flag);
             
             Move m = mPrototypes.get(flag).clone();
             m.setStart(start);

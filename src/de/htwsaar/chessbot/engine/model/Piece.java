@@ -1,6 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.Set;
+import java.util.Collection;
 /**
 * Schachfigur.
 *
@@ -24,7 +24,7 @@ public interface Piece {
     * @param context derzeitige Stellung der Figur
     * @return Liste bedrohter Felder.
     */
-    Set<Position> getAttacks(final Board context);
+    Collection<Position> getAttacks(final Board context);
 
     /**
     * Gib zurück, ob in der übergebenen Stellung diese Figur das
@@ -42,10 +42,10 @@ public interface Piece {
     * Gib die Liste möglicher Züge zurück.
     *
     * @param context die aktuelle Stellung
-    * @return ein <code>Set<code> aller möglichen Züge
+    * @return ein <code>Collection<code> aller möglichen Züge
     *         in der Stellung
     */
-    Set<Move> getMoves(final Board context);
+    Collection<Move> getMoves(final Board context);
 
     /**
     * Gib zurück, ob in der übergebenen Stellung diese Figur auf

@@ -1,8 +1,10 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.*;
-import static de.htwsaar.chessbot.engine.model.ChessVariant.*;
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
+import static de.htwsaar.chessbot.engine.model.Pieces.PC;
+//import static de.htwsaar.chessbot.engine.model.Move.MV;
+import static de.htwsaar.chessbot.engine.model.Board.B;
+
 import java.util.*;
 import static java.util.Arrays.asList;
 
@@ -24,8 +26,6 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ParameterizedPieceTest { 
 
-    private static ChessVariant VARIANT = FideChess.getInstance();
-
     // Testvariablen
     private Piece currentPiece;
     private Collection<Position> possibleMoves;
@@ -33,7 +33,7 @@ public class ParameterizedPieceTest {
     private Collection<Position> impossibleMoves;
 
     // Kontrollwerte
-    private static final Board EMPTY_BOARD = VARIANT.getBoard();
+    private static final Board EMPTY_BOARD = new Board();
     @Parameters
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] {
@@ -61,9 +61,9 @@ public class ParameterizedPieceTest {
             },
             {
                 PC('K', P("e1"), false),
-                PList("c1","d1", "d2", "e2","f2","f1","g1"),
-                PList("c2", "h1", "e3", "f3"),
-                null
+                PList("d1", "d2", "e2","f2","f1"),
+                PList("c1", "c2", "h1", "e3", "f3"),
+                PList("d1", "d2", "e2","f2","f1"),
             },
             {
                 PC('K', P("b5"), true),
@@ -208,7 +208,7 @@ public class ParameterizedPieceTest {
                         currentPiece.canMoveTo(EMPTY_BOARD, i) );
         }
     }
-    
+   
     @Test public void testMoveList() {
         Collection<Position> possibleMoves = new ArrayList<Position>();
         for (Move m : currentPiece.getMoves(EMPTY_BOARD)) {
@@ -226,7 +226,7 @@ public class ParameterizedPieceTest {
                         " sollte nicht in der Zugliste sein",
                         possibleMoves.contains(i));
     }
-
+    
     @Test public void testAttacks() {
         for (Position p : this.attacks) {
             assertTrue(currentPiece + " sollte " + p + " angreifen",

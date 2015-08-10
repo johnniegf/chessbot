@@ -1,10 +1,4 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
-
-import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.Move;
-import de.htwsaar.chessbot.engine.model.MoveException;
-import de.htwsaar.chessbot.engine.model.Piece;
-import de.htwsaar.chessbot.engine.model.Position;
+package de.htwsaar.chessbot.engine.model;
 
 /**
 *Klasse zur Bauernumwandlung. 
@@ -13,7 +7,11 @@ import de.htwsaar.chessbot.engine.model.Position;
 */
 public class MovePromotion extends Move {
 
-	public static final char FLAG = 'P';
+	public static final char TO_QUEEN  = 'Q';
+	public static final char TO_ROOK   = 'R';
+	public static final char TO_KNIGHT = 'N';
+	public static final char TO_BISHOP = 'B';
+
 	
 	private Piece promoted;
 
@@ -58,10 +56,14 @@ public class MovePromotion extends Move {
     }
     
     public String toString() {
-    	return super.toString()+promoted.fenShort();
+    	return super.toString()+Character.toLowerCase(promoted.fenShort());
     }
 
     public final char flag() {
-    	return FLAG;
+    	return Character.toUpperCase(promoted.fenShort());
+    }
+
+    protected final Move create() {
+        return new MovePromotion(promoted);
     }
 }

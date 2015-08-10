@@ -1,7 +1,7 @@
 package de.htwsaar.chessbot.engine.util;
 
+import static de.htwsaar.chessbot.engine.model.Board.*;
 import de.htwsaar.chessbot.engine.model.*;
-import de.htwsaar.chessbot.engine.model.variant.fide.*;
 /**
 * Beschreibung.
 *
@@ -15,7 +15,6 @@ public class Perft {
             return;
         String fen = args[0];
         int depth = Integer.valueOf(args[1]);
-        if (ChessVariant.getActive() == null);
         Perft pf = new Perft();
         long result = 0;
         long time = System.currentTimeMillis();
@@ -30,8 +29,7 @@ public class Perft {
     public long calculate(final String fenString, final int depth) {
         if (fenString == null)
             throw new NullPointerException("fenString");
-        final Board initial
-            = ChessVariant.getActive().getBoardBuilder().fromFenString(fenString);
+        final Board initial = B(fenString);
         return calculateR(initial, depth);
     }
 
@@ -41,12 +39,15 @@ public class Perft {
         long result = 0;
         if ( depth > 0 ) {
             Board b;
+            System.out.println(board);
             for ( Move m : board.getMoveList() ) {
-                System.out.println(m);
+                //System.out.println(depth + " " + m.getClass().getName() + "(" + board.getPieceAt(m.getStart()).fenShort() +  m + ")");
+                if ( !m.isPossible(board) )
+                    throw new MoveException("Zug " + m + " ist nicht möglich in " + board);
                 b = m.execute(board);
-                result += 1 + calculateR(b, depth-1);
+                result += calculateR(b, depth-1);
             }
-        }
+        } else return 1;
         return result;
     }
 

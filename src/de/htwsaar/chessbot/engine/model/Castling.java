@@ -1,7 +1,6 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
+package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.P;
-import de.htwsaar.chessbot.engine.model.*;
 
 /**
 * Beschreibung.
@@ -40,7 +39,7 @@ public class Castling extends Move {
     }
 
     private Rook getRook(final Board context) {
-        Position kingPos = getStart();
+        Position kingPos = getTarget();
         int direction = getTarget().compareTo(kingPos);
         Position rookPos;
         
@@ -51,7 +50,7 @@ public class Castling extends Move {
 
         Piece k = context.getPieceAt(kingPos);
         Piece r = context.getPieceAt(rookPos);
-        if (r == null || !(r instanceof Rook))
+        if (!(r instanceof Rook))
             return null;
         if (r.hasMoved() || r.isWhite() != k.isWhite())
             return null;
@@ -61,6 +60,10 @@ public class Castling extends Move {
 
     public final char flag() {
     	return FLAG;
+    }
+
+    protected final Move create() {
+        return new Castling();
     }
     
 }

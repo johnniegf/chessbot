@@ -1,9 +1,9 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
+package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.ChessVariant.MV;
-import de.htwsaar.chessbot.engine.model.*;
-import java.util.Set;
-import java.util.HashSet;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
+
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Beschreibung.
 *
@@ -18,39 +18,42 @@ public class Rook
         return HASH;
     }
 
-    public Set<Position> getAttacks(final Board context) {
-        Set<Position> attacks = new HashSet<Position>();
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
         
         Position p0 = getPosition();
         Position pt;
-        boolean hitEnd = false;
         int c;
         for (int vert = 0; vert <= 1; vert++) {
             for (int d = -1; d <= 1; d += 2) {
+                pt = p0;
                 c = 1;
                 while(true) {
                     pt = (vert == 0 ? p0.transpose(0,d*c) 
                                     : p0.transpose(d*c, 0));
-                    if ( !pt.existsOn(context) )
+                    if ( !pt.isValid() )
                         break;
                     else if (!context.isFree(pt)) {
-                        if (context.getPieceAt(pt).isWhite() != isWhite())
-                            attacks.add(pt);
-                         break;
+                        attacks.add(pt);
+                        break;
                     } else {
                         attacks.add(pt);
                     }
-                    c += d;
+                    c += 1;
                 }
             }
         }
         return attacks;
     }
 
-    public Set<Move> getMoves(final Board context) {
-        Set<Move> moves = new HashSet<Move>();
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
         Position myPos = getPosition();
         for (Position p : getAttacks(context)) {
+            if (!context.isFree(p))
+                if (context.getPieceAt(p).isWhite() == isWhite())
+                    continue;
+
             moves.add( MV(myPos,p) );
         }
         return moves;

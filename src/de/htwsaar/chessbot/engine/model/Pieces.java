@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 import java.util.Collection;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 /**
@@ -19,28 +20,34 @@ import java.util.HashMap;
 * @author Johannes Haupt
 */
 public final class Pieces {
-    
-    public static Pieces getFactory(final Collection<Piece> prototypes) {
-        return new Pieces(prototypes);
+
+    public static Piece PC(final char fenShort,
+                           final Position position,
+                           final boolean hasMoved)
+    {
+        return getInstance().get(fenShort, position, hasMoved);
     }
 
-    private static final int makeIndex(final char fenShort,
-                                       final Position position,
-                                       final boolean hasMoved)
-    {
-        int index = 0;
-        index += (hasMoved ? 1 : 0);
-        
-        index = index << 1;
-        boolean isWhite = Character.isUpperCase(fenShort);
-        index += (isWhite  ? 1 : 0);
+    public static Piece PC(final char fenShort, final Position position) {
+        return PC(fenShort, position, true);
+    }
 
-        index = index << 5;
-        index += (int) (fenShort - (isWhite ? 'A' : 'a'));
 
-        index = index << 11;
-        index += position.hashCode();
-        return index;
+    private static Pieces sInstance;
+
+    public static Pieces getInstance() {
+        initInstance();
+        return sInstance;
+    }
+
+    private static void initInstance() {
+        if (sInstance == null) {
+            Collection<Piece> prototypes = Arrays.asList(new Piece[]{
+                new King(), new Queen(), new Rook(),
+                new Bishop(), new Knight(), new Pawn()
+            });
+            sInstance = new Pieces(prototypes);
+        }
     }
 
 //---------------------------------------------------------
@@ -52,13 +59,10 @@ public final class Pieces {
         if ( prototypes == null )
             throw new NullPointerException("prototypes");
 
-        System.out.println("Pieces.<init>("+prototypes+")");
         mPrototypes = new HashMap<Character,Piece>();
         for ( Piece pc : prototypes ) {
-            System.out.println("Adding ("+pc+")");
             addPrototype(pc);
         }
-        System.out.println("Prototypes: " + mPrototypes);
         mCache = new HashMap<Integer,Piece>();
     }
 
@@ -105,12 +109,11 @@ public final class Pieces {
                      final Position position,
                      final boolean hasMoved)
     {
-        System.out.println("Pieces.get(" + fenShort +","+ position +","+ hasMoved +")");
         if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
             throw new IllegalArgumentException("fenShort '" + fenShort + "'");
         if ( position == null )
             throw new NullPointerException("position");
-        
+
         int index = makeIndex(fenShort, position, hasMoved);
         
         Piece result = mCache.get(index);
@@ -119,6 +122,10 @@ public final class Pieces {
             mCache.put(index, result);
         }
         return result;       
+    }
+
+    public Piece get(final char fenShort, final Position position) {
+        return get(fenShort, position, true);   
     }
 
     /**
@@ -133,7 +140,27 @@ public final class Pieces {
     }
 
     private static boolean isFenLetter(char character) {
-        return (character >= 'A' && character <= 'Z')
-            || (character >= 'a' && character <= 'z');
+        final String fenLetters = "[PpQqKkNnBbRr]";
+        return (character + "").matches(fenLetters);
     }
+
+    private static final int makeIndex(final char fenShort,
+                                       final Position position,
+                                       final boolean hasMoved)
+    {
+        int index = 0;
+        index += (hasMoved ? 1 : 0);
+        
+        index = index << 1;
+        boolean isWhite = Character.isUpperCase(fenShort);
+        index += (isWhite  ? 1 : 0);
+
+        index = index << 5;
+        index += (int) (fenShort - (isWhite ? 'A' : 'a'));
+
+        index = index << 11;
+        index += position.hashCode();
+        return index;
+    }
+
 }

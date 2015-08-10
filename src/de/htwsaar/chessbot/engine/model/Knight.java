@@ -1,10 +1,9 @@
-package de.htwsaar.chessbot.engine.model.variant.fide;
+package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.ChessVariant.MV;
-import de.htwsaar.chessbot.engine.model.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Beschreibung.
 *
@@ -19,27 +18,27 @@ public class Knight
         return HASH;
     }
 
-    public Set<Position> getAttacks(final Board context) {
-        Set<Position> attacks = new HashSet<Position>();
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
         
         Position p0 = getPosition();
         Position pt;
         for (int m = -1; m <= 1; m += 2) {
             for (int n = -2; n <= 2; n += 4) {
                 pt = p0.transpose(m,n);
-                if (pt.existsOn(context))
+                if (pt.isValid())
                     attacks.add(pt);
                 
                 pt = p0.transpose(n,m);
-                if (pt.existsOn(context))
+                if (pt.isValid())
                     attacks.add(pt);
             }
         }
         return attacks;
     }
 
-    public Set<Move> getMoves(final Board context) {
-        Set<Move> moves = new HashSet<Move>();
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
         Position myPos = getPosition();
         Piece pc;
         for (Position p : getAttacks(context)) {

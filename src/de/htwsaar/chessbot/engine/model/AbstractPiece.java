@@ -1,6 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.ChessVariant.PC;
+import static de.htwsaar.chessbot.engine.model.Pieces.PC;
 
 import java.util.Collection;
 import java.util.Random;
@@ -86,7 +86,11 @@ public abstract class AbstractPiece
     public boolean canMoveTo(final Board context, 
                              final Position targetSquare) 
     {
-        return attacks(context, targetSquare);
+        for (Move m : getMoves(context))
+            if (m.getTarget() == targetSquare)
+                return true;
+
+        return false;
     }
 
     public long hash() {
@@ -123,6 +127,8 @@ public abstract class AbstractPiece
     protected abstract char fen();
 
     public Piece move(final Position targetSquare) {
+        if (targetSquare == null)
+            throw new NullPointerException("targetSquare");
         return PC(fenShort(), targetSquare, true);
     }
 
