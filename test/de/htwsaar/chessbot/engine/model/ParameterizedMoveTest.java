@@ -1,27 +1,27 @@
 package de.htwsaar.chessbot.engine.model;
 
-// Interne Referenzen
-import de.htwsaar.chessbot.*;
+import static de.htwsaar.chessbot.engine.model.Position.P;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.*;
 
 // Java-API
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 
-// JUnit-API
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assume.*;
-import static org.junit.Assert.*;
-import org.junit.*;
-
+import org.junit.Test;
+import org.junit.runner.RunWith;
 // Klassen f√ºr parametrierte Tests
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.junit.runner.RunWith;
+
+import de.htwsaar.chessbot.engine.model.variant.fide.FideBoardBuilder;
 
 /**
 * Testklasse f√ºr ...
 *
-* @author Henning Walte
+* @author Henning Walte, Dominik Becker
 */
+//TODO: Henning: Dame,Springer.Bauer ;Dominik: Turm,L‰ufer,Kˆnig;Sonstiges: Rochade,En passant, Bauernumwandlung
 @RunWith(Parameterized.class)
 public class ParameterizedMoveTest { 
 
@@ -31,10 +31,9 @@ public class ParameterizedMoveTest {
 	private Move mv;
 	private boolean isPossible;
 	
-    private ...
 
     // Kontrollwerte
-    private static final ...
+   // private static final ...
 
     @Parameters
     public static Collection<Object[]> getTestData() {
@@ -44,7 +43,10 @@ public class ParameterizedMoveTest {
             	"8/8/8/8/8/8/4P3/8 w - - 0 1", new Move(P("e2"), P("e3")), true, "8/8/8/8/8/4P3/8/8 b - - 0 1"            	
             },
             {
-            	
+            	"7p/8/8/8/8/8/8/7R w - - 0 1", new Move(P("h1"), P("h8")), true, "7R/8/8/8/8/8/8/8 b - - 0 1"
+            },
+            {
+            	"8/8/8/8/7R/8/8/8 w - - 0 1", new Move(P("h4"), P("i4")), false,"8/8/8/8/8/8/8/8 b - - 0 1"
             }
         });
 
@@ -68,18 +70,19 @@ public class ParameterizedMoveTest {
     // = Ausnahmetests
     // ====================================================
 
-    @Test(expected = MyException.class)
-    public void test...() {
-        // Fehlerhafte Anweisung, die MyException ausl√∂st
+    @Test(expected = MoveException.class)
+    public void testIllegalMove() {
+        assumeFalse(this.isPossible);
+        mv.execute(start);
     }
 
     // ====================================================
     // = Funktionstests
     // ====================================================
 
-    @Test public void test1() {
+    @Test public void testExecute() {
     	
-    	if( ! this.isPossible ) return; 
+    	assumeTrue(this.isPossible);
     	Board result = mv.execute(start);
     	
     	assertEquals ( "",
