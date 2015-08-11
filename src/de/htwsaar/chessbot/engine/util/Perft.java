@@ -19,7 +19,7 @@ public class Perft {
         long result = 0;
         long time = System.currentTimeMillis();
         result = pf.calculate(fen,depth);
-        time -= System.currentTimeMillis();
+        time = System.currentTimeMillis() - time;
         System.out.println("Result: " + result + ", time : " + time + "ms");
     }
 
@@ -39,7 +39,7 @@ public class Perft {
         long result = 0;
         if ( depth > 0 ) {
             Board b;
-            System.out.println(board);
+            //System.out.println(board);
             for ( Move m : board.getMoveList() ) {
                 //System.out.println(depth + " " + m.getClass().getName() + "(" + board.getPieceAt(m.getStart()).fenShort() +  m + ")");
                 if ( !m.isPossible(board) )

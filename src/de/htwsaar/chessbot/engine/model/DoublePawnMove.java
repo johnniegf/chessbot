@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.util.Unused;
+
 /**
 * Beschreibung.
 *
@@ -37,7 +39,7 @@ public class DoublePawnMove extends Move {
         super.setTarget(start.transpose(0,d*2));
     }
 
-    public void setTarget(final Position unused) {
+    public void setTarget(@Unused final Position unused) {
         // We do nothing here, because target is derived from start
     }
 

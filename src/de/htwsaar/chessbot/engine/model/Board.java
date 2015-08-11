@@ -235,7 +235,7 @@ public class Board {
         Board b;
         for (Piece pc : getPieces()) {
             Collection<Move> pieceMoves = pc.getMoves(this);
-            System.out.println(pc.getClass().getSimpleName()+"@"+pc.getPosition()+": "+pieceMoves.size()+" "+pieceMoves);
+            //System.out.println(pc.getClass().getSimpleName()+"@"+pc.getPosition()+": "+pieceMoves.size()+" "+pieceMoves);
             for (Move m : pieceMoves) {
                 if (!m.isPossible(this))
                     continue;
@@ -244,7 +244,7 @@ public class Board {
                     moves.add(m);
             }
         }
-        System.out.println("Move list size = " + moves.size());
+        //System.out.println("Move list size = " + moves.size());
         return moves;
     }
 
@@ -388,29 +388,18 @@ public class Board {
 
         if (other instanceof Board) {
             final Board b = (Board) other;
-            System.out.print("1");
             if ( b.width() != width() ) return false;
-            System.out.print("2");
             if ( b.height() != height() ) return false;
-            System.out.print("3");
             if ( b.getHalfMoves() != getHalfMoves() ) return false;
-            System.out.print("4");
             if ( b.getFullMoves() != getFullMoves() ) return false;
-            System.out.print("5");
             if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
-            System.out.print("6");
             if ( !b.getEnPassant().equals(getEnPassant()) ) return false;
-            System.out.print("7");
             if ( b.getPieceCount() != getPieceCount() ) return false;
-            System.out.print("8");
             for ( Piece op : b.getPieces() ) {
                 if ( !op.equals(getPieceAt(op.getPosition())) ) {
-                	System.out.println(op);
-                	System.out.println(getPieceAt(op.getPosition()));
                     return false;
                 }
             }
-            System.out.println("9");
             return true;   
         } else {
             return false;

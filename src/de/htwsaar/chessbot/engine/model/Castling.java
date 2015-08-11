@@ -3,13 +3,20 @@ package de.htwsaar.chessbot.engine.model;
 import static de.htwsaar.chessbot.engine.model.Position.P;
 
 /**
-* Beschreibung.
-*
 * @author Johannes Haupt
 */
 public class Castling extends Move {
 
     public static final char FLAG = 'C';
+
+    private static final Position e1 = P("e1");
+    private static final Position e8 = P("e8");
+
+    private static final String EXN_INVALID_START =
+        "Das Startfeld der Rochade muss e1 oder e8 sein!";
+    
+    private static final String EXN_INVALID_TARGET =
+        "Das Zielfeld der Rochade muss c1/8 oder g1/8 sein!";
 
     /**
     * Standardkonstruktor.
@@ -19,7 +26,28 @@ public class Castling extends Move {
     }
 
     public Castling(final Position start, final Position target) {
-        super(start, target);
+        setStart(start);
+        setTarget(target);
+    }
+
+    public void setStart(final Position start) {
+        if (start != P("e1") && start != P("e8"))
+            throw new MoveException(EXN_INVALID_START);
+
+        super.setStart(start);
+    }
+    
+    public void setTarget(final Position target) {
+        if ( target == null || !target.isValid() )
+            throw new MoveException(EXN_INVALID_TARGET);
+
+        if ( target.rank() != getStart().rank() )
+            throw new MoveException(EXN_INVALID_TARGET);
+
+        if ( Math.abs(target.file() - getStart().file()) != 2 )
+            throw new MoveException(EXN_INVALID_TARGET);
+
+        super.setTarget(target);   
     }
 
     public Board tryExecute(final Board onBoard) {
@@ -30,8 +58,9 @@ public class Castling extends Move {
                 return null;
             if ( !(result.getPieceAt(getTarget()) instanceof King) )
                 return null;
-            int direction = getStart().compareTo(getTarget());
+            int direction = getStart().compareTo(getTarget()) < 0 ? -1 : 1;
             Piece rm = r.move(getTarget().transpose(direction,0));
+            //System.out.println(""r);
             result.removePieceAt(r.getPosition());
             result.putPiece(rm);
         }
