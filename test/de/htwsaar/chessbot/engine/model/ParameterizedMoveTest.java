@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.P;
+import static de.htwsaar.chessbot.engine.model.Board.B;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.*;
 
@@ -14,19 +15,22 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import de.htwsaar.chessbot.engine.model.variant.fide.FideBoardBuilder;
 
 /**
 * Testklasse fÃ¼r ...
 *
-* @author Henning Walte, Dominik Becker
+* @author Henning Walte
+* @author Dominik Becker
 */
-//TODO: Henning: Dame,Springer.Bauer ;Dominik: Turm,Läufer,König;Sonstiges: Rochade,En passant, Bauernumwandlung
+//TODO: 
+// --- Henning:   Dame, Springer, Bauer;
+// --- Dominik:   Turm, LÃ¤ufer, KÃ¶nig;
+// --- Sonstiges: Rochade, En passant, Bauernumwandlung
 @RunWith(Parameterized.class)
 public class ParameterizedMoveTest { 
 
     // Testvariablen
-	private static FideBoardBuilder builder = new FideBoardBuilder();
+	private static BoardBuilder builder = Board.BUILDER;
 	private Board start, expected;
 	private Move mv;
 	private boolean isPossible;
@@ -72,7 +76,7 @@ public class ParameterizedMoveTest {
             //King
             //true
             {
-            	"8/8/8/8/8/8/8/4K3 w - - 0 1", new Move(P("e1"), P("e2")), true, "8/8/8/8/8/8/4K3/8 b - - 0 1"//0 zu 1 ändern
+            	"8/8/8/8/8/8/8/4K3 w - - 0 1", new Move(P("e1"), P("e2")), true, "8/8/8/8/8/8/4K3/8 b - - 0 1"//0 zu 1 Ã¤ndern
             },
             {
             	"8/8/8/8/8/8/5p2/4K3 w - - 0 1", new Move(P("e1"), P("f2")), true, "8/8/8/8/8/8/5K2/8 b - - 0 1"
@@ -84,7 +88,7 @@ public class ParameterizedMoveTest {
            //Bishop
            //true
             {
-            	"8/8/8/8/8/8/8/5B2 w - - 0 1", new Move(P("f1"), P("d3")), true, "8/8/8/8/8/3B4/8/8 b - - 0 1"//0 zu 1 ändern
+            	"8/8/8/8/8/8/8/5B2 w - - 0 1", new Move(P("f1"), P("d3")), true, "8/8/8/8/8/3B4/8/8 b - - 0 1"//0 zu 1 Ã¤ndern
             },
             {
             	"8/8/8/8/8/3q4/8/5B2 w - - 0 1", new Move(P("f1"), P("d3")), true, "8/8/8/8/8/3R4/8/8 b - - 0 1"
@@ -112,7 +116,8 @@ public class ParameterizedMoveTest {
     */
     public ParameterizedMoveTest(String startPos, Move mv, boolean isPossible, String expected) {
     	this.start = builder.fromFenString(startPos);
-    	this.expected = builder.fromFenString(expected);
+    	this.expected = (isPossible ? builder.fromFenString(expected)
+                                    : null);
     	this.mv = mv;
     	this.isPossible = isPossible;
     }
