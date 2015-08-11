@@ -120,6 +120,7 @@ public class Move {
     * Gib zurück, ob dieser Zug in der übergebenen Stellung möglich ist.
     */
     public boolean isPossible(final Board context) {
+    	System.out.println("Move.isPossible("+context+")");
         return tryExecute(context) != null;        
     }
 
@@ -132,10 +133,13 @@ public class Move {
     * @throws NullPointerException falls <code>context == null</code>
     */
     protected Board tryExecute(final Board context) {
+        System.out.println("Move.tryExecute("+context+")");
+
         if (context == null)
             throw new NullPointerException("context");
         Board result = context.clone();
-        Piece pc = context.getPieceAt(getStart());
+        Piece pc = result.getPieceAt(getStart());
+        System.out.println(pc);
         // Existiert die Figur?
         if ( pc == null ) return null;
         // Ist die Farbe überhaupt am Zug?
@@ -267,6 +271,7 @@ public class Move {
         * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
         public Move get(char flag, Position start, Position target) {
+        	System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
             if (start == null)
                 throw new NullPointerException("start");
             if (target == null)
