@@ -39,44 +39,55 @@ public class Pawn
         Position pt;
         byte increment = (isWhite() ? (byte) 1 : (byte) -1);
         pt = p0.transpose(0, increment);
-        if (pt.isValid() && context.isFree(pt))
-            targets.add(pt);
-        if (!hasMoved()) {
-            pt = p0.transpose(0, 2*increment);
-            if (pt.isValid() && context.isFree(pt))
+        if (pt.isValid() && context.isFree(pt)) {
                 targets.add(pt);
+            if (!hasMoved()) {
+                pt = p0.transpose(0, 2*increment);
+                if (pt.isValid() && context.isFree(pt))
+                    targets.add(pt);
+            }
         }
         return targets;
     }
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        for (Position p : getAttacks(context)) {
-            if (context.isFree(p))
-                continue;
-            if (context.getPieceAt(p).isWhite() == isWhite())
-                continue;
-
-        	if (p.equals(context.getEnPassant()))
-        		moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
-        	else
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (context.isFree(p)) {
+            	    if (p == context.getEnPassant())
+            		    moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
+                    continue;
+                }
+                if (context.getPieceAt(p).isWhite() == isWhite())
+                    continue;
+    
                 if (isPromotion(myPos,p))
                     moves.addAll(getPromotions(myPos, p));
                 else
-        		    moves.add( MV(myPos,p) );
-        }
-        for (Position p : getTargets(context)) {
-        	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
-        		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
-        	else {
-                if (isPromotion(myPos,p))
-                    moves.addAll(getPromotions(myPos, p));
-                else
-            	    moves.add( MV(myPos,p) );
+            		moves.add( MV(myPos,p) );
+            }
+            for (Position p : getTargets(context)) {
+            	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
+            		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
+            	else {
+                    if (isPromotion(myPos,p))
+                        moves.addAll(getPromotions(myPos, p));
+                    else
+                	    moves.add( MV(myPos,p) );
+                }
             }
         }
         return moves;
+    }
+
+    public boolean equals(final Object other) {
+        if (super.equals(other)) {
+            Piece op = (Piece) other;
+            return hasMoved() == op.hasMoved();
+        }
+        return false;
     }
    
     private Collection<Move> getPromotions(final Position from, final Position to) {

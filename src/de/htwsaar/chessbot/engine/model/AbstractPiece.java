@@ -109,8 +109,7 @@ public abstract class AbstractPiece
             Piece p = (Piece) other;
             return p.id() == id()
                 && p.isWhite() == isWhite()
-                && p.getPosition().equals(getPosition())
-                && p.hasMoved() == hasMoved();
+                && p.getPosition().equals(getPosition());
         } else {
             return false;
         }

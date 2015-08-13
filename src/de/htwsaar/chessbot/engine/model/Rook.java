@@ -23,23 +23,19 @@ public class Rook
         
         Position p0 = getPosition();
         Position pt;
-        int c;
-        for (int vert = 0; vert <= 1; vert++) {
-            for (int d = -1; d <= 1; d += 2) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if ( Math.abs(dx) == Math.abs(dy) )
+                    continue;
                 pt = p0;
-                c = 1;
                 while(true) {
-                    pt = (vert == 0 ? p0.transpose(0,d*c) 
-                                    : p0.transpose(d*c, 0));
+                    pt = pt.transpose(dx,dy);
                     if ( !pt.isValid() )
                         break;
-                    else if (!context.isFree(pt)) {
-                        attacks.add(pt);
+                    
+                    attacks.add(pt);
+                    if (!context.isFree(pt)) 
                         break;
-                    } else {
-                        attacks.add(pt);
-                    }
-                    c += 1;
                 }
             }
         }
@@ -58,6 +54,15 @@ public class Rook
         }
         return moves;
     }
+    
+    public boolean equals(final Object other) {
+        if (super.equals(other)) {
+            Piece op = (Piece) other;
+            return hasMoved() == op.hasMoved();
+        }
+        return false;
+    }
+   
 
     protected char fen() {
         return 'R';

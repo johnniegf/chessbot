@@ -50,29 +50,36 @@ public class Castling extends Move {
         super.setTarget(target);   
     }
 
-    public Board tryExecute(final Board onBoard) {
+    @Override
+    protected Board tryExecute(final Board onBoard) {
         Board result = super.tryExecute(onBoard);
         if (result != null) {
-            Rook r = getRook(result);
+            Piece r = getRook(result);
             if ( r == null )
                 return null;
             if ( !(result.getPieceAt(getTarget()) instanceof King) )
                 return null;
             int direction = getStart().compareTo(getTarget()) < 0 ? -1 : 1;
-            Piece rm = r.move(getTarget().transpose(direction,0));
-            //System.out.println(""r);
+            Position pr = r.getPosition().transpose(direction,0);
+            while(pr != getTarget()) {
+                if ( !result.isFree(pr) ) {
+                    return null;
+                }
+                pr = pr.transpose(direction,0);
+            }
+            Piece rm = r.move( getTarget().transpose(direction,0) );
             result.removePieceAt(r.getPosition());
             result.putPiece(rm);
         }
         return result;
     }
-
-    private Rook getRook(final Board context) {
+    
+    private Piece getRook(final Board context) {
         Position kingPos = getTarget();
-        int direction = getTarget().compareTo(kingPos);
+        int direction = getStart().compareTo(getTarget());
         Position rookPos;
         
-        if (direction < 0) 
+        if (direction > 0) 
             rookPos = P(1,kingPos.rank());
         else
             rookPos = P(8,kingPos.rank()); 
@@ -84,7 +91,7 @@ public class Castling extends Move {
         if (r.hasMoved() || r.isWhite() != k.isWhite())
             return null;
 
-        return (Rook) r;
+        return r;
     }
 
     public final char flag() {

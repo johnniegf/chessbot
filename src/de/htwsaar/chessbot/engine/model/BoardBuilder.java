@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.*;
+import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.Collection;
 /**
@@ -20,20 +21,26 @@ public class BoardBuilder {
 
     public Board fromFenString(final String fenString) {
         if (!fenString.matches(REGEX_FEN_STRING))
-            throw new FenStringParseException(EXN_BAD_FORMAT + fenString);
+            throw new FenStringParseException(
+                msg(EXN_BAD_FORMAT, fenString)
+            );
 
         Board    result = new Board() ;
         String[] fields = fenString.split(" ");
         String[] rows   = fields[0].split("/");
         
         if (rows.length != 8) {
-            throw new FenStringParseException(EXN_ILLEGAL_ROW_COUNT);
+            throw new FenStringParseException(
+                msg(EXN_ILLEGAL_ROW_COUNT, rows.length)
+            );
         }
         for (int y = 0; y < 8; y++) {
             int rowNumber = 8 - y;
             int width = processRow(rowNumber, rows[y], result);
             if (width != 8) {
-                throw new FenStringParseException(EXN_ILLEGAL_COL_COUNT);
+                throw new FenStringParseException(
+                    msg(EXN_ILLEGAL_COL_COUNT, width)
+                );
             }
         }
         
@@ -56,7 +63,9 @@ public class BoardBuilder {
                 Piece p = FACTORY.get(current, currentPosition, true);
                 checkForStartingPos(p);
                 if (p == null)
-                    throw new FenStringParseException(EXN_UNKOWN_PIECE);
+                    throw new FenStringParseException(
+                        msg(EXN_UNKOWN_PIECE, current)
+                    );
                 
                 context.putPiece(p);
                 width += 1;
@@ -67,7 +76,9 @@ public class BoardBuilder {
                 width += empty;
                 currentPosition = currentPosition.transpose(empty, 0);
             } else {
-                throw new FenStringParseException(EXN_ILLEGAL_CHARACTER);
+                throw new FenStringParseException(
+                    msg(EXN_ILLEGAL_CHARACTER, current)
+                );
             }
         }
         return width;
@@ -75,7 +86,8 @@ public class BoardBuilder {
     }
 
     private static boolean setPlayer(final String playerString, final Board context) {
-        switch(playerString.trim()) {
+        String colorCode = playerString.trim();
+        switch(colorCode) {
             case "w":
                 context.setWhiteAtMove(true);
                 break;
@@ -83,7 +95,9 @@ public class BoardBuilder {
                 context.setWhiteAtMove(false);
                 break;
             default:
-                throw new FenStringParseException();
+                throw new FenStringParseException( 
+                    msg(EXN_INVALID_COLOR, colorCode) 
+                );
         }
         return true;
     }
@@ -144,13 +158,6 @@ public class BoardBuilder {
                 p.setHasMoved( p.getPosition().rank() != 7 );
             }
         }
-        if (p instanceof King) {
-            if (p.isWhite()) {
-                p.setHasMoved( !p.getPosition().equals(P("e1")) );
-            } else {
-                p.setHasMoved( !p.getPosition().equals(P("e8")) );
-            }
-        }
     }
 
     private static void setEnPassant(final String enPassant, Board context) {
@@ -180,18 +187,21 @@ public class BoardBuilder {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     private static final String EXN_ILLEGAL_COL_COUNT =
-        "Ungültige Spaltenanzahl, erwarte 8. ";
+        "Ungültige Spaltenanzahl! Gefunden %d, erwarte 8.";
     private static final String EXN_ILLEGAL_ROW_COUNT =
-        "Ungültige Zeilenanzahl, erwarte 8. ";
+        "Ungültige Zeilenanzahl! Gefunden %d, erwarte 8.";
     private static final String EXN_UNKOWN_PIECE =
-        "Unbekanntes Figurenkürzel ";
+        "Unbekanntes Figurenkürzel '%s'";
     private static final String EXN_ILLEGAL_CHARACTER =
-        "Unbekanntes Zeichen ";
+        "Unbekanntes Zeichen '%s'";
     private static final String EXN_BAD_FORMAT =
         "Unzuässiges Format für FEN-String.";
     private static final String EXN_TOO_MANY_PIECES =
-        "Zu viele Figuren der Art ";
+        "Zu viele Figuren der Art %s";
     private static final String EXN_TOO_MANY_CONVERTED_PAWNS =
-        "Zu viele umgewandelte Bauern";
+        "Zu viele umgewandelte Bauern: %d";
+    private static final String EXN_INVALID_COLOR =
+        "Unbekannte Spielfarbe '%s'";
 
 }
+

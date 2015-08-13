@@ -31,6 +31,7 @@ public class ParameterizedPieceTest {
     private Collection<Position> possibleMoves;
     private Collection<Position> attacks;
     private Collection<Position> impossibleMoves;
+    private Board board;
 
     // Kontrollwerte
     private static final Board EMPTY_BOARD = new Board();
@@ -43,7 +44,15 @@ public class ParameterizedPieceTest {
                       "d2","d3","d4","d5","d6","d7","d8",
                       "a4","b3","c2",
                       "e2","f3","g4","h5"),
-                PList("i1","d9","i5","b2","c3"),
+                PList("a2","b2","c3","e3","f2"),
+                null
+            },
+            {
+                PC('q', P("h8")),
+                PList("a8","b8","c8","d8","e8","f8","g8",
+                      "h1","h2","h3","h4","h5","h6","h7",
+                      "a1","b2","c3","d4","e5","f6","g7"),
+                PList("f7","g6","e6"),
                 null
             },
             {
@@ -118,7 +127,13 @@ public class ParameterizedPieceTest {
                 PList("f3","f4"),
                 PList("e2","e4","f1"),
                 PList("e3","g3"),
-            }, 
+            },
+            {
+                PC('p', P("f2"), true),
+                PList("f1"),
+                PList("e1","g1"),
+                PList("e1","g1")
+            },
             {
                 PC('p', P("d7"), false),
                 PList("d6","d5"),
@@ -128,7 +143,7 @@ public class ParameterizedPieceTest {
             {
                 PC('p', P("h7"), false),
                 PList("h6","h5"),
-                PList("h8","i7","g7"),
+                PList("h8","g6","g7"),
                 PList("g6")
             }, 
             {
@@ -136,6 +151,12 @@ public class ParameterizedPieceTest {
                 PList("c4"),
                 PList("b4","c5","c6"),
                 PList("b4", "d4")
+            },
+            {
+                PC('p', P("a4"), true),
+                PList("a3"),
+                PList("a2","b3"),
+                PList("b3")
             },
             {
                 PC('R', P("a1"), false),
@@ -177,6 +198,8 @@ public class ParameterizedPieceTest {
         this.possibleMoves   = possible;
         this.impossibleMoves = impossible;
         this.attacks         = (attacks == null ? possibleMoves : attacks);
+        this.board           = EMPTY_BOARD.clone();
+        this.board.setWhiteAtMove(currentPiece.isWhite());
     }
 
     /**
@@ -211,7 +234,7 @@ public class ParameterizedPieceTest {
    
     @Test public void testMoveList() {
         Collection<Position> possibleMoves = new ArrayList<Position>();
-        for (Move m : currentPiece.getMoves(EMPTY_BOARD)) {
+        for (Move m : currentPiece.getMoves(this.board)) {
             possibleMoves.add(m.getTarget());
         }
 
@@ -230,8 +253,15 @@ public class ParameterizedPieceTest {
     @Test public void testAttacks() {
         for (Position p : this.attacks) {
             assertTrue(currentPiece + " sollte " + p + " angreifen",
-                       currentPiece.attacks(EMPTY_BOARD, p) );
+                       currentPiece.attacks(this.board, p) );
         }
+    }
+
+    @Test public void testNullMove() {
+        assertFalse(currentPiece + " darf nicht auf seinem Startfeld ankommen!",
+                    currentPiece.canMoveTo( this.board,    
+                                            currentPiece.getPosition() 
+                    ) );
     }
 
 }
