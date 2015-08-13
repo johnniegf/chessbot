@@ -48,6 +48,7 @@ public class Move {
 
     private Position mStart;
     private Position mTarget;
+    private transient String tMoveString;
 
     /**
     * Erzeuge einen nicht initialisierten Zug.
@@ -120,7 +121,8 @@ public class Move {
     * Gib zurück, ob dieser Zug in der übergebenen Stellung möglich ist.
     */
     public boolean isPossible(final Board context) {
-        return tryExecute(context) != null;        
+        Board result = tryExecute(context);
+        return result != null && result.isValid();
     }
 
     /**
@@ -141,9 +143,10 @@ public class Move {
         // Ist die Farbe überhaupt am Zug?
         if ( pc.isWhite() != result.isWhiteAtMove()) return null;
         // Kann die Figur auf das Zielfeld ziehen?
-        if ( !pc.canMoveTo(result, getTarget())) return null;
+        if ( !pc.canMoveTo(result, getTarget())) {
+            return null;
+        }
 
-        boolean isTake = false;
         // Ist das Zielfeld besetzt...
         if ( !result.isFree(getTarget()) ) {
             // ... und die Figur darauf von der selben Farbe wie die gezogene?
@@ -153,11 +156,12 @@ public class Move {
             else {
                 result.removePieceAt(getTarget());
                 result.setHalfMoves(0);
-                isTake = true;
             }
         } else {
             if (!(pc instanceof Pawn))
                 result.setHalfMoves(result.getHalfMoves()+1);
+            else
+                result.setHalfMoves(0);
         }
         result.putPiece( pc.move(getTarget()) );
         result.removePieceAt(getStart());
@@ -165,8 +169,6 @@ public class Move {
         if (result.isWhiteAtMove())
             result.setFullMoves(result.getFullMoves()+1);
         result.setEnPassant(Position.INVALID);
-        //System.out.print(isTake ? "Take" : "Move");
-        //System.out.println("("+this+").tryExecute("+context+context.getPieceCount()+") = "+result+result.getPieceCount());
         return result;
     }
 
@@ -181,8 +183,8 @@ public class Move {
     */
     public Board execute(final Board context) {
         Board result = tryExecute(context);
-        if (result == null)
-            throw new MoveException("Unmöglicher Zug");
+        if (result == null || !result.isValid())
+            throw new MoveException("Unmöglicher Zug " + getClass().getSimpleName() + this + " auf " + context);
         return result;
     }
 
@@ -218,9 +220,12 @@ public class Move {
     * Gib die UCI-Notation dieses Zugs zurück.
     */
     public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append(getStart()).append(getTarget());
-        return result.toString();
+        if (tMoveString == null) {
+            StringBuilder result = new StringBuilder();
+            result.append(getStart()).append(getTarget());
+            tMoveString = result.toString();
+        }
+        return tMoveString;
     }
 
     /**

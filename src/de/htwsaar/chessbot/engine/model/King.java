@@ -40,23 +40,36 @@ public class King
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        for (Position p : getAttacks(context)) {
-            if ( context.isAttacked(!isWhite(), p) > 0 )
-                continue;
-            if ( !context.isFree(p) ) {
-                if (context.getPieceAt(p).isWhite() == isWhite())
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if ( context.isAttacked(!isWhite(), p) > 0 )
                     continue;
+                if ( !context.isFree(p) ) {
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
             }
-            moves.add( MV(myPos,p) );
+            moves.addAll(getCastlings(context));
         }
-        moves.addAll(getCastlings(context));
         return moves;
     }
+    
+    public boolean equals(final Object other) {
+        if (super.equals(other)) {
+            Piece op = (Piece) other;
+            return hasMoved() == op.hasMoved();
+        }
+        return false;
+    }
+   
 
     private Collection<Move> getCastlings(final Board context) {
         Collection<Move> castlings = new ArrayList<Move>();
-        if ( !hasMoved() ) {
+        if ( !hasMoved() 
+          && 0 == context.isAttacked(!isWhite(), getPosition()) )
+        {
         	Position p = getPosition();
         	for (int i : new int[]{1,8}) {
         		Position r = P(i,p.rank());
@@ -66,14 +79,16 @@ public class King
         		if ( rook.isWhite() != isWhite() ) continue;
         		int d = r.compareTo(p) < 0 ? -1 : 1;
                 boolean possible = true;
+                Position curr = null;
         		for (int c = 1; c <= 2; c++) {
-                    if ( !context.isFree(p.transpose(c*d,0)) )
+                    curr = p.transpose(c*d,0);
+                    if ( !context.isFree(curr) )
                         possible = false;
-        			if ( 0 < context.isAttacked(!isWhite(), p.transpose(c*d, 0)) )
+        			if ( 0 < context.isAttacked(!isWhite(), curr) )
         				possible = false;
         		}
                 if (possible)
-        		    castlings.add( MV(p, p.transpose(d*2,0), Castling.FLAG) );
+        		    castlings.add( MV(p, curr, Castling.FLAG) );
         	}
         }
         return castlings;

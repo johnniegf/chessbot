@@ -23,7 +23,6 @@ public class Bishop
         
         Position p0 = getPosition();
         Position pt;
-        Piece pc;
         for (int dx = -1; dx <= 1; dx += 2) {
             for (int dy = -1; dy <= 1; dy += 2) {
                 pt = p0;
