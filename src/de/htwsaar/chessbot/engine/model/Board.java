@@ -41,7 +41,7 @@ public class Board {
     private int mFullMoves;
     private long mZobristHash;
     private transient Collection<Move> tMoveList = null;
-
+    private transient boolean needsUpdate = true;
     /**
     * Erzeuge ein leeres Schachbrett. 
     */
@@ -95,6 +95,7 @@ public class Board {
         mPieces.put(p, piece);
         applyHash(piece.hash());
         mPieceCount += 1;
+        needsUpdate = true;
         return true;
     }
 
@@ -147,6 +148,7 @@ public class Board {
         if (p != null) {
             applyHash(p.hash());
             mPieceCount -= 1;
+            needsUpdate = true;
             return true;        
         } else
             return false;
@@ -237,13 +239,12 @@ public class Board {
     *         in dieser Stellung.
     */
     public Collection<Move> getMoveList() {
-        if (tMoveList == null) {
+        if (needsUpdate) {
             tMoveList = new ArrayList<Move>();
             Board b;
             Collection<Move> pieceMoves;
             for (Piece pc : getPieces()) {
                 pieceMoves = pc.getMoves(this);
-                //System.out.println(pc.getClass().getSimpleName()+"@"+pc.getPosition()+": "+pieceMoves.size()+" "+pieceMoves);
                 for (Move m : pieceMoves) {
                     if (!m.isPossible(this))
                         continue;
@@ -252,8 +253,8 @@ public class Board {
                         tMoveList.add(m);
                 }
             }
+            needsUpdate = false;
         }
-        //System.out.println("Move list size = " + moves.size());
         return tMoveList;
     }
 
@@ -458,19 +459,20 @@ public class Board {
             Piece king = getPieceAt(p);
             if (king == null || king.hasMoved())
                 continue;
-            Piece rook = getPieceAt( P(1, p.rank()) );
-            if (rook instanceof Rook) {
-                if (!rook.hasMoved())
-                    castlings.append(
-                        (rook.isWhite() ? "Q" : "q")
-                    );
-            }
             
-            rook = getPieceAt( P(8, p.rank()) );
+            Piece rook = getPieceAt( P(8, p.rank()) );
             if (rook instanceof Rook) {
                 if (!rook.hasMoved())
                     castlings.append(
                         (rook.isWhite() ? "K" : "k")
+                    );
+            }
+            
+            rook = getPieceAt( P(1, p.rank()) );
+            if (rook instanceof Rook) {
+                if (!rook.hasMoved())
+                    castlings.append(
+                        (rook.isWhite() ? "Q" : "q")
                     );
             }
         }

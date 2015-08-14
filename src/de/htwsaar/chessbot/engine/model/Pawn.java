@@ -63,18 +63,18 @@ public class Pawn
                 if (context.getPieceAt(p).isWhite() == isWhite())
                     continue;
     
-                if (isPromotion(myPos,p))
+                if (isPromotion(myPos,p)) {
                     moves.addAll(getPromotions(myPos, p));
-                else
+                } else
             		moves.add( MV(myPos,p) );
             }
             for (Position p : getTargets(context)) {
             	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
             		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
             	else {
-                    if (isPromotion(myPos,p))
+                    if (isPromotion(myPos,p)) {
                         moves.addAll(getPromotions(myPos, p));
-                    else
+                    } else
                 	    moves.add( MV(myPos,p) );
                 }
             }
@@ -100,10 +100,11 @@ public class Pawn
     }
 
     private boolean isPromotion(final Position start, final Position target) {
-    	if ( isWhite() )
+    	if ( isWhite() ) {
     		if (start.rank() == 7 && target.rank() == 8) return true;
-    	else
+    	} else {
     		if (start.rank() == 2 && target.rank() == 1) return true;
+        }
     	
     	return false;
     }
@@ -120,7 +121,7 @@ public class Pawn
     public int hashCode() {
         int hash = 0;
         // Berechnungen
-
+        hash += super.hashCode();
         return hash;
     }
 

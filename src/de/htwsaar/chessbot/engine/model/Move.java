@@ -279,7 +279,7 @@ public class Move {
         /**
         * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
-        public synchronized Move get(char flag, Position start, Position target) {
+        public Move get(char flag, Position start, Position target) {
         	//System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
             if (start == null)
                 throw new NullPointerException("start");
@@ -287,10 +287,13 @@ public class Move {
                 throw new NullPointerException("target");
     
             int index = makeIndex(flag, start, target);
-            Move m = mCache.get(index);
-            if (m == null) {
-                m = create(flag, start, target);
-                mCache.put(index, m);
+            Move m;
+            synchronized(mCache) {
+                m = mCache.get(index);
+                if (m == null) {
+                    m = create(flag, start, target);
+                    mCache.put(index, m);
+                }
             }
             return m;
         }

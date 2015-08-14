@@ -75,7 +75,7 @@ public class MovePromotion extends Move {
         	Piece pawn = target.getPieceAt(getTarget());
         	target.removePieceAt(getTarget());
 
-        	Piece movedPiece = this.promoted;
+        	Piece movedPiece = this.promoted.clone();
         	movedPiece.setPosition(getTarget());
         	movedPiece.setIsWhite(pawn.isWhite());
         	movedPiece.setHasMoved(true);

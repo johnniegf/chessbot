@@ -11,7 +11,18 @@ import java.util.*;
 */
 public class Perft {
 
-    
+    private static boolean verbose = false;
+
+    private static void debug(String str) {
+        if (verbose) {
+            msg(str);
+        }
+    }
+
+    private static void msg(String str) {
+        System.out.println(str);
+    }
+
     private static int DEF_WORKERS = Runtime.getRuntime().availableProcessors() - 1;
     private static int NUM_WORKERS;
 
@@ -25,17 +36,6 @@ public class Perft {
         return min;
     }
 
-    private static double avgSpeed(long[] nodeCounts, long[] timesInMsec) {
-        if (nodeCounts.length != timesInMsec.length)
-            return -1.0;
-        int count = nodeCounts.length;
-        double result = 0.0;
-        for (int i = 0; i < count; i++) {
-            result += nodeCounts[i] / (timesInMsec[i] / 1000.0);
-        }
-        return result / count;
-    }
-
     public static void main(final String[] args) {
         int argc = args.length;
         if (argc < 2 || argc > 3)
@@ -45,24 +45,17 @@ public class Perft {
         int workers = (args.length == 3 ? Integer.valueOf(args[2]) : DEF_WORKERS);
         NUM_WORKERS = max(1, workers);
         Perft pf = new Perft();
-        long[] results = new long[depth];
-        long[] times = new long[depth];
-        for (int i = 1; i <= depth; i++) {
-            System.out.println("====== Suchtiefe " + i + " =======");
-            long result = 0;
-            long time = System.currentTimeMillis();
-            result = pf.calculate(fen,i);
-            time = System.currentTimeMillis() - time;
-            results[i-1] = result;
-            times[i-1]   = time;
-            System.out.println("Tiefe " + i + ": " + results[i-1] + " Knoten in " + (times[i-1] / 1000.0) + "s gefunden. (" + (results[i-1] / (times[i-1] / 1000.0)) +" Knoten/s)");
-            System.out.println("Cache-Status: " + Pieces.getInstance().size() + " Figuren, " + Move.CACHE_SIZE() + " Züge");
-        }
-        System.out.println("Ergebnis für Ausgangsstellung " + fen);
-        for (int i = 1; i <= depth; i++) {
-            System.out.println("Tiefe " + i + ": " + results[i-1] + " Knoten in " + (times[i-1] / 1000.0) + "s gefunden.");
-        }
-        System.out.println("Durchschnittsgeschwindigkeit = " + avgSpeed(results,times) + " Knoten/sec");
+        long time = System.currentTimeMillis();
+        long result = pf.calculate(fen,depth);
+        time = System.currentTimeMillis() - time;
+        debug("Tiefe " + depth + ": " + result 
+            + " Knoten in " + (time / 1000.0) 
+            + "s gefunden. (" + (result / (time / 1000.0)) 
+            + " Knoten/s)");
+        debug("Cache-Status: " + Pieces.getInstance().size() 
+            + " Figuren, " + Move.CACHE_SIZE() + " Züge");
+        debug("Ergebnis für Ausgangsstellung " + fen);
+        msg(result+"");
     }
 
     private PerftWorker[] mWorkers = new PerftWorker[NUM_WORKERS];
@@ -74,6 +67,11 @@ public class Perft {
         if (fenString == null)
             throw new NullPointerException("fenString");
         final Board initial = B(fenString);
+        if (depth == 0) {
+            return 1;
+        } else if (depth == 1) {
+            return initial.getMoveList().size();
+        }
         setUpWorkers(initial, depth);
         for (PerftWorker t : mWorkers)
             t.start();
@@ -101,7 +99,6 @@ public class Perft {
             cnt += 1;
         }
         for (int i = 0; i < NUM_WORKERS; i++) {
-            System.out.println(partialMoveLists[i]);
             mWorkers[i] = new PerftWorker(initial, partialMoveLists[i], depth);
         }
 
