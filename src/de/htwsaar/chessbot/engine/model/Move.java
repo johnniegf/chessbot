@@ -16,6 +16,10 @@ public class Move {
 
     private static Move.Cache sCache;
 
+    public static int CACHE_SIZE() {
+        return sCache.size();
+    }
+
     private static Move.Cache getCache() {
         if (sCache == null) {
             Collection<Move> proto = Arrays.asList( new Move[] {
@@ -267,11 +271,15 @@ public class Move {
                 mPrototypes.put(m.flag(), m);
             }
         }
+
+        public int size() {
+            return mCache.size();
+        }
     
         /**
         * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
-        public Move get(char flag, Position start, Position target) {
+        public synchronized Move get(char flag, Position start, Position target) {
         	//System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
             if (start == null)
                 throw new NullPointerException("start");
@@ -282,6 +290,7 @@ public class Move {
             Move m = mCache.get(index);
             if (m == null) {
                 m = create(flag, start, target);
+                mCache.put(index, m);
             }
             return m;
         }

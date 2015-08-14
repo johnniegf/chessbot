@@ -39,15 +39,17 @@ public class Knight
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        Piece pc;
-        for (Position p : getAttacks(context)) {
-            if (!context.isFree(p)) {
-                pc = context.getPieceAt(p);
-                if (pc.isWhite() == isWhite())
-                    continue;
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            Piece pc;
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p)) {
+                    pc = context.getPieceAt(p);
+                    if (pc.isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
             }
-            moves.add( MV(myPos,p) );
         }
         return moves;
     }

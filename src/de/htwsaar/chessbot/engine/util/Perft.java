@@ -11,14 +11,39 @@ import java.util.*;
 */
 public class Perft {
 
-    private static int NUM_WORKERS = 4;
+    
+    private static int DEF_WORKERS = Runtime.getRuntime().availableProcessors() - 1;
+    private static int NUM_WORKERS;
+
+    private static int max(int... vals) {
+        if (vals == null || vals.length < 1)
+            return -1;
+        int min = vals[0];
+        for (int i = 1; i < vals.length; i++) {
+            min = (vals[i] > min ? vals[i] : min);
+        }
+        return min;
+    }
+
+    private static double avgSpeed(long[] nodeCounts, long[] timesInMsec) {
+        if (nodeCounts.length != timesInMsec.length)
+            return -1.0;
+        int count = nodeCounts.length;
+        double result = 0.0;
+        for (int i = 0; i < count; i++) {
+            result += nodeCounts[i] / (timesInMsec[i] / 1000.0);
+        }
+        return result / count;
+    }
 
     public static void main(final String[] args) {
         int argc = args.length;
-        if (argc != 2)
+        if (argc < 2 || argc > 3)
             return;
         String fen = args[0];
         int depth = Integer.valueOf(args[1]);
+        int workers = (args.length == 3 ? Integer.valueOf(args[2]) : DEF_WORKERS);
+        NUM_WORKERS = max(1, workers);
         Perft pf = new Perft();
         long[] results = new long[depth];
         long[] times = new long[depth];
@@ -30,12 +55,14 @@ public class Perft {
             time = System.currentTimeMillis() - time;
             results[i-1] = result;
             times[i-1]   = time;
-            System.out.println("Tiefe " + i + ": " + results[i-1] + " Knoten in " + (times[i-1] / 1000.0) + "s gefunden.");
+            System.out.println("Tiefe " + i + ": " + results[i-1] + " Knoten in " + (times[i-1] / 1000.0) + "s gefunden. (" + (results[i-1] / (times[i-1] / 1000.0)) +" Knoten/s)");
+            System.out.println("Cache-Status: " + Pieces.getInstance().size() + " Figuren, " + Move.CACHE_SIZE() + " Züge");
         }
         System.out.println("Ergebnis für Ausgangsstellung " + fen);
         for (int i = 1; i <= depth; i++) {
             System.out.println("Tiefe " + i + ": " + results[i-1] + " Knoten in " + (times[i-1] / 1000.0) + "s gefunden.");
         }
+        System.out.println("Durchschnittsgeschwindigkeit = " + avgSpeed(results,times) + " Knoten/sec");
     }
 
     private PerftWorker[] mWorkers = new PerftWorker[NUM_WORKERS];

@@ -66,6 +66,10 @@ public final class Pieces {
         mCache = new HashMap<Integer,Piece>();
     }
 
+    public int size() {
+        return mCache.size();
+    }
+
     private boolean addPrototype(final Piece prototype) {
         Piece current;
         for (int i = 0; i < 2; i++) {

@@ -449,8 +449,6 @@ public class Board {
         sb.append(getHalfMoves());
         sb.append(blank);
         sb.append(getFullMoves());
-        sb.append(System.getProperty("line.separator"));
-        sb.append(getPieces().toString());
         return sb.toString();
     }
 
