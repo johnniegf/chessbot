@@ -19,6 +19,13 @@ public class Game {
     * Standardkonstruktor.
     */ 
     public Game() {
+        this("");
+    }
+
+    public Game(final String fenInitial) {
+        mHistory    = new History( 
+            fenInitial.isEmpty() ? Board.B() : Board.B(fenInitial) 
+        ); 
         mWhiteClock = new Clock();
         mBlackClock = new Clock();
     }
