@@ -1,20 +1,58 @@
 package de.htwsaar.chessbot.engine.util;
 
 import static de.htwsaar.chessbot.engine.model.Board.*;
+import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.engine.model.*;
 
 import java.util.*;
 /**
-* Beschreibung.
+* Testwerkzeug für Performance- und Korrektheit des Zuggenerators.
 *
+* Perft zählt alle Züge, die der Zuggenerator für eine Ausgangstellung und 
+* eine Suchtiefe erzeugt. Die Ergebnisse der Generierung lassen sich 
 * @author Johannes Haupt
 */
 public class Perft {
 
-    private static boolean verbose = false;
+    public static void main(final String[] args) {
+        int argc = args.length;
+        String fen;
+        int depth;
+        int numWorkers = DEF_WORKERS;
+        switch (argc) {
+            case 3:
+                numWorkers = Integer.valueOf(args[2]);
+            case 2:
+                fen = args[0];
+                depth = Integer.valueOf(args[1]);
+                break;
+                
+            default:
+                msg(USAGE_STRING);
+                return;
+        }
+        Result r = run(fen,depth,numWorkers);
+        msg(r.nodes+";"+r.time);
+    }
+
+    public static Result run(final String fenString,
+                             final int searchDepth,
+                             final int numWorkers)
+    {
+        try {
+            Perft perft = new Perft(fenString, searchDepth, numWorkers);
+            perft.run();
+            while (!perft.isDone()) continue;
+            return perft.result();
+        } catch (RuntimeException rte) {
+            rte.printStackTrace();
+            return new Perft.Result(-1,-1);
+        }
+    }
+
 
     private static void debug(String str) {
-        if (verbose) {
+        if (VERBOSE) {
             msg(str);
         }
     }
@@ -23,58 +61,95 @@ public class Perft {
         System.out.println(str);
     }
 
-    private static int DEF_WORKERS = Runtime.getRuntime().availableProcessors() - 1;
-    private static int NUM_WORKERS;
-
-    private static int max(int... vals) {
-        if (vals == null || vals.length < 1)
-            return -1;
-        int min = vals[0];
-        for (int i = 1; i < vals.length; i++) {
-            min = (vals[i] > min ? vals[i] : min);
-        }
-        return min;
+    private static int min(final int a, final int b) {
+        return (a < b ? a : b);
     }
 
-    public static void main(final String[] args) {
-        int argc = args.length;
-        if (argc < 2 || argc > 3)
-            return;
-        String fen = args[0];
-        int depth = Integer.valueOf(args[1]);
-        int workers = (args.length == 3 ? Integer.valueOf(args[2]) : DEF_WORKERS);
-        NUM_WORKERS = max(1, workers);
-        Perft pf = new Perft();
+    private static int max(final int a, final int b) {
+        return (a > b ? a : b);
+    }
+
+    private static boolean VERBOSE = false;
+    private static final String USAGE_STRING =
+        "Usage: Perft <fen_string> <search_depth> [<num_worker_threads>]";
+    
+    private static final int MAX_WORKERS = 
+            Runtime.getRuntime().availableProcessors();
+    private static final int DEF_WORKERS = MAX_WORKERS - 1; 
+
+// ==========================================================================
+
+    private PerftWorker[] mWorkers;
+    private int mNumWorkers;
+    
+    private Board mInitial;
+    private int mDepth;
+    
+    private Result mResult;
+    private boolean mDone;
+
+
+    public Perft(final String fenString,
+                 final int searchDepth)
+    {
+        
+    }
+
+    public Perft(final String fenString,
+                 final int searchDepth,
+                 final int numWorkers)
+    {
+        checkNull(fenString,"fenString");
+        mInitial = B(fenString);
+        mDepth = searchDepth;
+        mNumWorkers = numWorkers;
+        mResult = new Result(-1,-1);
+        mDone = false;
+
+        setUpWorkers();
+    }
+
+    public Perft.Result result() {
+        return mResult;
+    }
+
+    public long nodes() {
+        return mResult.nodes;
+    }
+
+    public long time() {
+        return mResult.time;
+    }
+
+    public boolean isDone() {
+        return mDone;
+    }
+
+    public void run() {
         long time = System.currentTimeMillis();
-        long result = pf.calculate(fen,depth);
+        long nodes = calculate();
         time = System.currentTimeMillis() - time;
-        debug("Tiefe " + depth + ": " + result 
-            + " Knoten in " + (time / 1000.0) 
-            + "s gefunden. (" + (result / (time / 1000.0)) 
-            + " Knoten/s)");
-        debug("Cache-Status: " + Pieces.getInstance().size() 
-            + " Figuren, " + Move.CACHE_SIZE() + " Züge");
-        debug("Ergebnis für Ausgangsstellung " + fen);
-        msg(result+"");
+        mResult = new Result(nodes,time);
+        mDone = true;
     }
-
-    private PerftWorker[] mWorkers = new PerftWorker[NUM_WORKERS];
 
     /**
-    * Standardkonstruktor.
-    */ 
-    public long calculate(final String fenString, final int depth) {
-        if (fenString == null)
-            throw new NullPointerException("fenString");
-        final Board initial = B(fenString);
-        if (depth == 0) {
+    *
+    */
+    private long calculate() {
+        Collection<Move> moveList = mInitial.getMoveList();
+        if (moveList.isEmpty())
+            return 0;
+
+        if (mDepth == 0) {
             return 1;
-        } else if (depth == 1) {
-            return initial.getMoveList().size();
+        } else if (mDepth == 1) {
+            return moveList.size();
         }
-        setUpWorkers(initial, depth);
+        
         for (PerftWorker t : mWorkers)
             t.start();
+        
         long result = 0;
         for (PerftWorker t : mWorkers) { 
             try {
@@ -87,39 +162,45 @@ public class Perft {
         return result; 
     }
 
-    private void setUpWorkers(final Board initial, int depth) {
-        Collection<Move> moveList = initial.getMoveList();
-        Collection<Move>[] partialMoveLists = (Collection<Move>[]) new Collection[NUM_WORKERS];
-        for (int i = 0; i < NUM_WORKERS; i++) {
+    private void setUpWorkers() {
+        Collection<Move> moveList = mInitial.getMoveList();
+        if (moveList.isEmpty()) {
+            mWorkers = new PerftWorker[0];
+            return;
+        }
+
+        int numWorkers = mNumWorkers;
+        numWorkers = max(1, numWorkers);
+        numWorkers = min(numWorkers, MAX_WORKERS);
+        if (moveList.size() < numWorkers) 
+            numWorkers = moveList.size();
+
+        Collection<Move>[] partialMoveLists
+            = (Collection<Move>[]) new Collection[numWorkers];
+        for (int i = 0; i < numWorkers; i++) {
             partialMoveLists[i] = new ArrayList<Move>();
         }
+
         int cnt = 0;
         for (Move m : moveList) {
-            partialMoveLists[cnt % NUM_WORKERS].add(m);
+            partialMoveLists[cnt % numWorkers].add(m);
             cnt += 1;
         }
-        for (int i = 0; i < NUM_WORKERS; i++) {
-            mWorkers[i] = new PerftWorker(initial, partialMoveLists[i], depth);
-        }
 
+        mWorkers = new PerftWorker[numWorkers];
+        for (int i = 0; i < numWorkers; i++) {
+            mWorkers[i] = new PerftWorker(mInitial, partialMoveLists[i], mDepth);
+        }
     }
 
-    private long calculateR(final Board board, final int depth) {
-        if (board == null) 
-            throw new NullPointerException("board");
-        long result = 0;
-        if ( depth > 0 ) {
-            Board b;
-            //System.out.println(board);
-            for ( Move m : board.getMoveList() ) {
-                //System.out.println(depth + " " + m.getClass().getName() + "(" + board.getPieceAt(m.getStart()).fenShort() +  m + ")");
-                if ( !m.isPossible(board) )
-                    throw new MoveException("Zug " + m + " ist nicht möglich in " + board);
-                b = m.execute(board);
-                result += calculateR(b, depth-1);
-            }
-        } else return 1;
-        return result;
+    public static final class Result {
+        public final long nodes;
+        public final long time;
+
+        public Result(final long nodes, final long time) {
+            this.nodes = nodes;
+            this.time = time;
+        }
     }
 
 }
