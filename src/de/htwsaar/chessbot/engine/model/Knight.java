@@ -5,8 +5,15 @@ import static de.htwsaar.chessbot.engine.model.Move.MV;
 import java.util.Collection;
 import java.util.ArrayList;
 /**
-* Beschreibung.
+* Der Springer.
 *
+* <ul>
+* <li>Der Springer darf auf eines der Felder ziehen, die seinem Standfeld am 
+* nächsten, aber nicht auf gleicher Reihe, Linie oder Diagonale mit 
+* diesem liegen.</li>
+* </ul>
+*
+* @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Knight

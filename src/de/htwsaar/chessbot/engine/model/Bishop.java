@@ -5,8 +5,13 @@ import static de.htwsaar.chessbot.engine.model.Move.MV;
 import java.util.Collection;
 import java.util.ArrayList;
 /**
-* Beschreibung.
+* Der Läufer.
+* <ul>
+* <li>Läufer ziehen in diagonaler Richtung beliebig weit über das Brett. Über 
+* andere Figuren hinweg dürfen die dabei nicht ziehen.</li>
+* </ul>
 *
+* @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Bishop

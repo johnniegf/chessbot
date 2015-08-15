@@ -7,11 +7,20 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
-
 /**
-* Beschreibung.
+* Das Schachbrett.
+*
+* Das Schachbrett, bzw. eine mögliche Stellung auf dem Schachbrett, hält
+* Referenzen auf alle Figuren, die derzeit auf dem Brett stehen. Figuren
+* werden nicht vom Schachbrett erzeugt, sondern bei der Figurfabrik
+* <code>Pieces</code> angefordert.
+*
+* Um regelwidrige Züge zu vermeiden, kann eine Stellung prüfen, ob sie
+* regelkonform ist.
 *
 * @author Johannes Haupt
+* @author Timo Klein
+* @author Henning Walte
 */
 public class Board {
 

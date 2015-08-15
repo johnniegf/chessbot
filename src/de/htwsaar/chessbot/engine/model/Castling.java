@@ -1,8 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Position.P;
-
 /**
+* Rochade.
+*
 * @author Johannes Haupt
 */
 public class Castling extends Move {

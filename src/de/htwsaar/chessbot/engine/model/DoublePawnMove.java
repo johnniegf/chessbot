@@ -1,9 +1,8 @@
 package de.htwsaar.chessbot.engine.model;
 
 import de.htwsaar.chessbot.util.Unused;
-
 /**
-* Beschreibung.
+* Doppelzug eines Bauern von seinem Startfeld.
 *
 * @author Johannes Haupt
 */

@@ -15,6 +15,9 @@ import java.util.HashMap;
 * Figuren werden durch Kopieren von Prototypen, welche beim Erstellen
 * der Fabrik übergeben werden, erzeugt.
 *
+* Die Fabrik ist ein Singleton, d.h. es existiert zu jeder Zeit nur eine
+* Instanz.
+*
 * @author Dominik Becker
 * @author David Holzapfel
 * @author Johannes Haupt
@@ -109,9 +112,9 @@ public final class Pieces {
     *           werden kann, z.B. wenn für das FEN-Kürzel kein 
     *           Prototyp hinterlegt ist
     */
-    public Piece get(final char fenShort,
-                     final Position position,
-                     final boolean hasMoved)
+    public synchronized Piece get(final char fenShort,
+                                  final Position position,
+                                  final boolean hasMoved)
     {
         if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
             throw new IllegalArgumentException("fenShort '" + fenShort + "'");

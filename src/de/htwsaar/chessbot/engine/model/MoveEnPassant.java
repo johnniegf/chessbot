@@ -2,6 +2,12 @@ package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
+/**
+* En passant-Sonderzug des Bauern.
+*
+* @author Dominik Becker
+* @author Johannes Haupt
+*/
 public class MoveEnPassant extends Move {
 
 	public static final char FLAG = 'E';

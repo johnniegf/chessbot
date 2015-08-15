@@ -1,9 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
 /**
-*Klasse zur Bauernumwandlung. 
+* Bauernumwandlung.
 *
-*@author Dominik Becker
+* @author Dominik Becker
 */
 public class MovePromotion extends Move {
 

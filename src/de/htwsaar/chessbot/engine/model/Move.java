@@ -7,8 +7,13 @@ import java.util.HashMap;
 /**
 * Schachzug.
 *
-* Das Caching der Züge geschieht über einen durch die Spielvariante 
-* als quasi-Singleton vorgehaltenenen <code>Move.Cache</code>.
+* Ein Schachzug hat ein Start- und ein Zielfeld. Unterklassen können evtl.
+* weitere Eigenschaften definieren. Zugobjekte sind kontextabhängig, d.h. 
+* ein- und derselbe Zug kann in verschiedenen Stellungen möglich sein 
+* oder nicht.
+*
+* Züge werden erzeugt und vorgehalten vom <code>Move.Cache</code>. So
+* existiert jedes differenzierbare Zugobjekt genau einmal.
 *
 * @author Johannes Haupt
 */

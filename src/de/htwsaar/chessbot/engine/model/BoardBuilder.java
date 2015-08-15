@@ -5,9 +5,14 @@ import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.Collection;
 /**
-* Beschreibung.
+* Stellungserbauer.
 *
-* @author
+* Hilfsklasse, die gebraucht wird, um einen FEN-String in ein
+* Stellungsobjekt zu übersetzen. Der <code>BoardBuilder</code>
+* prüft selbständig, ob der übergebene FEN-String in einem gültigen
+* Format vorliegt.
+*
+* @author Johannes Haupt
 */
 public class BoardBuilder {
 

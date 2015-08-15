@@ -222,20 +222,22 @@ public class ParameterizedPieceTest {
             assertTrue(currentPiece.getClass().getName() + " auf " + 
                        currentPiece.getPosition().toString() +
                        " sollte nach " + p.toString() + " ziehen können",
-                       currentPiece.canMoveTo(EMPTY_BOARD, p) );
+                       currentPiece.canMoveTo(this.board, p) );
         }
         for (Position i : this.impossibleMoves) {
             assertFalse(currentPiece.getClass().getName() + " auf " + 
                         currentPiece.getPosition().toString() +
                         " sollte nicht nach " + i.toString() + " ziehen können",
-                        currentPiece.canMoveTo(EMPTY_BOARD, i) );
+                        currentPiece.canMoveTo(this.board, i) );
         }
     }
    
     @Test public void testMoveList() {
         Collection<Position> possibleMoves = new ArrayList<Position>();
         for (Move m : currentPiece.getMoves(this.board)) {
-            possibleMoves.add(m.getTarget());
+            Position p = m.getTarget();
+            if (!possibleMoves.contains(p))
+                possibleMoves.add(p);
         }
 
         assertEquals("Länge der Zugliste ist falsch!",
