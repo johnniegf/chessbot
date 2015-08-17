@@ -11,6 +11,8 @@ if [ -z "$maxDepth" ]; then
     maxDepth=99
 fi
 
+numWorkers="$3"
+
 echo 'Passed;FEN-String;Depth;Expected;Actual;"Time (ms)"'
 while read line
 do
@@ -23,7 +25,7 @@ do
         if [ -z "$expected" ]; then
             break
         fi
-        result=$(java -cp build de.htwsaar.chessbot.engine.util.Perft "$fen" $depth)
+        result=$(java -cp build de.htwsaar.chessbot.engine.util.PerftMain "$fen" $depth $numWorkers)
         actual=$(echo $result | cut -d";" -f1)
         seconds=$(echo $result | cut -d";" -f2)
         pass="Y"

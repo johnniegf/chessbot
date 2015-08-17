@@ -14,39 +14,21 @@ import java.util.*;
 */
 public class Perft {
 
-    public static void main(final String[] args) {
-        int argc = args.length;
-        String fen;
-        int depth;
-        int numWorkers = DEF_WORKERS;
-        switch (argc) {
-            case 3:
-                numWorkers = Integer.valueOf(args[2]);
-            case 2:
-                fen = args[0];
-                depth = Integer.valueOf(args[1]);
-                break;
-                
-            default:
-                msg(USAGE_STRING);
-                return;
-        }
-        Result r = run(fen,depth,numWorkers);
-        msg(r.nodes+";"+r.time);
-    }
-
-    public static Result run(final String fenString,
+    public static Result run(final RunType runType,
+                             final String fenString,
                              final int searchDepth,
                              final int numWorkers)
     {
         try {
-            Perft perft = new Perft(fenString, searchDepth, numWorkers);
+            Perft perft = new Perft(runType, 
+                                    fenString, 
+                                    searchDepth, 
+                                    numWorkers);
             perft.run();
-            while (!perft.isDone()) continue;
             return perft.result();
         } catch (RuntimeException rte) {
             rte.printStackTrace();
-            return new Perft.Result(-1,-1);
+            return null;
         }
     }
 
@@ -73,39 +55,33 @@ public class Perft {
     private static final String USAGE_STRING =
         "Usage: Perft <fen_string> <search_depth> [<num_worker_threads>]";
     
-    private static final int MAX_WORKERS = 
+    protected static final int MAX_WORKERS = 
             Runtime.getRuntime().availableProcessors();
-    private static final int DEF_WORKERS = MAX_WORKERS - 1; 
+    protected static final int DEF_WORKERS = MAX_WORKERS - 1; 
 
 // ==========================================================================
 
-    private PerftWorker[] mWorkers;
+    private Worker[] mWorkers;
     private int mNumWorkers;
     
     private Board mInitial;
     private int mDepth;
     
     private Result mResult;
+    private RunType mRunType;
     private boolean mDone;
 
-
-    public Perft(final String fenString,
-                 final int searchDepth)
-    {
-        
-    }
-
-    public Perft(final String fenString,
+    public Perft(final RunType runType,
+                 final String fenString,
                  final int searchDepth,
                  final int numWorkers)
     {
         checkNull(fenString,"fenString");
+        mRunType = runType;
         mInitial = B(fenString);
         mDepth = searchDepth;
         mNumWorkers = numWorkers;
-        mResult = new Result(-1,-1);
-        mDone = false;
-
+        mResult = null;
         setUpWorkers();
     }
 
@@ -113,48 +89,36 @@ public class Perft {
         return mResult;
     }
 
-    public long nodes() {
-        return mResult.nodes;
-    }
-
-    public long time() {
-        return mResult.time;
-    }
-
-    public boolean isDone() {
-        return mDone;
-    }
-
     public void run() {
         long time = System.currentTimeMillis();
-        long nodes = calculate();
+        mResult = calculate(); 
         time = System.currentTimeMillis() - time;
-        mResult = new Result(nodes,time);
+        mResult.setTime(time);
         mDone = true;
     }
 
     /**
     *
     */
-    private long calculate() {
+    private Result calculate() {
         Collection<Move> moveList = mInitial.getMoveList();
         if (moveList.isEmpty())
-            return 0;
+            return null;
 
-        if (mDepth == 0) {
-            return 1;
-        } else if (mDepth == 1) {
-            return moveList.size();
-        }
+        if (mDepth == 0) 
+            return null;
         
-        for (PerftWorker t : mWorkers)
+        for (Perft.Worker t : mWorkers)
             t.start();
         
-        long result = 0;
-        for (PerftWorker t : mWorkers) { 
+        Perft.Result result = null;
+        for (Perft.Worker t : mWorkers) { 
             try {
                 t.join();
-                result += t.result();
+                if (result == null)
+                    result = t.result();
+                else
+                    result = result.join(t.result());
             } catch (InterruptedException ire) {
                 System.err.println(ire);
             }
@@ -165,13 +129,13 @@ public class Perft {
     private void setUpWorkers() {
         Collection<Move> moveList = mInitial.getMoveList();
         if (moveList.isEmpty()) {
-            mWorkers = new PerftWorker[0];
+            mWorkers = new Perft.Worker[0];
             return;
         }
 
         int numWorkers = mNumWorkers;
         numWorkers = max(1, numWorkers);
-        numWorkers = min(numWorkers, MAX_WORKERS);
+        //numWorkers = min(numWorkers, MAX_WORKERS);
         if (moveList.size() < numWorkers) 
             numWorkers = moveList.size();
 
@@ -187,75 +151,45 @@ public class Perft {
             cnt += 1;
         }
 
-        mWorkers = new PerftWorker[numWorkers];
+        mWorkers = new Perft.Worker[numWorkers];
         for (int i = 0; i < numWorkers; i++) {
-            mWorkers[i] = new PerftWorker(mInitial, partialMoveLists[i], mDepth);
+            mWorkers[i] = createThread(mRunType, mInitial, partialMoveLists[i], mDepth);
         }
     }
 
-    public static final class Result {
-        public final long nodes;
-        public final long time;
+    private Perft.Worker createThread(RunType runType,
+                                      final Board initial,
+                                      final Collection<Move> moveList,
+                                      final int depth) 
+    {
+        switch(runType) {
+            case DIVIDE:
+                return new DivideWorker(initial, moveList, depth);
 
-        public Result(final long nodes, final long time) {
-            this.nodes = nodes;
-            this.time = time;
+            case PERFT:
+                return new PerftWorker(initial, moveList, depth);
+            
+            default:
+                return null;
         }
     }
 
-}
+    public static interface Result {
+        Result join(final Result other);
 
-class PerftWorker extends Thread {
+        void setTime(final long timeInMSec);
 
-    private int mDepth;
-    private Board mInitial;
-    private Collection<Move> mMoves;
-    private boolean done = false;
-    private long mResult = 0;
-
-
-    public PerftWorker(final Board initial, final Collection<Move> movesToSearch, int depth) {
-        mDepth = depth;
-        mMoves = movesToSearch;
-        mInitial = initial;
+        String toString();
     }
 
-    public boolean isDone() {
-        return done;
+    public static abstract class Worker extends Thread {
+        
+        public abstract Perft.Result result();
     }
 
-    public void run() {
-        if (!done) {
-            long result = 0;
-            Board b;
-            for (Move m : mMoves) {
-                b = m.execute(mInitial);
-                result += calculateR(b, mDepth-1);
-            }
-            mResult = result;
-            done = true;
-        }
-    }
-
-    private long calculateR(final Board board, final int depth) {
-        if (board == null) 
-            throw new NullPointerException("board");
-        long result = 0;
-        if ( depth > 0 ) {
-            Board b;
-            //System.out.println(board);
-            for ( Move m : board.getMoveList() ) {
-                //System.out.println(depth + " " + m.getClass().getName() + "(" + board.getPieceAt(m.getStart()).fenShort() +  m + ")");
-                if ( !m.isPossible(board) )
-                    throw new MoveException("Zug " + m + " ist nicht möglich in " + board);
-                b = m.execute(board);
-                result += calculateR(b, depth-1);
-            }
-        } else return 1;
-        return result;
-    }
-    public long result() {
-        return mResult;
+    public static enum RunType {
+        PERFT,
+        DIVIDE
     }
 
 }
