@@ -145,8 +145,12 @@ class History {
         this.initialPosition = initial;
         this.currentPosition = this.initialPosition;
 
+        this.moveList = new ArrayList<Move>();
+
         if ( moves != null && !moves.isEmpty() ) {
-            
+            for (Move m : moves) {
+                this.append(m);
+            }
         }
     }
 
