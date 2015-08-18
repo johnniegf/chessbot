@@ -19,13 +19,24 @@ public class Game {
     * Standardkonstruktor.
     */ 
     public Game() {
-        this("");
+        this("startpos");
     }
 
     public Game(final String fenInitial) {
+        this(fenInitial, new String[0]);
+    }
+
+    public Game(final String fenInitial, final String[] moves) {
+        checkNull(fenInitial, "fenInitial");
+        checkNull(moves, "moves");
+
         mHistory    = new History( 
-            fenInitial.isEmpty() ? Board.B() : Board.B(fenInitial) 
+            fenInitial.equals("startpos") ? Board.B() : Board.B(fenInitial) 
         ); 
+        for (String move : moves) {
+            doMove(move);
+        }
+
         mWhiteClock = new Clock();
         mBlackClock = new Clock();
     }
@@ -85,13 +96,11 @@ public class Game {
             return Result.UNFINISHED;
     }
 
-
-
     public static enum Result {
-        UNFINISHED,
-        MATE,
-        STALEMATE,
-        DRAW
+        UNFINISHED, // <-- Spiel läuft noch
+        MATE,       // <-- Schachmatt
+        STALEMATE,  // <-- Patt
+        DRAW        // <-- Remis
     }
 
 }
