@@ -2,6 +2,7 @@ package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.util.Exceptions.*;
 import java.util.List;
+import java.util.ArrayList;
 /**
 * Schachpartie.
 *
