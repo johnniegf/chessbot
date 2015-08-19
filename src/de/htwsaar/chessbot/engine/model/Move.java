@@ -7,14 +7,23 @@ import java.util.HashMap;
 /**
 * Schachzug.
 *
-* Das Caching der Züge geschieht über einen durch die Spielvariante 
-* als quasi-Singleton vorgehaltenenen <code>Move.Cache</code>.
+* Ein Schachzug hat ein Start- und ein Zielfeld. Unterklassen können evtl.
+* weitere Eigenschaften definieren. Zugobjekte sind kontextabhängig, d.h. 
+* ein- und derselbe Zug kann in verschiedenen Stellungen möglich sein 
+* oder nicht.
+*
+* Züge werden erzeugt und vorgehalten vom <code>Move.Cache</code>. So
+* existiert jedes differenzierbare Zugobjekt genau einmal.
 *
 * @author Johannes Haupt
 */
 public class Move {
 
     private static Move.Cache sCache;
+
+    public static int CACHE_SIZE() {
+        return sCache.size();
+    }
 
     private static Move.Cache getCache() {
         if (sCache == null) {
@@ -48,6 +57,7 @@ public class Move {
 
     private Position mStart;
     private Position mTarget;
+    private transient String tMoveString;
 
     /**
     * Erzeuge einen nicht initialisierten Zug.
@@ -120,8 +130,8 @@ public class Move {
     * Gib zurück, ob dieser Zug in der übergebenen Stellung möglich ist.
     */
     public boolean isPossible(final Board context) {
-    	System.out.println("Move.isPossible("+context+")");
-        return tryExecute(context) != null;        
+        Board result = tryExecute(context);
+        return result != null && result.isValid();
     }
 
     /**
@@ -133,21 +143,19 @@ public class Move {
     * @throws NullPointerException falls <code>context == null</code>
     */
     protected Board tryExecute(final Board context) {
-        System.out.println("Move.tryExecute("+context+")");
-
         if (context == null)
             throw new NullPointerException("context");
         Board result = context.clone();
         Piece pc = result.getPieceAt(getStart());
-        System.out.println(pc);
         // Existiert die Figur?
         if ( pc == null ) return null;
         // Ist die Farbe überhaupt am Zug?
         if ( pc.isWhite() != result.isWhiteAtMove()) return null;
         // Kann die Figur auf das Zielfeld ziehen?
-        if ( !pc.canMoveTo(result, getTarget())) return null;
+        if ( !pc.canMoveTo(result, getTarget())) {
+            return null;
+        }
 
-        boolean isTake = false;
         // Ist das Zielfeld besetzt...
         if ( !result.isFree(getTarget()) ) {
             // ... und die Figur darauf von der selben Farbe wie die gezogene?
@@ -157,11 +165,12 @@ public class Move {
             else {
                 result.removePieceAt(getTarget());
                 result.setHalfMoves(0);
-                isTake = true;
             }
         } else {
             if (!(pc instanceof Pawn))
                 result.setHalfMoves(result.getHalfMoves()+1);
+            else
+                result.setHalfMoves(0);
         }
         result.putPiece( pc.move(getTarget()) );
         result.removePieceAt(getStart());
@@ -169,8 +178,6 @@ public class Move {
         if (result.isWhiteAtMove())
             result.setFullMoves(result.getFullMoves()+1);
         result.setEnPassant(Position.INVALID);
-        //System.out.print(isTake ? "Take" : "Move");
-        //System.out.println("("+this+").tryExecute("+context+context.getPieceCount()+") = "+result+result.getPieceCount());
         return result;
     }
 
@@ -185,8 +192,8 @@ public class Move {
     */
     public Board execute(final Board context) {
         Board result = tryExecute(context);
-        if (result == null)
-            throw new MoveException("Unmöglicher Zug");
+        if (result == null || !result.isValid())
+            throw new MoveException("Unmöglicher Zug " + getClass().getSimpleName() + this + " auf " + context);
         return result;
     }
 
@@ -222,9 +229,12 @@ public class Move {
     * Gib die UCI-Notation dieses Zugs zurück.
     */
     public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append(getStart()).append(getTarget());
-        return result.toString();
+        if (tMoveString == null) {
+            StringBuilder result = new StringBuilder();
+            result.append(getStart()).append(getTarget());
+            tMoveString = result.toString();
+        }
+        return tMoveString;
     }
 
     /**
@@ -266,21 +276,29 @@ public class Move {
                 mPrototypes.put(m.flag(), m);
             }
         }
+
+        public int size() {
+            return mCache.size();
+        }
     
         /**
         * Gib den Zug mit der übergebenen Art, Start- und Zielposition aus.
         */
         public Move get(char flag, Position start, Position target) {
-        	System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
+        	//System.out.println("Move.Cache.get("+flag+","+start+","+target+")");
             if (start == null)
                 throw new NullPointerException("start");
             if (target == null)
                 throw new NullPointerException("target");
     
             int index = makeIndex(flag, start, target);
-            Move m = mCache.get(index);
-            if (m == null) {
-                m = create(flag, start, target);
+            Move m;
+            synchronized(mCache) {
+                m = mCache.get(index);
+                if (m == null) {
+                    m = create(flag, start, target);
+                    mCache.put(index, m);
+                }
             }
             return m;
         }

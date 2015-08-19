@@ -1,9 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
 /**
-*Klasse zur Bauernumwandlung. 
+* Bauernumwandlung.
 *
-*@author Dominik Becker
+* @author Dominik Becker
 */
 public class MovePromotion extends Move {
 
@@ -12,27 +12,56 @@ public class MovePromotion extends Move {
 	public static final char TO_KNIGHT = 'N';
 	public static final char TO_BISHOP = 'B';
 
-	
+    private static final String EXN_INVALID_START = 
+        "Ungültiges Startfeld, muss in 2. oder 7. Reihe liegen";
+
+    private static final String EXN_INVALID_TARGET =
+        "Ungültiges Zielfeld, muss für Bauer auf Startfeld erreichbar sein.";
+    private static final String EXN_INVALID_CONV_TARGET =
+        "kann nicht zu Bauer oder Koenig umgewandelt werden";
+
+
 	private Piece promoted;
 
     public MovePromotion(final Piece promoted) {
         this.promoted = promoted;
     }
 
-	public MovePromotion(final Position startposition, final Position endposition, Piece promoted){
-		if(!(endposition.rank() == 8 || endposition.rank() == 1)) {
-			throw new MoveException("kein gueltiger Zug!");
-
-		}
-
+	public MovePromotion(final Position start, 
+                         final Position target, 
+                         Piece promoted){
 		if(promoted instanceof King || promoted instanceof Pawn) {
-			throw new MoveException("kann nicht zu Bauer oder Koenig umgewandelt werden");
+			throw new MoveException(EXN_INVALID_CONV_TARGET);
 		}
 
-		setTarget(endposition);
+		setStart(start);
+        setTarget(target);
 		this.promoted = promoted;
 
 	}
+
+    public void setStart(final Position start) {
+        if (start == null || !start.isValid())
+            throw new MoveException(EXN_INVALID_START);
+
+        if (start.rank() == 7 || start.rank() == 2) {
+            super.setStart(start);
+        } else {
+            throw new MoveException(EXN_INVALID_START);
+        }
+    }
+
+    public void setTarget(final Position target) {
+        if (target == null || !target.isValid()) 
+            throw new MoveException(EXN_INVALID_TARGET);
+
+        if ( Math.abs(target.rank() - getStart().rank()) != 1 )
+            throw new MoveException(EXN_INVALID_TARGET);
+        if ( Math.abs(target.file() - getStart().file()) > 1)
+            throw new MoveException(EXN_INVALID_TARGET);
+    
+        super.setTarget(target);
+    }
 
 	
     @Override
@@ -46,7 +75,7 @@ public class MovePromotion extends Move {
         	Piece pawn = target.getPieceAt(getTarget());
         	target.removePieceAt(getTarget());
 
-        	Piece movedPiece = this.promoted;
+        	Piece movedPiece = this.promoted.clone();
         	movedPiece.setPosition(getTarget());
         	movedPiece.setIsWhite(pawn.isWhite());
         	movedPiece.setHasMoved(true);

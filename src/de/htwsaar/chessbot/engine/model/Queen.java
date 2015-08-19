@@ -5,8 +5,16 @@ import static de.htwsaar.chessbot.engine.model.Move.MV;
 import java.util.Collection;
 import java.util.ArrayList;
 /**
-* Beschreibung.
+* Die Dame.
 *
+* <ul>
+* <li>Die Dame darf in horizontaler, vertikaler und diagonaler Richtung 
+* beliebig weit ziehen, ohne jedoch über andere Figuren zu springen. Sie 
+* vereint somit die Zugmöglichkeiten eines Turms und eines Läufers in sich.
+* </li>
+* </ul>
+*
+* @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Queen 
@@ -46,13 +54,15 @@ public class Queen
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        for (Position p : getAttacks(context)) {
-            if (!context.isFree(p)) {
-                if (context.getPieceAt(p).isWhite() == isWhite())
-                    continue;
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p)) {
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
             }
-            moves.add( MV(myPos,p) );
         }
         return moves;
     }

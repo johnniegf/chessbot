@@ -5,8 +5,15 @@ import static de.htwsaar.chessbot.engine.model.Move.MV;
 import java.util.Collection;
 import java.util.ArrayList;
 /**
-* Beschreibung.
+* Der Springer.
 *
+* <ul>
+* <li>Der Springer darf auf eines der Felder ziehen, die seinem Standfeld am 
+* nächsten, aber nicht auf gleicher Reihe, Linie oder Diagonale mit 
+* diesem liegen.</li>
+* </ul>
+*
+* @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Knight
@@ -39,15 +46,17 @@ public class Knight
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        Piece pc;
-        for (Position p : getAttacks(context)) {
-            if (!context.isFree(p)) {
-                pc = context.getPieceAt(p);
-                if (pc.isWhite() == isWhite())
-                    continue;
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            Piece pc;
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p)) {
+                    pc = context.getPieceAt(p);
+                    if (pc.isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
             }
-            moves.add( MV(myPos,p) );
         }
         return moves;
     }

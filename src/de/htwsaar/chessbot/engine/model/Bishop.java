@@ -5,8 +5,13 @@ import static de.htwsaar.chessbot.engine.model.Move.MV;
 import java.util.Collection;
 import java.util.ArrayList;
 /**
-* Beschreibung.
+* Der Läufer.
+* <ul>
+* <li>Läufer ziehen in diagonaler Richtung beliebig weit über das Brett. Über 
+* andere Figuren hinweg dürfen die dabei nicht ziehen.</li>
+* </ul>
 *
+* @author Kevin Alberts
 * @author Johannes Haupt
 */
 public class Bishop
@@ -23,7 +28,6 @@ public class Bishop
         
         Position p0 = getPosition();
         Position pt;
-        Piece pc;
         for (int dx = -1; dx <= 1; dx += 2) {
             for (int dy = -1; dy <= 1; dy += 2) {
                 pt = p0;
@@ -43,13 +47,15 @@ public class Bishop
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        Position myPos = getPosition();
-        for (Position p : getAttacks(context)) {
-            if (!context.isFree(p))
-                if (context.getPieceAt(p).isWhite() == isWhite())
-                    continue;
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p))
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
             
-            moves.add( MV(myPos,p) );
+                moves.add( MV(myPos,p) );
+            }
         }
         return moves;
     }

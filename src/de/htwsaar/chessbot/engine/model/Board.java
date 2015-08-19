@@ -1,22 +1,34 @@
 package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.Position.P;
+import static de.htwsaar.chessbot.engine.model.Position.*;
+import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.Collection;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
-
+import java.util.TreeMap;
 /**
-* Beschreibung.
+* Das Schachbrett.
+*
+* Das Schachbrett, bzw. eine mögliche Stellung auf dem Schachbrett, hält
+* Referenzen auf alle Figuren, die derzeit auf dem Brett stehen. Figuren
+* werden nicht vom Schachbrett erzeugt, sondern bei der Figurfabrik
+* <code>Pieces</code> angefordert.
+*
+* Um regelwidrige Züge zu vermeiden, kann eine Stellung prüfen, ob sie
+* regelkonform ist.
 *
 * @author Johannes Haupt
+* @author Timo Klein
+* @author Henning Walte
 */
 public class Board {
 
     public static final BoardBuilder BUILDER = new BoardBuilder();
+
+    public static Board B() {
+        return BUILDER.getBoard();
+    }
 
     public static Board B(final String fenString) {
         return BUILDER.fromFenString(fenString);
@@ -37,7 +49,8 @@ public class Board {
     private int mHalfMoves;
     private int mFullMoves;
     private long mZobristHash;
-
+    private transient Collection<Move> tMoveList = null;
+    private transient boolean needsUpdate = true;
     /**
     * Erzeuge ein leeres Schachbrett. 
     */
@@ -46,7 +59,7 @@ public class Board {
         mEnPassant = Position.INVALID;
         mHalfMoves = 0;
         mFullMoves = 1;
-        mPieces = new HashMap<Position,Piece>();
+        mPieces = new TreeMap<Position,Piece>();
         mPieceCount = 0;
     }
 
@@ -83,12 +96,15 @@ public class Board {
         if ( piece == null )
             return false;
         Position p = piece.getPosition();
-        if ( !p.existsOn(this) )
+        if ( !p.isValid() )
+            return false;
+        if ( !isFree(p) )
             return false;
 
         mPieces.put(p, piece);
         applyHash(piece.hash());
         mPieceCount += 1;
+        needsUpdate = true;
         return true;
     }
 
@@ -110,8 +126,8 @@ public class Board {
     * @return alle Figuren der gesuchten Figurart, die auf dem 
     *         Schachbrett stehen.
     */
-    public Set<Piece> getPiecesByType(long pieceId) {
-        Set<Piece> pieces = new HashSet<Piece>();
+    public Collection<Piece> getPiecesByType(long pieceId) {
+        Collection<Piece> pieces = new ArrayList<Piece>();
         for (Piece pc : getPieces()) {
             if (pieceId == pc.id())
                 pieces.add(pc);
@@ -141,6 +157,7 @@ public class Board {
         if (p != null) {
             applyHash(p.hash());
             mPieceCount -= 1;
+            needsUpdate = true;
             return true;        
         } else
             return false;
@@ -227,25 +244,27 @@ public class Board {
     /**
     * Erzeuge die Zugliste für diese Stellung.
     *
-    * @return ein <code>Set</code> aller möglichen Züge
+    * @return ein <code>Collection</code> aller möglichen Züge
     *         in dieser Stellung.
     */
     public Collection<Move> getMoveList() {
-        Collection<Move> moves = new ArrayList<Move>();
-        Board b;
-        for (Piece pc : getPieces()) {
-            Collection<Move> pieceMoves = pc.getMoves(this);
-            System.out.println(pc.getClass().getSimpleName()+"@"+pc.getPosition()+": "+pieceMoves.size()+" "+pieceMoves);
-            for (Move m : pieceMoves) {
-                if (!m.isPossible(this))
-                    continue;
-                b = m.execute(this);
-                if (isOk(b))
-                    moves.add(m);
+        if (needsUpdate) {
+            tMoveList = new ArrayList<Move>();
+            Board b;
+            Collection<Move> pieceMoves;
+            for (Piece pc : getPieces()) {
+                pieceMoves = pc.getMoves(this);
+                for (Move m : pieceMoves) {
+                    if (!m.isPossible(this))
+                        continue;
+                    b = m.execute(this);
+                    if (isValid())
+                        tMoveList.add(m);
+                }
             }
+            needsUpdate = false;
         }
-        System.out.println("Move list size = " + moves.size());
-        return moves;
+        return tMoveList;
     }
 
     /**
@@ -303,8 +322,7 @@ public class Board {
     *                  möglich ist.
     */
     public void setEnPassant(final Position enPassant) {
-        if ( enPassant == null )
-            throw new NullPointerException("enPassant");
+        checkNull(enPassant, "enPassant");
         mEnPassant = enPassant;
     }
 
@@ -367,7 +385,6 @@ public class Board {
         copy.setFullMoves(getFullMoves());
         copy.setWhiteAtMove(isWhiteAtMove());
         copy.setEnPassant(getEnPassant());
-        copy.setHash(hash());
         for (Piece pc : getPieces()) {
             copy.putPiece(pc);
         }
@@ -388,29 +405,16 @@ public class Board {
 
         if (other instanceof Board) {
             final Board b = (Board) other;
-            System.out.print("1");
-            if ( b.width() != width() ) return false;
-            System.out.print("2");
-            if ( b.height() != height() ) return false;
-            System.out.print("3");
             if ( b.getHalfMoves() != getHalfMoves() ) return false;
-            System.out.print("4");
             if ( b.getFullMoves() != getFullMoves() ) return false;
-            System.out.print("5");
             if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
-            System.out.print("6");
-            if ( !b.getEnPassant().equals(getEnPassant()) ) return false;
-            System.out.print("7");
+            if ( b.getEnPassant() != getEnPassant() ) return false;
             if ( b.getPieceCount() != getPieceCount() ) return false;
-            System.out.print("8");
             for ( Piece op : b.getPieces() ) {
                 if ( !op.equals(getPieceAt(op.getPosition())) ) {
-                	System.out.println(op);
-                	System.out.println(getPieceAt(op.getPosition()));
                     return false;
                 }
             }
-            System.out.println("9");
             return true;   
         } else {
             return false;
@@ -448,7 +452,7 @@ public class Board {
         sb.append(blank);
         sb.append(isWhiteAtMove() ? "w" : "b");
         sb.append(blank);
-        sb.append("-");
+        sb.append(getCastlings());
         sb.append(blank);
         sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
         sb.append(blank);
@@ -458,8 +462,37 @@ public class Board {
         return sb.toString();
     }
 
-    private static boolean isOk(final Board context) {
-        return !kingInCheck(context);
+    private String getCastlings() {
+        StringBuilder castlings = new StringBuilder();
+        for ( Position p : PList("e1","e8") ) {
+            Piece king = getPieceAt(p);
+            if (king == null || king.hasMoved())
+                continue;
+            
+            Piece rook = getPieceAt( P(8, p.rank()) );
+            if (rook instanceof Rook) {
+                if (!rook.hasMoved())
+                    castlings.append(
+                        (rook.isWhite() ? "K" : "k")
+                    );
+            }
+            
+            rook = getPieceAt( P(1, p.rank()) );
+            if (rook instanceof Rook) {
+                if (!rook.hasMoved())
+                    castlings.append(
+                        (rook.isWhite() ? "Q" : "q")
+                    );
+            }
+        }
+        if (castlings.toString().isEmpty())
+            return "-";
+        else
+            return castlings.toString();
+    }
+
+    public boolean isValid() {
+        return !kingInCheck(this);
 
     }
 
@@ -477,7 +510,7 @@ public class Board {
             }
         }
         if (king == null)
-            throw new NullPointerException("king: " + context);
+            return false;
 
         return 0 < context.isAttacked(!w, king.getPosition());
     }

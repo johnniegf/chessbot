@@ -15,7 +15,7 @@ import org.junit.runner.notification.Failure;
 
 public class TestRunner {
 
-    private static final int     SCREEN_WIDTH      = 78;
+    private static final int     SCREEN_WIDTH      = 100;
     private static final String  DEFAULT_TEST_LIST = "TestList.txt";
     private static final char    INDENT            = '>';
     private static final char    LINE              = '=';

@@ -1,76 +1,195 @@
 package de.htwsaar.chessbot.engine.util;
 
 import static de.htwsaar.chessbot.engine.model.Board.*;
+import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.engine.model.*;
+
+import java.util.*;
 /**
-* Beschreibung.
+* Testwerkzeug für Performance- und Korrektheit des Zuggenerators.
 *
+* Perft zählt alle Züge, die der Zuggenerator für eine Ausgangstellung und 
+* eine Suchtiefe erzeugt. Die Ergebnisse der Generierung lassen sich 
 * @author Johannes Haupt
 */
 public class Perft {
 
-    public static void main(final String[] args) {
-        int argc = args.length;
-        if (argc != 2)
-            return;
-        String fen = args[0];
-        int depth = Integer.valueOf(args[1]);
-        Perft pf = new Perft();
-        long result = 0;
+    public static Result run(final RunType runType,
+                             final String fenString,
+                             final int searchDepth,
+                             final int numWorkers)
+    {
+        try {
+            Perft perft = new Perft(runType, 
+                                    fenString, 
+                                    searchDepth, 
+                                    numWorkers);
+            perft.run();
+            return perft.result();
+        } catch (RuntimeException rte) {
+            rte.printStackTrace();
+            return null;
+        }
+    }
+
+
+    private static void debug(String str) {
+        if (VERBOSE) {
+            msg(str);
+        }
+    }
+
+    private static void msg(String str) {
+        System.out.println(str);
+    }
+
+    private static int min(final int a, final int b) {
+        return (a < b ? a : b);
+    }
+
+    private static int max(final int a, final int b) {
+        return (a > b ? a : b);
+    }
+
+    private static boolean VERBOSE = false;
+    private static final String USAGE_STRING =
+        "Usage: Perft <fen_string> <search_depth> [<num_worker_threads>]";
+    
+    protected static final int MAX_WORKERS = 
+            Runtime.getRuntime().availableProcessors();
+    protected static final int DEF_WORKERS = MAX_WORKERS - 1; 
+
+// ==========================================================================
+
+    private Worker[] mWorkers;
+    private int mNumWorkers;
+    
+    private Board mInitial;
+    private int mDepth;
+    
+    private Result mResult;
+    private RunType mRunType;
+    private boolean mDone;
+
+    public Perft(final RunType runType,
+                 final String fenString,
+                 final int searchDepth,
+                 final int numWorkers)
+    {
+        checkNull(fenString,"fenString");
+        mRunType = runType;
+        mInitial = B(fenString);
+        mDepth = searchDepth;
+        mNumWorkers = numWorkers;
+        mResult = null;
+        setUpWorkers();
+    }
+
+    public Perft.Result result() {
+        return mResult;
+    }
+
+    public void run() {
         long time = System.currentTimeMillis();
-        result = pf.calculate(fen,depth);
-        time -= System.currentTimeMillis();
-        System.out.println("Result: " + result + ", time : " + time + "ms");
+        mResult = calculate(); 
+        time = System.currentTimeMillis() - time;
+        mResult.setTime(time);
+        mDone = true;
     }
 
     /**
-    * Standardkonstruktor.
-    */ 
-    public long calculate(final String fenString, final int depth) {
-        if (fenString == null)
-            throw new NullPointerException("fenString");
-        final Board initial = B(fenString);
-        return calculateR(initial, depth);
-    }
+    *
+    */
+    private Result calculate() {
+        Collection<Move> moveList = mInitial.getMoveList();
+        if (moveList.isEmpty())
+            return null;
 
-    private long calculateR(final Board board, final int depth) {
-        if (board == null) 
-            throw new NullPointerException("board");
-        long result = 0;
-        if ( depth > 0 ) {
-            Board b;
-            System.out.println(board);
-            for ( Move m : board.getMoveList() ) {
-                //System.out.println(depth + " " + m.getClass().getName() + "(" + board.getPieceAt(m.getStart()).fenShort() +  m + ")");
-                if ( !m.isPossible(board) )
-                    throw new MoveException("Zug " + m + " ist nicht möglich in " + board);
-                b = m.execute(board);
-                result += calculateR(b, depth-1);
+        if (mDepth == 0) 
+            return null;
+        
+        for (Perft.Worker t : mWorkers)
+            t.start();
+        
+        Perft.Result result = null;
+        for (Perft.Worker t : mWorkers) { 
+            try {
+                t.join();
+                if (result == null)
+                    result = t.result();
+                else
+                    result = result.join(t.result());
+            } catch (InterruptedException ire) {
+                System.err.println(ire);
             }
-        } else return 1;
-        return result;
+        }
+        return result; 
     }
 
-    /**
-    * Gib den Hashwert dieses Objekts aus.
-    *
-    * @return Hashwert dieses Objekts.
-    */
-    public int hashCode() {
-        int hash = 0;
-        // Berechnungen
+    private void setUpWorkers() {
+        Collection<Move> moveList = mInitial.getMoveList();
+        if (moveList.isEmpty()) {
+            mWorkers = new Perft.Worker[0];
+            return;
+        }
 
-        return hash;
+        int numWorkers = mNumWorkers;
+        numWorkers = max(1, numWorkers);
+        //numWorkers = min(numWorkers, MAX_WORKERS);
+        if (moveList.size() < numWorkers) 
+            numWorkers = moveList.size();
+
+        Collection<Move>[] partialMoveLists
+            = (Collection<Move>[]) new Collection[numWorkers];
+        for (int i = 0; i < numWorkers; i++) {
+            partialMoveLists[i] = new ArrayList<Move>();
+        }
+
+        int cnt = 0;
+        for (Move m : moveList) {
+            partialMoveLists[cnt % numWorkers].add(m);
+            cnt += 1;
+        }
+
+        mWorkers = new Perft.Worker[numWorkers];
+        for (int i = 0; i < numWorkers; i++) {
+            mWorkers[i] = createThread(mRunType, mInitial, partialMoveLists[i], mDepth);
+        }
     }
 
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    private Perft.Worker createThread(RunType runType,
+                                      final Board initial,
+                                      final Collection<Move> moveList,
+                                      final int depth) 
+    {
+        switch(runType) {
+            case DIVIDE:
+                return new DivideWorker(initial, moveList, depth);
 
-        return sb.toString();
+            case PERFT:
+                return new PerftWorker(initial, moveList, depth);
+            
+            default:
+                return null;
+        }
     }
+
+    public static interface Result {
+        Result join(final Result other);
+
+        void setTime(final long timeInMSec);
+
+        String toString();
+    }
+
+    public static abstract class Worker extends Thread {
+        
+        public abstract Perft.Result result();
+    }
+
+    public static enum RunType {
+        PERFT,
+        DIVIDE
+    }
+
 }
