@@ -37,34 +37,39 @@ public class GameTree {
     	setRoot(board, 0);
     }
 
-    
-    public static GameTree makeTree(Node root, int depth, EvaluationFunction eval) {
-    	makeLayer(root, depth, eval);
-    	GameTree gt = new GameTree(eval);
-    	gt.setRoot(root);
-    	return gt;
+    public void deepen(final int toDepth) {
+        if (toDepth < 1)
+            if (mRoot.getScore() == 0) 
+                mRoot.setScore( mEval.evaluate(mRoot.getBoard()) );
+        else {
+            deepen(toDepth - 1);
+            Board b;
+            for (Node n : getLayer(toDepth-1)) {
+    	        for(Move m : n.getBoard().getMoveList()) {
+    		        b = m.execute(n.getBoard());
+    		        n.addChild(new Node(b));
+    	        } 
+                Collections.sort( n.getChildren() );
+                Collections.reverse( n.getChildren() );
+            }
+        }
+    }
+
+    public List<Node> getLayer(int atDepth) {
+        return getLayerP(getRoot(), atDepth);
+    }
+
+    private List<Node> getLayerP(Node root, int depth) {
+        List<Node> l = new ArrayList<Node>();
+        if (depth < 1)
+            l.add(root);
+        else {
+            for (Node n : root.getChildren())
+                l.addAll( getLayerP(n, depth-1) );
+        }
+        return l;
     }
     
-    private static void makeLayer(Node subtreeRoot, int depth, EvaluationFunction eval) {
-    	if (depth == 0)
-    		return;
-    	subtreeRoot.setScore(eval.evaluate(subtreeRoot.getBoard()));
-    	for(Move m : subtreeRoot.getBoard().getMoveList()) {
-    		Board b = m.execute(subtreeRoot.getBoard());
-    		subtreeRoot.addChild(new Node(b));
-    	} 
-    	for(Node child : subtreeRoot.getChildren()) {
-    		child.setScore( eval.evaluate(child.getBoard()) );
-    	}
-    	Collections.sort(subtreeRoot.getChildren());
-    	Collections.reverse(subtreeRoot.getChildren());
-    	for(Node child : subtreeRoot.getChildren()) {
-    		makeLayer(child, depth-1, eval);
-    	}
-    }
-    
-
-
     public Node getRoot() {
         return mRoot;
     }
@@ -114,7 +119,7 @@ public class GameTree {
             checkNull(children, "children");
 
             mParent   = parent;
-            mChildren = (List<Node >) new ArrayList();
+            mChildren = new ArrayList<Node>();
             setValue(new Score(board));
             for (Node child : children) {
                 addChild(child);
@@ -206,15 +211,30 @@ public class GameTree {
             return getValue().board;
         }
 
+        /**
+        * Lege die Stellung dieses Knotens fest.
+        *
+        * @param board Stellung des Knotens
+        */
         public void setBoard(final Board board) {
             checkNull(board, "board");
             getValue().board = board;
         }
 
+        /**
+        * Gib die Bewertung der Stellung diesen Knotens zurück.
+        *
+        * @return Bewertung der enthaltenen Stellung
+        */
         public int getScore() {
             return getValue().score;
         }
 
+        /**
+        * Lege die Bewertung der Stellung diesen Knotens fest.
+        *
+        * @param Bewertung der enthaltenen Stellung
+        */
         public void setScore(final int score) {
             getValue().score = score;
         }
