@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import de.htw.saarland.stl.Stdin;
+import de.htwsaar.chessbot.util.Input;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardBuilder;
 import de.htwsaar.chessbot.engine.model.Game;
@@ -15,6 +15,7 @@ public class ChessDialog {
 	private static final String NEWMOVE = "position";
 	private static final String QUIT = "quit";
 	
+    private final Input mInput = new Input();
 	
 	private static BoardBuilder builder = Board.BUILDER;
 	private Game game;
@@ -71,7 +72,7 @@ public class ChessDialog {
 						   "neues Spiel: "+ NEWGAME+";\n"+
 						   "beenden: " + QUIT +";\n"+
 						   "-> ");
-		return Stdin.readlnString();
+		return mInput.readLine().toString();
 	}
 	
 	private void start(){
