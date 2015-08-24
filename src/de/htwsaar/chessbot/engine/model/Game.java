@@ -1,6 +1,8 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.util.Exceptions.*;
+
+import java.util.ArrayList;
 import java.util.List;
 /**
 * Schachpartie.

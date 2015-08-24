@@ -5,7 +5,7 @@ package de.htwsaar.chessbot.engine.model;
  * @author Dominik Becker
  *
  */
-public class Evaluator extends AbstractEvaluator{
+public class MaterialEvaluator extends EvaluationFunction{
 
 	@Override
 	public int evaluate(Board b) {
