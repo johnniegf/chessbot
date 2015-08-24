@@ -61,6 +61,7 @@ public class Board {
         mFullMoves = 1;
         mPieces = new TreeMap<Position,Piece>();
         mPieceCount = 0;
+        mZobristHash = 0;
     }
 
     /**
@@ -388,6 +389,7 @@ public class Board {
         for (Piece pc : getPieces()) {
             copy.putPiece(pc);
         }
+        copy.setHash(hash());
         return copy;
     }
 
@@ -421,12 +423,16 @@ public class Board {
         }
     }
 
+    public String toString() {
+        return toFenString();
+    }
+
     /**
     * Stringkonversion.
     *
     * @return Stringdarstellung dieses Objekts.
     */
-    public String toString() {
+    public String toFenString() {
         StringBuilder sb = new StringBuilder();
         final String blank = " ";
         final String slash = "/";
