@@ -30,6 +30,9 @@ public class GameTree {
     	this(evaluationFunction, null);
     }
     
+    public GameTree(final Board b){
+    	this(DEFAULT_EVALUATOR, b);
+    }
     public GameTree(final EvaluationFunction evaluator, final Board board) {
     	checkNull(evaluator, "evaluator");
     	
@@ -47,12 +50,59 @@ public class GameTree {
             for (Node n : getLayer(toDepth-1)) {
     	        for(Move m : n.getBoard().getMoveList()) {
     		        b = m.execute(n.getBoard());
-    		        n.addChild(new Node(b));
+    		        Node appendNode = new Node(b);
+    		        appendNode.setScore(mEval.evaluate(b));
+    		        n.addChild(appendNode);
+    		       // n.addChild(new Node(b));
     	        } 
                 Collections.sort( n.getChildren() );
                 Collections.reverse( n.getChildren() );
             }
         }
+    }
+    
+    public Move alphaBetaSearch(final int toDepth, Node n,
+    		boolean isMax,int alpha, int beta) {
+    	Move bestMove = null;
+    	if(toDepth == 0) {
+    		n.setScore(mEval.evaluate(n.getBoard()));
+    	} else {
+    		if(isMax){n.setScore(Integer.MIN_VALUE);}
+        	else {n.setScore(Integer.MAX_VALUE);}
+	    	for(Move m : n.getBoard().getMoveList()) {
+	    		Board b = m.execute(n.getBoard());
+	    		Node appendNode = new Node(b);
+	    		n.addChild(appendNode);
+	    		if(isMax){
+	    			if(appendNode.getScore() > beta){
+	    				n.removeChild(1);
+	    				break;
+	    			}
+		    		if(appendNode.getScore() > n.getScore()) {
+		    			n.setScore(appendNode.getScore());
+		    			bestMove = m;
+		    			n.removeChild(1);
+		    			if(n.getScore() > alpha) {
+		    				alpha = n.getScore();
+		    			}
+		    		}	
+	    		} else{
+	    			if(appendNode.getScore() < alpha) {
+	    				n.removeChild(1);
+	    				break;
+	    			}
+	    			if(appendNode.getScore() < n.getScore()){
+	    				n.setScore(appendNode.getScore());
+	    				n.removeChild(1);
+	    				if(n.getScore() < beta) {
+	    					beta = n.getScore();
+	    				}
+	    			}
+	    		}
+	    	}
+    	}
+    	return bestMove;
+    	
     }
 
     public List<Node> getLayer(int atDepth) {
@@ -90,7 +140,7 @@ public class GameTree {
     }
 
 
-    private static final class Node
+    public static final class Node
     			   implements Comparable<Node>
     {
     	
@@ -172,7 +222,7 @@ public class GameTree {
         *
         */
         public Node getChild(final int index) {
-            checkInBounds(index, "index", 1, getChildren().size());
+            checkInBounds(index, "index", 0, getChildren().size());
             int listIndex = index-1;
             return mChildren.get(listIndex);
         }
@@ -192,10 +242,11 @@ public class GameTree {
         */
         public Node removeChild(final int atIndex) {
             Node child = getChild(atIndex);
-            mChildren.remove(atIndex);
+            mChildren.remove(atIndex - 1);
             child.setParent(null);
             return child;
         }
+        
 
         public Score getValue() {
             return mValue;
