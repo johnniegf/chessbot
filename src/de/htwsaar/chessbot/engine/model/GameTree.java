@@ -39,6 +39,10 @@ public class GameTree {
     	mEval = evaluator;
     	setRoot(board, 0);
     }
+    
+    public EvaluationFunction getEvaluationFunction() {
+    	return  this.mEval;
+    }
 
     public void deepen(final int toDepth) {
         if (toDepth < 1)
@@ -70,9 +74,10 @@ public class GameTree {
     		if(isMax){n.setScore(Integer.MIN_VALUE);}
         	else {n.setScore(Integer.MAX_VALUE);}
 	    	for(Move m : n.getBoard().getMoveList()) {
-	    		Board b = m.execute(n.getBoard());
+	    		Board b = m.execute(n.getBoard().clone());
 	    		Node appendNode = new Node(b);
 	    		n.addChild(appendNode);
+	    		
 	    		if(isMax){
 	    			if(appendNode.getScore() > beta){
 	    				n.removeChild(1);
