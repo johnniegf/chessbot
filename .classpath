@@ -5,6 +5,5 @@
 	<classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
 	<classpathentry kind="con" path="C:/Users/sedoom/workspace/Chessbot/build"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="C:/Users/sedoom/Downloads/Stdin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

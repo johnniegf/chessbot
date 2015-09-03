@@ -1,4 +1,4 @@
-package de.htwsaar.chessbot.test;
+//package de.htwsaar.chessbot.test;
 
 import java.util.Vector;
 import java.util.List;
