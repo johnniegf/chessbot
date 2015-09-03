@@ -60,9 +60,9 @@ public class ChessDialog {
 			}
 		}
 		if(cmds[0].equals("startpos")) {
-			engine.resetBoard(moves);
+			//engine.resetBoard(moves);
 		} else if(cmds[0].equals("fen")){
-			engine.setBoard(cmds[1], moves);
+			//engine.setBoard(cmds[1], moves);
 		}
 	}
 	

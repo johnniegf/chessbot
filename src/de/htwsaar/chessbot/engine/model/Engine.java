@@ -13,17 +13,21 @@ public class Engine {
 
 	private Game game;
 	private AlphaBetaSearch moveSearcher;
+	private UCI uci;
 	
 	public Engine() {
-		//AlphaBeta (GameTree) erzeugen & starten
 		this.game = new Game();
-		//UCIInterface erzeugen & starten
+		moveSearcher = new AlphaBetaSearch(game);
+		uci = new UCI(this);
 	}
 	
 	//======================================
 	//= uci
 	//======================================
 	
+	public Game getGame() {
+		return this.game;
+	}
 	public void uci() {
 		System.out.println("id name chessbot\n");
 		System.out.println("id author grpKretschmer\n");
@@ -56,7 +60,7 @@ public class Engine {
 	 * setzt das Spiel auf die Startstellung
 	 * fuehrt Zuege aus falls vorhanden.
 	 */
-	public void resetBoard(List<Move> moves) {
+	public void resetBoard(List<String> moves) {
 		this.game = new Game();
 			executeMoves(moves);
 	}
@@ -65,8 +69,9 @@ public class Engine {
 	 * erzeugt eine Stellung auf Grund des fens
 	 * fuehrt die uebergegebenen Zuege aus falls vorhanden.
 	 */
-	public void setBoard(String fen, List<Move> moves) {
-		this.game= new Game(fen);
+	public void setBoard(String fen, List<String> moves) {
+		this.game = new Game(fen);
+		this.moveSearcher = new AlphaBetaSearch(game);
 		executeMoves(moves);
 	}
 	
@@ -74,7 +79,7 @@ public class Engine {
 	 * fuehrt die uebergebenen Zuege aus.
 	 * @param moves
 	 */
-	public void executeMoves(List<Move> moves) {
+	public void executeMoves(List<String> moves) {
 		for(int i = 0; i < moves.size(); i++) {
 			game.doMove(moves.get(i).toString());
 		}
@@ -84,8 +89,13 @@ public class Engine {
 	//= go
 	//========================================
 	
-	public void searchmoves(List<Move> moves) {
-		//TODO ruft AlphaBetaSearch auf
+	public void search(int depth) {
+		//System.out.println(game.getCurrentBoard());
+		moveSearcher.setMaxSearchDepth(depth);
+		moveSearcher.run();
+	}
+	
+	public void searchmoves(List<String> moves) {
 	}
 	
 	
@@ -94,9 +104,8 @@ public class Engine {
 	//========================================
 	
 	public void stop() {
-		//TODO bestmove variable hinzufügen 
-		//TODO suche unterbrechen.
-		System.out.println("bestmove: \n");
+		moveSearcher.stop();
+		//System.out.println("bestmove: "+moveSearcher.getCurrentBestMove());
 	}
 	
 	
@@ -110,6 +119,7 @@ public class Engine {
 	public void quit() {
 		System.exit(0);
 	}
+	
 	/*
 	 * main-Methode der Engine.
 	 */
