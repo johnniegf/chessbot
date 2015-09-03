@@ -8,14 +8,15 @@ import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardBuilder;
 import de.htwsaar.chessbot.engine.model.Engine;
 import de.htwsaar.chessbot.engine.model.Game;
+import de.htwsaar.chessbot.engine.model.Move;
 
 public class ChessDialog {
 	//Konstanten
-	private static final int MOVE = 1;
 	private static final String NEWGAME = "ucinewgame";
 	private static final String NEWMOVE = "position";
 	private static final String GO = "go";
 	private static final String QUIT = "quit";
+	private static final String MOVE = "([a-h][1-8]){2}";
 	
     private final Input mInput = new Input();
 	
@@ -31,19 +32,37 @@ public class ChessDialog {
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
 			case NEWGAME:
-				engine.ucinewgame();
+				ucinewgame();
 				break;
 			case NEWMOVE:
-				engine.position(cmds, i);
+				String[] split = cmd.split("position ");
+				position(split[1]);
 				return;
 			case GO:
-				engine.go(cmds, i);
 			case QUIT:
 				System.out.println("Spiel wurde beendet.");
 			
 			default	: ;
 		}
 		
+		}
+	}
+	
+	private void ucinewgame() {
+		engine.newGame();
+	}
+	
+	private void position(String position) {
+		String[] cmds = position.split(" ");
+		List<Move> moves = new ArrayList<Move>();
+		if(cmds[0].equals("moves")){
+			for(int i = 1; i < cmds.length; i++) {
+			}
+		}
+		if(cmds[0].equals("startpos")) {
+			engine.resetBoard(moves);
+		} else if(cmds[0].equals("fen")){
+			engine.setBoard(cmds[1], moves);
 		}
 	}
 	

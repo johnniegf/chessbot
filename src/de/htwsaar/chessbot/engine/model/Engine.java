@@ -1,84 +1,123 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 
+ * @author David Holzapfel
  * @author Dominik Becker
+ *
  */
+
 public class Engine {
-	
-	private static final String SEARCH = "searchmoves";
-	private static final String DEPTH = "depth";
-	private static final String MOVE = "([a-h][1-8]){2}";
-	
+
 	private Game game;
+	private AlphaBetaSearch moveSearcher;
 	
 	public Engine() {
+		//AlphaBeta (GameTree) erzeugen & starten
+		this.game = new Game();
+		//UCIInterface erzeugen & starten
+	}
+	
+	//======================================
+	//= uci
+	//======================================
+	
+	public void uci() {
+		System.out.println("id name chessbot\n");
+		System.out.println("id author grpKretschmer\n");
+		System.out.println("uciok\n");
+	}
+	
+	//======================================
+	//= isready
+	//======================================
+	
+	public void isready() {
+		System.out.println("readyok\n");
+	}
+	
+	//======================================
+	//= newucigame
+	//======================================
+	/*
+	 * erstellt ein neues Spiel.
+	 */
+	public void newGame() {
 		this.game = new Game();
 	}
 	
-	public void ucinewgame() {
+	
+	//======================================
+	//= position
+	//======================================
+	/*
+	 * setzt das Spiel auf die Startstellung
+	 * fuehrt Zuege aus falls vorhanden.
+	 */
+	public void resetBoard(List<Move> moves) {
 		this.game = new Game();
+			executeMoves(moves);
 	}
 	
-	public void go(String[] param, int i) {
-		List<String> moves;
-		GameTree tree = new GameTree(game.getCurrentBoard());
-		for(int j = i; j < param.length; j++) {
-			switch(param[j]) {
-			case(SEARCH):
-				while(param[j].matches(MOVE)) {
-					
-					j++;
-				};
-				break;
-			case(DEPTH):
-				tree.alphaBetaSearch(Integer.parseInt(param[j+1]), tree.getRoot(), true,
-						Integer.MIN_VALUE, Integer.MAX_VALUE);
-			break;
-			}
-		}
-		System.out.println(
-				tree.alphaBetaSearch(3, tree.getRoot(), true, Integer.MIN_VALUE, Integer.MAX_VALUE));
+	/*
+	 * erzeugt eine Stellung auf Grund des fens
+	 * fuehrt die uebergegebenen Zuege aus falls vorhanden.
+	 */
+	public void setBoard(String fen, List<Move> moves) {
+		this.game= new Game(fen);
+		executeMoves(moves);
 	}
 	
-	public void stop(String[] param, int i) {
-		
-	}
-	
-	public void position(String[] split, int i) {
-		List<String> moves;
-		if(split[i+1].equals("moves")) {
-			moves = new ArrayList<String>();
-			for(int j = i+2; j < split.length; j++) {
-				moves.add(split[j]);
-			}
-			move(moves);
-		}
-		else
-		if(split[i+1].equals("startpos")) {
-			this.game = new Game();
-			moves = new ArrayList<String>();
-			for(int j = i+3; j < split.length; j++) {
-				moves.add(split[j]);
-			}
-			move(moves);
-		} else {
-			this.game = new Game(split[i+2]);
-			moves = new ArrayList<String>();
-			for(int j = i+4; j < split.length; j++) {
-				moves.add(split[j]);
-			}
-			move(moves);
-		}
-	}
-	
-	private void move(List<String> moves) {
+	/**
+	 * fuehrt die uebergebenen Zuege aus.
+	 * @param moves
+	 */
+	public void executeMoves(List<Move> moves) {
 		for(int i = 0; i < moves.size(); i++) {
-			game.doMove(moves.get(i));
+			game.doMove(moves.get(i).toString());
 		}
-		//System.out.println(game.getCurrentBoard()+"\n\n\n");
 	}
+	
+	//========================================
+	//= go
+	//========================================
+	
+	public void searchmoves(List<Move> moves) {
+		//TODO ruft AlphaBetaSearch auf
+	}
+	
+	
+	//========================================
+	//= stop
+	//========================================
+	
+	public void stop() {
+		//TODO bestmove variable hinzufügen 
+		//TODO suche unterbrechen.
+		System.out.println("bestmove: \n");
+	}
+	
+	
+	//========================================
+	//= quit
+	//========================================
+	
+	/**
+	 * beendet das Programm
+	 */
+	public void quit() {
+		System.exit(0);
+	}
+	/*
+	 * main-Methode der Engine.
+	 */
+	public static void main(String[] args) {
+		//UCIManager anlegen
+		new Engine();
+	}
+	
+	
+	
 }
