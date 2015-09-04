@@ -67,31 +67,24 @@ public class UCI  {
                 } else if (cmd.startsWith("position")) {
                     String fenString;
                     List<String> moves = new ArrayList<String>();
-                    if (result[1] != "startpos" && result[1] != "moves" && result.length > 7) {
+                    if (result[1].equals("fen") && result.length > 7) {
                         fenString = result[2] + " " + 
                                     result[3] + " " + 
                                     result[4] + " " + 
                                     result[5] + " " + 
                                     result[6] + " " + 
                                     result[7];
-                         System.out.println(fenString);
                         result[2] = fenString;
                         for (int i = 8; i < result.length; i++) {
                         	moves.add(result[i]);
                         }
                         engine.setBoard(fenString, moves);
                     }
-                    else if(result[1].equals("startpos")){
-                    	for(int i = 2; i < result.length; i++) {
+                    else {
+                    	for(int i = 3; i < result.length; i++) {
                     		moves.add(result[i]);
                     	}
                     	engine.resetBoard(moves);
-                    }
-                    else {
-                    	for(int i = 2; i < result.length; i++) {
-                    		moves.add(result[i]);
-                    	}
-                    	engine.executeMoves(moves);
                     }
                      
                 } else if (cmd.startsWith("go")) {

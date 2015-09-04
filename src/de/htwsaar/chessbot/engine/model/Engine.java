@@ -62,6 +62,7 @@ public class Engine {
 	 */
 	public void resetBoard(List<String> moves) {
 		this.game = new Game();
+		this.moveSearcher = new AlphaBetaSearch(game);
 			executeMoves(moves);
 	}
 	
