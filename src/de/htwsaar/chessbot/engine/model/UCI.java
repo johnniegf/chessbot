@@ -23,6 +23,13 @@ public class UCI  {
     private BufferedReader engineIn;
     private Map<String,Object> kdo;
     private Engine engine;
+    
+    private static final String POS = "position";
+    private static final String GO = "go";
+    private static final String STOP = "stop";
+    private static final String UCI = "uci";
+    private static final String READY = "isready";
+    private static final String NEWGAME = "ucinewgame";
      
      
     public UCI(Engine engine) {
@@ -55,8 +62,32 @@ public class UCI  {
                 System.exit(0);
             
             String [] result = cmd.split(" ");
+            for(int i = 0; i < result.length; i++) {
+            	switch(result[i]) {
+            	case POS:
+            		Parser.position(cmd, this.engine);
+            		break;
+            	case GO:
+            		Parser.go(cmd, this.engine);
+            		break;
+            	case STOP:
+            		Parser.stop(this.engine);
+            		break;
+            	case UCI:
+            		Parser.uci();
+            		break;
+            	case READY:
+            		Parser.isReady();
+            		break;
+            	case NEWGAME:
+            		Parser.ucinewgame(this.engine);
+            		break;
+            		
+            		
+            	}
+            }
              
-            if (kdo.containsKey(result[0])) {
+           /* if (kdo.containsKey(result[0])) {
                 if (cmd.equals("uci")){
                     setUCIParameter();
                     sendCmd((String) kdo.get(cmd)); 
@@ -95,15 +126,17 @@ public class UCI  {
                 		engine.search(Integer.parseInt(depth));
                 	}
                 	else {
-                		engine.search(3);
+                		engine.search(4);
                 	}
                 }
             } else
                 sendCmd("Command is not supported: " + cmd);    
-        }   
+        }   */
     }
-     
-    public void sendCmd(String cmd) {
+    }
+    
+         
+    /*public void sendCmd(String cmd) {
         System.out.println(cmd);
     }
  
@@ -129,5 +162,5 @@ public class UCI  {
         sendCmd("setoption name Hash value 32");
  
     }
-     
+     */
 }

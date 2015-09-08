@@ -50,6 +50,7 @@ public class Engine {
 	 */
 	public void newGame() {
 		this.game = new Game();
+		this.moveSearcher = new AlphaBetaSearch(game);
 	}
 	
 	
@@ -94,9 +95,6 @@ public class Engine {
 		//System.out.println(game.getCurrentBoard());
 		moveSearcher.setMaxSearchDepth(depth);
 		moveSearcher.run();
-	}
-	
-	public void searchmoves(List<String> moves) {
 	}
 	
 	
