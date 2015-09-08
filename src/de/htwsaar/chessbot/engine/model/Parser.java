@@ -55,7 +55,7 @@ public class Parser {
     		engine.search(Integer.parseInt(depth));
     	}
 		else {
-			engine.search(3);
+			engine.search(2000);
 		}
 		
 	}

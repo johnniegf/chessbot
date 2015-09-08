@@ -18,6 +18,7 @@ public class Engine {
 	public Engine() {
 		this.game = new Game();
 		moveSearcher = new AlphaBetaSearch(game);
+		moveSearcher.setTimeLimit(5000);
 		uci = new UCI(this);
 	}
 	
@@ -63,8 +64,8 @@ public class Engine {
 	 */
 	public void resetBoard(List<String> moves) {
 		this.game = new Game();
-		this.moveSearcher = new AlphaBetaSearch(game);
-			executeMoves(moves);
+		this.moveSearcher.setGame(game);
+		executeMoves(moves);
 	}
 	
 	/*
@@ -73,7 +74,7 @@ public class Engine {
 	 */
 	public void setBoard(String fen, List<String> moves) {
 		this.game = new Game(fen);
-		this.moveSearcher = new AlphaBetaSearch(game);
+		this.moveSearcher.setGame(game);
 		executeMoves(moves);
 	}
 	

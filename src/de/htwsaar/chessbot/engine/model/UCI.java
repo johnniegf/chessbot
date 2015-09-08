@@ -126,7 +126,7 @@ public class UCI  {
                 		engine.search(Integer.parseInt(depth));
                 	}
                 	else {
-                		engine.search(4);
+                		engine.search(2500);
                 	}
                 }
             } else
