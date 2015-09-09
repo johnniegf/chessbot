@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
+import static de.htwsaar.chessbot.engine.model.Position.*;
 /**
 * Schachzug.
 *
@@ -212,6 +213,20 @@ public class Move {
     protected Move create() {
         return new Move();
     }
+    
+    public Move toMove(String san){
+    	Position start;
+    	Position target;
+    	String result[] = new String[san.length()];
+    	if(!san.matches(MOVE)){return null;}
+    	for(int i = 0; i < san.length(); i++) {
+    		result[i] = String.valueOf(san.charAt(i));
+    	}
+    	start = P(result[0]+result[1]);
+    	target = P(result[2]+result[3]);
+    	return new Move(start, target);
+    	//TODO rausschmeißen oder lassen
+    }
 
     public boolean isInitialized() {
         return getStart() != null
@@ -255,6 +270,9 @@ public class Move {
         } else
             return false;
     }
+    
+    private static final String MOVE = "[a-h][1-8]{2}";
+	//TODO ausdruck aktualisieren(Bauernumwandlung)
 
     private static final String EXN_INVALID_START =
         "Das Startfeld ist keine gültige Position";

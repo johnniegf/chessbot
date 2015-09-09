@@ -29,6 +29,11 @@ public class Engine {
 	public Game getGame() {
 		return this.game;
 	}
+	
+	public AlphaBetaSearch getSearcher() {
+		return moveSearcher;
+	}
+	
 	public void uci() {
 		System.out.println("id name chessbot\n");
 		System.out.println("id author grpKretschmer\n");
@@ -93,11 +98,16 @@ public class Engine {
 	//========================================
 	
 	public void search(int depth) {
-		//System.out.println(game.getCurrentBoard());
+		moveSearcher.resetLimitMoveList();
 		moveSearcher.setMaxSearchDepth(depth);
 		moveSearcher.run();
 	}
 	
+	public void searchmoves(List<Move> moves, int  depth) {
+		moveSearcher.setMaxSearchDepth(depth);
+		moveSearcher.setLimitedMoveList(moves);
+		moveSearcher.run();
+	}
 	
 	//========================================
 	//= stop

@@ -1,11 +1,14 @@
 package de.htwsaar.chessbot.engine.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Parser {
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
+	private static final String MOVE = "([a-h][1-8]){2}";
+	//TODO ausdruck aktualisieren(Bauernumwandlung)
 	
 	public static void uci() {
 		setUCIParameter();
@@ -48,15 +51,50 @@ public class Parser {
 	}
 	
 	public static void go(String line, Engine engine) {
-		if(line.contains("depth")){
-    		String[] param = line.split("depth ");
-    		String[] value = param[1].split(" ");
-    		String depth = value[0];
-    		engine.search(Integer.parseInt(depth));
-    	}
-		else {
-			engine.search(2500);
+		List<Move> moves = null;
+		int depth = 0;
+		int time = 0;
+		String[] result = line.split(" ");
+		for(int j = 0; j < result.length; j++) {
+			switch(result[j]){
+			case "searchmoves":
+				moves = getMoves(line, engine.getGame().getCurrentBoard().getMoveList());
+				break;
+			case "depth":
+				String[] depthArray = line.split("depth ");
+	    		String[] depthValue = depthArray[1].split(" ");
+	    		String sDepth = depthValue[0];
+	    		depth = Integer.parseInt(sDepth);
+	    		break;
+			case "movetime":
+				String[] timeArray = line.split("movetime ");
+				String[] timeValue = timeArray[1].split(" ");
+				String sTime = timeValue[0];
+				time = Integer.parseInt(sTime);
+				engine.getSearcher().setTimeLimit(time);
+				break;
+			}
 		}
+		if(moves != null && depth != 0){
+			engine.searchmoves(moves, depth);
+		}
+		else if(moves != null){engine.searchmoves(moves, 2000);}
+		else if(depth != 0){engine.search(depth);}
+		else engine.search(2000);
+	}
+	
+	private static List<Move> getMoves(String line, Collection<Move> moveList) {
+		List<Move> moves = new ArrayList<Move>();
+		String[] searchMv = line.split("searchmoves ");
+		String[] elements = searchMv[1].split(" ");
+		for(int i = 0; i < elements.length; i++) {
+			if(!elements[i].matches(MOVE)){break;}
+			for(Move m : moveList) {
+				if(elements[i].equals(m.toString()))
+					moves.add(m);
+			}
+		}
+		return moves;
 		
 	}
 	
