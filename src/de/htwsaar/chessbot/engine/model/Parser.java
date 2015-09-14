@@ -53,35 +53,54 @@ public class Parser {
 	public static void go(String line, Engine engine) {
 		List<Move> moves = null;
 		int depth = 0;
-		int time = 0;
-		String[] result = line.split(" ");
-		for(int j = 0; j < result.length; j++) {
-			switch(result[j]){
+		boolean infinite =  false;
+		String[] cmds = line.split(" ");
+		for(int i = 0; i < cmds.length; i++) {
+			switch(cmds[i]) {
 			case "searchmoves":
 				moves = getMoves(line, engine.getGame().getCurrentBoard().getMoveList());
 				break;
-			case "depth":
-				String[] depthArray = line.split("depth ");
-	    		String[] depthValue = depthArray[1].split(" ");
-	    		String sDepth = depthValue[0];
-	    		depth = Integer.parseInt(sDepth);
-	    		break;
+			case "wtime":
+				String wtime = cmds[i+1];
+				engine.getGame().getClock(true).setTime(Long.parseLong(wtime));
+				break;
+			case "btime":
+				String btime = cmds[i+1];
+				engine.getGame().getClock(false).setTime(Long.parseLong(btime));
+				break;
+			case "winc":
+				long winc = Long.parseLong(cmds[i+1]);
+				if(winc > 0) {engine.getGame().getClock(true).
+					setTime(engine.getGame().getClock(true).getTime()+winc);}
+				break;
+			case "binc":
+				long binc = Long.parseLong(cmds[i+1]);
+				if(binc > 0) {engine.getGame().getClock(false).
+					setTime(engine.getGame().getClock(false).getTime()+binc);}
+				break;
+			case "depth": 
+				depth = Integer.parseInt(cmds[i+1]);
+				break;
 			case "movetime":
-				String[] timeArray = line.split("movetime ");
-				String[] timeValue = timeArray[1].split(" ");
-				String sTime = timeValue[0];
-				time = Integer.parseInt(sTime);
-				engine.getSearcher().setTimeLimit(time);
+				String movetime = cmds[i+1];
+				engine.getSearcher().setTimeLimit(Integer.parseInt(movetime));
+				break;
+			case "infinite":
+				infinite = true;
 				break;
 			}
 		}
+		
+		
 		if(moves != null && depth != 0){
 			engine.searchmoves(moves, depth);
 		}
 		else if(moves != null){engine.searchmoves(moves, 2000);}
 		else if(depth != 0){engine.search(depth);}
-		else engine.search(2000);
+		else if(infinite)engine.search(Integer.MAX_VALUE);
 	}
+	
+	
 	
 	private static List<Move> getMoves(String line, Collection<Move> moveList) {
 		List<Move> moves = new ArrayList<Move>();

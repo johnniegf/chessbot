@@ -4,6 +4,8 @@ import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.sun.swing.internal.plaf.metal.resources.metal_zh_TW;
 /**
 * Schachpartie.
 *
@@ -112,11 +114,11 @@ class Clock {
     private long time;
 
     public void setTime(long msec) {
-
+    	time = msec;
     }
 
     public void setIncrement(long msec) {
-
+    	increment = msec;
     }
 
     public long getTime() {
