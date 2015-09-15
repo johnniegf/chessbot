@@ -9,6 +9,7 @@ import de.htwsaar.chessbot.engine.model.BoardBuilder;
 import de.htwsaar.chessbot.engine.model.Engine;
 import de.htwsaar.chessbot.engine.model.Game;
 import de.htwsaar.chessbot.engine.model.Move;
+import de.htwsaar.chessbot.engine.model.PawnEvaluator;
 
 public class ChessDialog {
 	//Konstanten
@@ -16,15 +17,17 @@ public class ChessDialog {
 	private static final String NEWMOVE = "position";
 	private static final String GO = "go";
 	private static final String QUIT = "quit";
+	private static final String EVALUATE = "evaluate";
 	private static final String MOVE = "([a-h][1-8]){2}";
 	
     private final Input mInput = new Input();
 	
-	private static BoardBuilder builder = Board.BUILDER;
 	private Engine engine;
+	private PawnEvaluator pEval = new PawnEvaluator();
+	private Game game;
 
 	public ChessDialog() {
-		this.engine = new Engine();
+		this.game = new Game("8/8/2P5/8/8/2PpP3/8/8 w - - 0 1");
 	}
 	
 	private void exeCmd(String cmd) {
@@ -38,6 +41,10 @@ public class ChessDialog {
 				String[] split = cmd.split("position ");
 				position(split[1]);
 				return;
+			case EVALUATE:
+				int value = pEval.evaluate(game.getCurrentBoard());
+				System.out.println("Bewertung: "+value);
+				break;
 			case GO:
 			case QUIT:
 				System.out.println("Spiel wurde beendet.");
@@ -70,7 +77,7 @@ public class ChessDialog {
 		System.out.println("Kommando wahlen: \n----------------\n");
 		System.out.println("fuehre Zug aus: " + NEWMOVE + ";\n"+
 						   "neues Spiel: "+ NEWGAME+";\n"+
-						   "go: "+GO+";\n"+
+						   "Stellung bwerten: "+EVALUATE+";\n"+
 						   "beenden: " + QUIT +";\n"+
 						   "-> ");
 		return mInput.readLine().toString();
