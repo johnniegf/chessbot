@@ -13,6 +13,10 @@ public class PawnEvaluator extends MaterialEvaluator{
 	
 	public PawnEvaluator() {
 		col = new String[8];
+		for (char i = 0; i < 8; i++) {
+			col[i] = ((char) 'a'+i) + "";
+			
+		}
 		col[0] = "a";
 		col[1] = "b";
 		col[2] = "c";
@@ -21,34 +25,62 @@ public class PawnEvaluator extends MaterialEvaluator{
 		col[5] = "f";
 		col[6] = "g";
 		col[7] = "h";
-		
 	}
 	
 	@Override
 	public int evaluate(Board b) {
-		return super.evaluate(b) - calculate(b);
+		return super.evaluate(b) - calculate(b) - new RookEvaluator().evaluate(b);
 	}
 	
 	private int calculate(Board b) {
 		int malus = 0;
 		int[] pawnCounts = new int[8];
 			for(int y = 1; y < 9; y++) {
-				for(int x = 1; x < col.length-1; x++) {
-					Piece p =b.getPieceAt(P(col[x]+y));
+				for(int x = 0; x < col.length; x++) {
+					Piece p = b.getPieceAt(P(col[x]+y));
 					if(p instanceof Pawn && p.isWhite()) {
 						pawnCounts[x] += 1;
-						if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
+						if(x == 0) {
+							if(pawnCounts[x+1] == 0) {
+								malus += BACKWARD_PAWN;
+								System.out.println("back"+ malus);
+							}
+						}
+						else if(x == 7) {
+							Piece pp = b.getPieceAt(P(col[x-1]+y));
+							if(pp instanceof Pawn && pp.isWhite()) {
+								if(pawnCounts[x-1] == 1) {
+									malus += BACKWARD_PAWN;
+									System.out.println("back"+ malus);
+								}
+							}
+							else if(pawnCounts[x-1] == 0) {
+								malus += BACKWARD_PAWN;
+								System.out.println("back"+ malus);
+							}
+						}
+						else if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
 							malus += BACKWARD_PAWN;
 							System.out.println("back"+ malus);
+						} else {
+							Piece pp = b.getPieceAt(P(col[x-1]+y));
+							if(pp instanceof Pawn && pp.isWhite()) {
+								if(pawnCounts[x-1] == 1 && pawnCounts[x+1] == 0) {
+									malus += BACKWARD_PAWN;
+									System.out.println("back"+ malus);
+								}
+							}
 						}
 						if(pawnCounts[x] > 1) {
 							malus += DOUBLE_PAWN;
 							System.out.println("double"+ malus);
 						}
 					} else if(p instanceof Pawn && !p.isWhite()){
-								Piece pp = b.getPieceAt(P(col[x-1]+y));
-								malus += freePawn(pawnCounts, true, x, pp);
-								System.out.println("freeBlack"+ malus);
+								if(x!= 0) {
+									Piece pp = b.getPieceAt(P(col[x-1]+y));
+									malus += freePawn(pawnCounts, true, x, pp);
+									System.out.println("freeBlack"+ malus);
+								}
 					}
 				}
 			}
@@ -56,22 +88,51 @@ public class PawnEvaluator extends MaterialEvaluator{
 			System.out.println("nach weiß"+malus);
 			pawnCounts = new int[8];
 			for(int y = 8; y > 0; y--) {
-				for(int x = 1; x < col.length-1; x++) {
+				for(int x = 0; x < col.length; x++) {
 					Piece p = b.getPieceAt(P(col[x]+y));
 					if(p instanceof Pawn && !p.isWhite()) {
 						pawnCounts[x] += 1;
-						if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
+						if(x == 0) {
+							if(pawnCounts[x+1] == 0) {
+								malus -= BACKWARD_PAWN;
+								System.out.println("back"+ malus);
+							}
+						}
+						else if(x == 7) {
+							Piece pp = b.getPieceAt(P(col[x-1]+y));
+							if(pp instanceof Pawn && !pp.isWhite()) {
+								if(pawnCounts[x-1] == 1) {
+									malus -= BACKWARD_PAWN;
+									System.out.println("back"+ malus);
+								}
+							}
+							else if(pawnCounts[x-1] == 0) {
+								malus -= BACKWARD_PAWN;
+								System.out.println("back"+ malus);
+							}
+						}
+						else if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
 							malus -= BACKWARD_PAWN;
 							System.out.println("back"+malus);
+						} else {
+							Piece pp = b.getPieceAt(P(col[x-1]+y));
+							if(pp instanceof Pawn && !pp.isWhite()) {
+								if(pawnCounts[x-1] == 1 && pawnCounts[x+1] == 0) {
+									malus -= BACKWARD_PAWN;
+									System.out.println("back"+ malus);
+								}
+							}
 						}
 						if(pawnCounts[x] > 1) {
 							malus -= DOUBLE_PAWN;
 							System.out.println("double"+ malus);
 						}
 					} else if(p instanceof Pawn && p.isWhite()){
+							if(x != 0) {
 								Piece pp = b.getPieceAt(P(col[x-1]+y));
 								malus -= freePawn(pawnCounts, false, x, pp);
 								System.out.println("freeWhite"+ malus);
+							}
 					}
 				}
 			}
@@ -84,8 +145,20 @@ public class PawnEvaluator extends MaterialEvaluator{
 	
 	private int freePawn(int[] pawnCounts, boolean isWhite, int x, Piece pp) {
 		int malus = 0;
-		if(pawnCounts[x+1] == 0){
-			if(pawnCounts[x]== 0){
+		if(pawnCounts[x] == 0) {
+			if(x != 7 && pawnCounts[x+1]== 0){
+				if(x == 0) {
+					malus += FREE_PAWN_COM;
+				}
+				else if(pp instanceof Pawn &&(pp.isWhite() == isWhite)){
+					if(pawnCounts[x-1] == 1)
+						malus += FREE_PAWN_COM;
+				}
+				else if(pawnCounts[x-1] == 0){
+					malus += FREE_PAWN_COM;
+				}
+			}
+			else if(x == 7){
 				if(pp instanceof Pawn &&(pp.isWhite() == isWhite)){
 					if(pawnCounts[x-1] == 1)
 						malus += FREE_PAWN_COM;

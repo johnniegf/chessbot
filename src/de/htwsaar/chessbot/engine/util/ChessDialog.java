@@ -27,7 +27,7 @@ public class ChessDialog {
 	private Game game;
 
 	public ChessDialog() {
-		this.game = new Game("8/8/2P5/8/8/2PpP3/8/8 w - - 0 1");
+		this.game = new Game("8/6R1/1R6/r7/8/8/3R2r1/8 w - - 0 1");
 	}
 	
 	private void exeCmd(String cmd) {
