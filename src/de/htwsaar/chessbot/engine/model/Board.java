@@ -228,14 +228,17 @@ public class Board {
     * @param whiteAtMove ist weiß am Zug?
     */
     public void setWhiteAtMove(final boolean whiteAtMove) {
-        mWhiteAtMove = whiteAtMove;
+        if (whiteAtMove != isWhiteAtMove())
+            togglePlayer();
     }
 
     /**
     * Wechsele den Spieler, der am Zug ist.
     */
     public void togglePlayer() {
+        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
         mWhiteAtMove = !mWhiteAtMove;
+        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
     }
 
     /* ================================
@@ -369,6 +372,14 @@ public class Board {
     */
     public void calculateHash() {
         long hash = 0L;
+        ZobristHasher hasher = ZobristHasher.getInstance();
+        String castlings = getCastlings();
+        if ( !castlings.equals("-") ) {
+            for (int i = 0; i < castlings.length(); i++) {
+                hash ^= hasher.getCastlingHash(castlings.charAt(i));
+            }
+        }
+        hash ^= hasher.getColourHash(isWhiteAtMove());
         for (Piece pc : getPieces()) {
             hash ^= pc.hash();
         }
@@ -386,6 +397,7 @@ public class Board {
         copy.setFullMoves(getFullMoves());
         copy.setWhiteAtMove(isWhiteAtMove());
         copy.setEnPassant(getEnPassant());
+        copy.needsUpdate = false;
         for (Piece pc : getPieces()) {
             copy.putPiece(pc);
         }
