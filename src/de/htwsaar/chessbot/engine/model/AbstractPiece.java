@@ -14,8 +14,10 @@ public abstract class AbstractPiece
            implements Piece
 {
     private Position mPosition;
-    private boolean mIsWhite;
-    private boolean mHasMoved;
+    private boolean  mIsWhite;
+    private boolean  mHasMoved;
+    private long     mZobristHash;
+    private boolean  mHashIsSet;
 
     /**
     * Erzeuge eine neue uninitialisierte Figur.
@@ -34,6 +36,8 @@ public abstract class AbstractPiece
         setPosition(position);
         setIsWhite(isWhite);
         setHasMoved(hasMoved);
+        mZobristHash = -1L;
+        mHashIsSet = false;
         init();
     }
 
@@ -94,10 +98,11 @@ public abstract class AbstractPiece
     }
 
     public long hash() {
-        long hash = id();
-        hash ^= (isWhite() ? WHITE_HASH : BLACK_HASH);
-        hash ^= (hasMoved() ? HAS_MOVED_HASH : HAS_NOT_MOVED_HASH);
-        return hash;
+        if (!mHashIsSet) {
+            mZobristHash = ZobristHasher.getInstance().hashPiece(this);
+            mHashIsSet = true;
+        }
+        return mZobristHash;
     }
 
     public boolean equals(final Object other) {

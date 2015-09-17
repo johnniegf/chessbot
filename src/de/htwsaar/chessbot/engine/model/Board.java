@@ -61,6 +61,7 @@ public class Board {
         mFullMoves = 1;
         mPieces = new TreeMap<Position,Piece>();
         mPieceCount = 0;
+        mZobristHash = 0L;
     }
 
     /**
@@ -405,16 +406,12 @@ public class Board {
 
         if (other instanceof Board) {
             final Board b = (Board) other;
+            if ( b.hash() != hash() ) return false;
             if ( b.getHalfMoves() != getHalfMoves() ) return false;
             if ( b.getFullMoves() != getFullMoves() ) return false;
             if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
             if ( b.getEnPassant() != getEnPassant() ) return false;
             if ( b.getPieceCount() != getPieceCount() ) return false;
-            for ( Piece op : b.getPieces() ) {
-                if ( !op.equals(getPieceAt(op.getPosition())) ) {
-                    return false;
-                }
-            }
             return true;   
         } else {
             return false;

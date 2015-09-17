@@ -21,10 +21,10 @@ import java.util.ArrayList;
 public class Rook
      extends AbstractPiece
 {
-    public static final long HASH = 0x7916b7a5c26f1e7bL;
+    public static final int ID = 2;
 
-    public long id() {
-        return HASH;
+    public int id() {
+        return ID;
     }
 
     public Collection<Position> getAttacks(final Board context) {
