@@ -7,7 +7,7 @@ import java.util.List;
 public class Parser {
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
-	private static final String MOVE = "([a-h][1-8]){2}";
+	private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
 	//TODO ausdruck aktualisieren(Bauernumwandlung)
 	
 	public static void uci() {

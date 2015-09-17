@@ -2,14 +2,21 @@ package de.htwsaar.chessbot.engine.model;
 
 import java.util.ArrayList;
 
+/**
+ * Bewertung der Türme auf dem Schachbrett:
+ * offene Linie, halb offene Linie und Turm auf 7/2
+ * @author Dominik Becker
+ *
+ */
 public class RookEvaluator {
 
+	//Malus bzw Bonus
 	private static final int OPEN_LINE = 15;
 	private static final int HALF_OPEN_LINE = 10;
 	private static final int ROOK_AT_7 = 20;
 	
-	private static final long ROOK = 0x7916b7a5c26f1e7bL;
-	private static final long PAWN = 0x7916b7a5c26f1e7bL;
+	private static final long ROOK = 0x1916b7a5c26f1e7bL;
+	private static final long PAWN = 0x2916b7a5c26f1e7bL;
 	
 	private String[] col;
 	
@@ -30,24 +37,30 @@ public class RookEvaluator {
 		return calculate(b);
 	}
 	
+	/**
+	 * berechnet den Malus bzw den Bonus der Türme
+	 * @param Board b
+	 * @return malus 
+	 */
 	private int calculate(Board b) {
 		int malus = 0;
 		boolean open = true;
+		boolean halfOpen = false;
 		for(Piece r : b.getPiecesByType(ROOK)) {
 			if(r.getPosition().rank() == 7 && r.isWhite()) {
 				malus -= ROOK_AT_7;
 			}
-			else if(r.getPosition().rank() == 1 && !r.isWhite()) {
+			else if(r.getPosition().rank() == 2 && !r.isWhite()) {
 				malus += ROOK_AT_7;
 			}
 			for(Piece p : b.getPiecesByType(PAWN)) {
 				if(r.getPosition().file() == p.getPosition().file()) {
 					open = false;
 					if(r.isWhite() == !p.isWhite()) {
-						if(r.isWhite())
-							malus -= HALF_OPEN_LINE;
-						else malus += HALF_OPEN_LINE;
-						System.out.println("half open");
+						halfOpen = true;
+					}
+					else {
+						halfOpen = false;
 						break;
 					}
 				}
@@ -57,10 +70,15 @@ public class RookEvaluator {
 					malus -= OPEN_LINE;
 				else malus += OPEN_LINE;
 			}
+			if(halfOpen)
+				if(r.isWhite())
+					malus -= HALF_OPEN_LINE;
+				else malus += HALF_OPEN_LINE;
+			
 			open = true;
-			System.out.println("Malus nach : "+r.getPosition()+" "+ malus);
+			halfOpen = false;
 		}
-		System.out.println("Rook malus: "+ malus);
+		System.out.println("Malus Türme: "+malus);
 		return malus;
 	}
 }

@@ -8,7 +8,7 @@ import java.util.Map;
 * Eine Bewertungsfunktion kann eine Stellung aufgrund vieler verschiedener
 * Kriterien bewerten.
 *
-* @author Johannes Haupt
+* @author Johannes Haupt, Dominik Becker
 */
 public abstract class EvaluationFunction {
 	

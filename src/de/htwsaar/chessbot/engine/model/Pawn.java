@@ -45,7 +45,7 @@ import java.util.ArrayList;
 public class Pawn
      extends AbstractPiece
 {
-    public static final long HASH = 0x7916b7a5c26f1e7bL;
+    public static final long HASH = 0x2916b7a5c26f1e7bL;
 
     public long id() {
         return HASH;
