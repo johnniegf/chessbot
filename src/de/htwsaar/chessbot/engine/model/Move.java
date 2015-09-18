@@ -168,7 +168,7 @@ public class Move {
                 result.setHalfMoves(0);
             }
         } else {
-            if (!(pc instanceof Pawn))
+            if (pc.id() != Pawn.ID)
                 result.setHalfMoves(result.getHalfMoves()+1);
             else
                 result.setHalfMoves(0);
@@ -179,6 +179,8 @@ public class Move {
         if (result.isWhiteAtMove())
             result.setFullMoves(result.getFullMoves()+1);
         result.setEnPassant(Position.INVALID);
+        if (pc.id() == King.ID || pc.id() == Rook.ID)
+            result.calculateHash();
         return result;
     }
 

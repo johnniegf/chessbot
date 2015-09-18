@@ -45,10 +45,10 @@ import java.util.ArrayList;
 public class Pawn
      extends AbstractPiece
 {
-    public static final long HASH = 0x2916b7a5c26f1e7bL;
+    public static final int ID = 5;
 
-    public long id() {
-        return HASH;
+    public int id() {
+        return ID;
     }
 
     public Collection<Position> getAttacks(final Board context) {

@@ -61,6 +61,7 @@ public class Board {
         mFullMoves = 1;
         mPieces = new TreeMap<Position,Piece>();
         mPieceCount = 0;
+        mZobristHash = 0L;
     }
 
     /**
@@ -227,14 +228,17 @@ public class Board {
     * @param whiteAtMove ist weiß am Zug?
     */
     public void setWhiteAtMove(final boolean whiteAtMove) {
-        mWhiteAtMove = whiteAtMove;
+        if (whiteAtMove != isWhiteAtMove())
+            togglePlayer();
     }
 
     /**
     * Wechsele den Spieler, der am Zug ist.
     */
     public void togglePlayer() {
+        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
         mWhiteAtMove = !mWhiteAtMove;
+        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
     }
 
     /* ================================
@@ -368,6 +372,14 @@ public class Board {
     */
     public void calculateHash() {
         long hash = 0L;
+        ZobristHasher hasher = ZobristHasher.getInstance();
+        String castlings = getCastlings();
+        if ( !castlings.equals("-") ) {
+            for (int i = 0; i < castlings.length(); i++) {
+                hash ^= hasher.getCastlingHash(castlings.charAt(i));
+            }
+        }
+        hash ^= hasher.getColourHash(isWhiteAtMove());
         for (Piece pc : getPieces()) {
             hash ^= pc.hash();
         }
@@ -385,6 +397,7 @@ public class Board {
         copy.setFullMoves(getFullMoves());
         copy.setWhiteAtMove(isWhiteAtMove());
         copy.setEnPassant(getEnPassant());
+        copy.needsUpdate = false;
         for (Piece pc : getPieces()) {
             copy.putPiece(pc);
         }
@@ -405,16 +418,12 @@ public class Board {
 
         if (other instanceof Board) {
             final Board b = (Board) other;
+            if ( b.hash() != hash() ) return false;
             if ( b.getHalfMoves() != getHalfMoves() ) return false;
             if ( b.getFullMoves() != getFullMoves() ) return false;
             if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
             if ( b.getEnPassant() != getEnPassant() ) return false;
             if ( b.getPieceCount() != getPieceCount() ) return false;
-            for ( Piece op : b.getPieces() ) {
-                if ( !op.equals(getPieceAt(op.getPosition())) ) {
-                    return false;
-                }
-            }
             return true;   
         } else {
             return false;
