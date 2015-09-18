@@ -65,6 +65,7 @@ public class GameTree {
         }
     }
     
+    @Deprecated
     public Move alphaBetaSearch(final int toDepth, Node n,
     		boolean isMax,int alpha, int beta) {
     	Move bestMove = null;

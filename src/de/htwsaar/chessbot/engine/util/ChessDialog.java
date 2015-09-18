@@ -8,22 +8,26 @@ import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardBuilder;
 import de.htwsaar.chessbot.engine.model.Engine;
 import de.htwsaar.chessbot.engine.model.Game;
+import de.htwsaar.chessbot.engine.model.Move;
+import de.htwsaar.chessbot.engine.model.PawnEvaluator;
 
 public class ChessDialog {
 	//Konstanten
-	private static final int MOVE = 1;
 	private static final String NEWGAME = "ucinewgame";
 	private static final String NEWMOVE = "position";
 	private static final String GO = "go";
 	private static final String QUIT = "quit";
+	private static final String EVALUATE = "evaluate";
+	private static final String MOVE = "([a-h][1-8]){2}";
 	
     private final Input mInput = new Input();
 	
-	private static BoardBuilder builder = Board.BUILDER;
 	private Engine engine;
+	private PawnEvaluator pEval = new PawnEvaluator();
+	private Game game;
 
 	public ChessDialog() {
-		this.engine = new Engine();
+		this.game = new Game("8/6R1/1R1p4/r7/8/8/P2R2r1/8 w - - 0 1");
 	}
 	
 	private void exeCmd(String cmd) {
@@ -31,13 +35,17 @@ public class ChessDialog {
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
 			case NEWGAME:
-				engine.ucinewgame();
+				ucinewgame();
 				break;
 			case NEWMOVE:
-				engine.position(cmds, i);
+				String[] split = cmd.split("position ");
+				position(split[1]);
 				return;
+			case EVALUATE:
+				int value = pEval.evaluate(game.getCurrentBoard());
+				System.out.println("Bewertung: "+value);
+				break;
 			case GO:
-				engine.go(cmds, i);
 			case QUIT:
 				System.out.println("Spiel wurde beendet.");
 			
@@ -47,11 +55,29 @@ public class ChessDialog {
 		}
 	}
 	
+	private void ucinewgame() {
+		engine.newGame();
+	}
+	
+	private void position(String position) {
+		String[] cmds = position.split(" ");
+		List<Move> moves = new ArrayList<Move>();
+		if(cmds[0].equals("moves")){
+			for(int i = 1; i < cmds.length; i++) {
+			}
+		}
+		if(cmds[0].equals("startpos")) {
+			//engine.resetBoard(moves);
+		} else if(cmds[0].equals("fen")){
+			//engine.setBoard(cmds[1], moves);
+		}
+	}
+	
 	private String choseCmd() {
 		System.out.println("Kommando wahlen: \n----------------\n");
 		System.out.println("fuehre Zug aus: " + NEWMOVE + ";\n"+
 						   "neues Spiel: "+ NEWGAME+";\n"+
-						   "go: "+GO+";\n"+
+						   "Stellung bwerten: "+EVALUATE+";\n"+
 						   "beenden: " + QUIT +";\n"+
 						   "-> ");
 		return mInput.readLine().toString();
