@@ -4,8 +4,6 @@ import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.sun.swing.internal.plaf.metal.resources.metal_zh_TW;
 /**
 * Schachpartie.
 *
