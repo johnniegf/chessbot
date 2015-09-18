@@ -24,6 +24,11 @@ public class TranspositionTable {
 	
 	
 	public void put(long hash, int depth, int nodeScore, boolean max) {
+		/**
+		String s = "hash: %d depth: %d score %d %s";
+		System.out.println(String.format(s, hash, depth, nodeScore, max ? "max" : "min"));
+		**/
+		
 		HashMap<Long, Integer> scoreTable = max ? this.scoreMaxTable : this.scoreMinTable;
 		HashMap<Long, Integer> depthTable = max ? this.depthMaxTable : this.depthMinTable;
 		if(scoreTable.containsKey(hash)) {
@@ -36,6 +41,7 @@ public class TranspositionTable {
 		}
 		scoreTable.put(hash, nodeScore);
 		depthTable.put(hash, depth);
+		
 	}
 	
 	public int getScore(long hash, boolean max) {
@@ -50,7 +56,7 @@ public class TranspositionTable {
 		return max ? this.scoreMaxTable.containsKey(hash) : this.scoreMinTable.containsKey(hash);
 	}
 	public int getTableSize() {
-		return this.scoreMaxTable.size();
+		return this.scoreMaxTable.size() + this.scoreMinTable.size();
 	}
 	
 }
