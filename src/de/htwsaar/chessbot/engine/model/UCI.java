@@ -11,9 +11,13 @@ import java.util.Map;
 import javax.swing.plaf.SliderUI;
  
 /**
-*   Universal Chess Interface   
+*   Universal Chess Interface
+*   liest die Ausgabe der GUI.
+*   ueberprueft ob die Zeile ein gueltiges Kommando beinhaltet.
+*   gibt das entsprechende Kommando an den Parser weiter.
 *
 *   @author Timo Klein
+*   @author Dominik Becker
 *   
 **/
  
@@ -23,6 +27,7 @@ public class UCI  {
     private BufferedReader engineIn;
     private Engine engine;
     
+    //UCI Kommandos
     private static final String POS = "position";
     private static final String GO = "go";
     private static final String STOP = "stop";
@@ -30,7 +35,10 @@ public class UCI  {
     private static final String READY = "isready";
     private static final String NEWGAME = "ucinewgame";
      
-     
+    /**
+     * startet die Endlosschleife und kann dauerhaft Kommandos empfangen.
+     * @param engine
+     */
     public UCI(Engine engine) {
     	this.engine = engine;
         try{
@@ -43,7 +51,11 @@ public class UCI  {
         }
     }
      
-     
+    /**
+     * liest die Ausgabe und sendet diese an den Parser weiter,
+     * wenn ein gueltiges Kommando dabei war.
+     * @throws IOException
+     */
     public void start() throws IOException{
         while(true) {
             cmd = engineIn.readLine();
