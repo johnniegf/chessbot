@@ -15,8 +15,8 @@ public class RookEvaluator {
 	private static final int HALF_OPEN_LINE = 10;
 	private static final int ROOK_AT_7 = 20;
 	
-	private static final long ROOK = 0x1916b7a5c26f1e7bL;
-	private static final long PAWN = 0x2916b7a5c26f1e7bL;
+	private static final int ROOK = 2;
+	private static final int PAWN = 5;
 	
 	private String[] col;
 	

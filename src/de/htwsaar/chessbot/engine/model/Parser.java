@@ -4,11 +4,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * zerlegt Ausgaben und splittet diese zurecht.
+ * gibt die UCI-Kommandos das praepariert an die Engine weiter.
+ * @author Dominik Becker
+ *
+ */
 public class Parser {
+	
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
 	private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
-	//TODO ausdruck aktualisieren(Bauernumwandlung)
 	
 	public static void uci() {
 		setUCIParameter();
@@ -19,11 +25,21 @@ public class Parser {
 		sendCmd("readyok");
 	}
 	
+	/**
+	 * ruft in der Engine newGame() auf um ein neues Spiel zu starten.
+	 * @param engine
+	 */
 	public static void ucinewgame(Engine engine) {
 		engine.newGame();
 	}
 	
-	
+	/**
+	 * Position Kommando.
+	 * zerteilt die Ausgabe und gibt der Engine eine fertige Zugliste 
+	 * und einen fen-String mit.
+	 * @param line
+	 * @param engine
+	 */
 	public static void position(String line, Engine engine) {
 		String[] result = line.split("position ");
 		String[] cmd = result[1].split(" ");
@@ -50,6 +66,15 @@ public class Parser {
 		}
 	}
 	
+	/**
+	 * GO-Kommando.
+	 * zerteilt die Ausgabe und ueberprueft welche Schalter
+	 * dem Kommando mitgegeben wurde.
+	 * gibt der Engine die entsprechenden Modifikationen mit
+	 * und startet die Suche.
+	 * @param line
+	 * @param engine
+	 */
 	public static void go(String line, Engine engine) {
 		List<Move> moves = null;
 		int depth = 0;
@@ -101,7 +126,13 @@ public class Parser {
 	}
 	
 	
-	
+	/**
+	 * filtert die Zuege aus der Ausgabe
+	 * und gibt diese zurueck.
+	 * @param line
+	 * @param moveList
+	 * @return moves
+	 */
 	private static List<Move> getMoves(String line, Collection<Move> moveList) {
 		List<Move> moves = new ArrayList<Move>();
 		String[] searchMv = line.split("searchmoves ");
@@ -117,6 +148,7 @@ public class Parser {
 		
 	}
 	
+	//Stop-Kommando
 	public static void stop(Engine engine) {
 		engine.stop();
 	}
