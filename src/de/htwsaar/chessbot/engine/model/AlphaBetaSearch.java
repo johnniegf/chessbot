@@ -15,7 +15,7 @@ import de.htwsaar.chessbot.engine.model.GameTree.Node;
  *
  */
 
-public class AlphaBetaSearch implements Runnable {
+public class AlphaBetaSearch extends Thread {
 
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
@@ -53,24 +53,38 @@ public class AlphaBetaSearch implements Runnable {
 	 */
 	public AlphaBetaSearch(Game game) {
 		this.game = game;
+		this.exitSearch = true;
 	}
 
 	public void setGame(Game game) {
 		this.game = game;
 	}
+	
+	public void startSearch() {
+		this.setExitSearch(false);
+	}
 
 	@Override
 	public void run() {
-		this.startTime = System.currentTimeMillis();
-		startAlphaBeta();
-		sendBestMove();
-
+		while(true) {
+			while(exitSearch) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			this.startTime = System.currentTimeMillis();
+			startAlphaBeta();
+			sendBestMove();
+		}
 	}
-
-	public void stop() {
+	
+	public void stopSearch() {
 		this.setExitSearch(true);
 	}
 
+	
 	/**
 	 * Setzt die maximale Suchtiefe für den Baum.
 	 * 
@@ -147,8 +161,9 @@ public class AlphaBetaSearch implements Runnable {
 	}
 
 	//Sendet den "besten" Zug nachdem die Suche beendet wurde
-	private void sendBestMove() {
+	public void sendBestMove() {
 		System.out.println("bestmove " + this.getCurrentBestMove().toString());
+		System.out.println("score = " + this.currentBestScore);
 	}
 
 	//Startet die Suche
@@ -157,16 +172,18 @@ public class AlphaBetaSearch implements Runnable {
 		this.exitSearch = false;
 		this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
 		this.nodesSearched = 0;
+		boolean startMax = this.game.getCurrentBoard().isWhiteAtMove();
 
 		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
-			alphaBeta(i, gameTree.getRoot(), true,
+			alphaBeta(i, gameTree.getRoot(), startMax,
 					Integer.MIN_VALUE, Integer.MAX_VALUE);
 
 			this.nodesPerSecond = 
 					(1000d * this.nodesSearched) / (System.currentTimeMillis() - this.startTime);
 		}
+		this.exitSearch = true;
 	}
 
 	//Rekursion
@@ -212,7 +229,7 @@ public class AlphaBetaSearch implements Runnable {
 			//Kindknoten der Wurzel werden gemischt, damit im Falle der Gleichwertigkeit
 			//Nicht immer der erste Zug genommen wird
 			if(currentNode == gameTree.getRoot()) {
-				Collections.shuffle(moveList);
+				//Collections.shuffle(moveList);
 			}
 			//Fuer jeden Zug aus der MoveList den Kindknoten untersuchen
 			for(Move move : moveList) {
@@ -253,7 +270,7 @@ public class AlphaBetaSearch implements Runnable {
 
 				if(isMax) {
 					if(childNode.getScore() > beta) {
-						break;
+						continue;
 					}
 					if(childNode.getScore() > currentNode.getScore()) {
 						currentNode.setScore(childNode.getScore());
@@ -266,10 +283,13 @@ public class AlphaBetaSearch implements Runnable {
 					}
 				} else {
 					if(childNode.getScore() < alpha) {
-						break;
+						continue;
 					}
 					if(childNode.getScore() < currentNode.getScore()) {
 						currentNode.setScore(childNode.getScore());
+						if(currentNode == gameTree.getRoot()) {
+							bestMove(move, currentNode.getScore());
+						}
 						if(currentNode.getScore() < beta) {
 							beta = currentNode.getScore();
 						}

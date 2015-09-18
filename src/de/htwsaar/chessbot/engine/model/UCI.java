@@ -48,7 +48,7 @@ public class UCI  {
         while(true) {
             cmd = engineIn.readLine();
             if (cmd.startsWith("quit"))
-                System.exit(0);
+                engine.quit();
             
             String [] result = cmd.split(" ");
             for(int i = 0; i < result.length; i++) {

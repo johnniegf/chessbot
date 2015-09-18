@@ -18,7 +18,7 @@ public class Engine {
 	public Engine() {
 		this.game = new Game();
 		moveSearcher = new AlphaBetaSearch(game);
-		moveSearcher.setTimeLimit(5000);
+		moveSearcher.start();
 		uci = new UCI(this);
 	}
 	
@@ -56,7 +56,7 @@ public class Engine {
 	 */
 	public void newGame() {
 		this.game = new Game();
-		this.moveSearcher = new AlphaBetaSearch(game);
+		this.moveSearcher.setGame(game);
 	}
 	
 	
@@ -100,13 +100,13 @@ public class Engine {
 	public void search(int depth) {
 		moveSearcher.resetLimitMoveList();
 		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.run();
+		moveSearcher.startSearch();
 	}
 	
 	public void searchmoves(List<Move> moves, int  depth) {
 		moveSearcher.setMaxSearchDepth(depth);
 		moveSearcher.setLimitedMoveList(moves);
-		moveSearcher.run();
+		moveSearcher.startSearch();
 	}
 	
 	//========================================
@@ -114,8 +114,7 @@ public class Engine {
 	//========================================
 	
 	public void stop() {
-		moveSearcher.stop();
-		//System.out.println("bestmove: "+moveSearcher.getCurrentBestMove());
+		moveSearcher.stopSearch();
 	}
 	
 	
@@ -127,6 +126,7 @@ public class Engine {
 	 * beendet das Programm
 	 */
 	public void quit() {
+		moveSearcher.interrupt();
 		System.exit(0);
 	}
 	
