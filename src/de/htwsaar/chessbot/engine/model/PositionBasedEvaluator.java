@@ -87,20 +87,19 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 	};
 	
 	private static final double PIECE_VALUE_WEIGHT = 1d;
-	private static final double PIECE_POSITION_WEIGHT = 5d;
+	private static final double PIECE_POSITION_WEIGHT = 1d;
 	
 	@Override
 	public int evaluate(Board b) {
 		double materialCount = 0;
 		int sign;
 		for (Piece piece : b.getPieces()) {
-			sign = piece.isWhite() == b.isWhiteAtMove() ? 1 : -1;
+			sign = piece.isWhite() ? 1 : -1;
 			materialCount += sign * 
-					(PIECE_VALUE_WEIGHT * sPieceValues.get(piece.getClass()) + 
+					(PIECE_VALUE_WEIGHT * sPieceValues.get(piece.getClass()) +
 					 PIECE_POSITION_WEIGHT * getPositionValue(b, piece));
 		}
-		sign = b.isWhiteAtMove() ? 1 : -1;
-		return (int)materialCount * sign;
+		return (int)materialCount;
 	}
 	
 	private int getPositionValue(Board b, Piece p) {
