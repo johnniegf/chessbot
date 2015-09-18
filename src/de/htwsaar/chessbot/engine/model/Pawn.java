@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Der Bauer.
 *
@@ -40,114 +42,123 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Pawn extends Piece {
+public class Pawn
+     extends AbstractPiece
+{
+    public static final int ID = 5;
 
-    public Pawn() {
-        super();
+    public int id() {
+        return ID;
     }
 
-    public Pawn(final Position position) {
-        super(position);
-    }
-
-    public Pawn(final Position position, 
-                final boolean isWhite) 
-    {
-        super(position, isWhite);
-    }
-
-    public Pawn(final Position position, 
-                final boolean isWhite, 
-                final boolean hasMoved) 
-    {
-        super(position, isWhite, hasMoved);
-    }
-
-    public final String getName() {
-        return "Bauer";
-    }
-
-    public final String toSAN() {
-        return "";
-    }
-
-    protected final String getFEN() {
-        return "P";
-    }
-
-    public final boolean attacks(final Position targetPosition,
-                                 final Board context)
-    {
-        return getAttacks(context).contains(targetPosition);
-    }
-
-    public final Collection<Position> getValidMoves(final Board context) {
-        List<Position> possibleMoves = new ArrayList<Position>(4);
-        int increment = increment();
-        Position p = getPosition();
-        Position pn;
-
-        // Zugmöglichkeiten prüfen
-        pn = p.transpose(0,increment);
-        if ( context.isFree(pn) ) {
-            possibleMoves.add(pn);
-            if (!hasMoved()) {
-                pn = p.transpose(0, 2*increment);
-                if (context.isFree(pn))
-                    possibleMoves.add(pn);
-            }
-        }   
-
-        possibleMoves.addAll(getValidHits(context));
-
-        return possibleMoves;
-    }
-
-    private Collection<Position> getAttacks(final Board context) {
-        Collection<Position> possibleMoves = new ArrayList<Position>(2);
-        int increment = increment();
-        Position[] attacks = new Position[] { 
-            getPosition().transpose(-1, increment),
-            getPosition().transpose(1, increment)
-        };
-        for (Position p : attacks) {
-            if (p.existsOn(context)) {
-                possibleMoves.add(p);
-            }
-        }
-        return possibleMoves;
-
-    }
-
-    private Collection<Position> getValidHits(final Board context) {
-        Collection<Position> canHit = getAttacks(context);
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
         
-        Iterator<Position> it = canHit.iterator();
-        while(it.hasNext()) {
-            Position p = it.next();
-            if (context.isFree(p) || 
-                context.pieceAt(p).isWhite() == isWhite()) 
-            {
-                it.remove();
+        Position p0 = getPosition();
+        Position pt;
+        byte increment = (isWhite() ? (byte) 1 : (byte) -1);
+        for (byte d = -1; d <= 1; d += 2) {
+            pt = p0.transpose(d, increment);
+            if (pt.isValid()) 
+                attacks.add(pt);
+        }   
+        return attacks;
+    }
+
+    private Collection<Position> getTargets(final Board context) {
+        Collection<Position> targets = new ArrayList<Position>();
+
+        Position p0 = getPosition();
+        Position pt;
+        byte increment = (isWhite() ? (byte) 1 : (byte) -1);
+        pt = p0.transpose(0, increment);
+        if (pt.isValid() && context.isFree(pt)) {
+                targets.add(pt);
+            if (!hasMoved()) {
+                pt = p0.transpose(0, 2*increment);
+                if (pt.isValid() && context.isFree(pt))
+                    targets.add(pt);
             }
         }
-
-        return canHit;
+        return targets;
     }
 
-    private int increment() {
-        return (isWhite() ? 1 : -1);
-    }
-
-    public int hashCode() {
-        return super.hashCode() * (hasMoved() ? 61 : 67);
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (context.isFree(p)) {
+            	    if (p == context.getEnPassant())
+            		    moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
+                    continue;
+                }
+                if (context.getPieceAt(p).isWhite() == isWhite())
+                    continue;
+    
+                if (isPromotion(myPos,p)) {
+                    moves.addAll(getPromotions(myPos, p));
+                } else
+            		moves.add( MV(myPos,p) );
+            }
+            for (Position p : getTargets(context)) {
+            	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
+            		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
+            	else {
+                    if (isPromotion(myPos,p)) {
+                        moves.addAll(getPromotions(myPos, p));
+                    } else
+                	    moves.add( MV(myPos,p) );
+                }
+            }
+        }
+        return moves;
     }
 
     public boolean equals(final Object other) {
-        return super.equals(other);
+        if (super.equals(other)) {
+            Piece op = (Piece) other;
+            return hasMoved() == op.hasMoved();
+        }
+        return false;
+    }
+   
+    private Collection<Move> getPromotions(final Position from, final Position to) {
+        Collection<Move> promotions = new ArrayList<Move>(4);
+        promotions.add( MV( from, to, MovePromotion.TO_QUEEN ) );
+        promotions.add( MV( from, to, MovePromotion.TO_ROOK ) );
+        promotions.add( MV( from, to, MovePromotion.TO_KNIGHT ) );
+        promotions.add( MV( from, to, MovePromotion.TO_BISHOP ) );
+        return promotions;
     }
 
-    public final Pawn clone() {
-        return new Pawn(getPosition().clone(), isWhite(), hasMoved());
+    private boolean isPromotion(final Position start, final Position target) {
+    	if ( isWhite() ) {
+    		if (start.rank() == 7 && target.rank() == 8) return true;
+    	} else {
+    		if (start.rank() == 2 && target.rank() == 1) return true;
+        }
+    	
+    	return false;
+    }
+
+    protected char fen() {
+        return 'P';
+    }
+
+    /**
+    * Gib den Hashwert dieses Objekts aus.
+    *
+    * @return Hashwert dieses Objekts.
+    */
+    public int hashCode() {
+        int hash = 0;
+        // Berechnungen
+        hash += super.hashCode();
+        return hash;
+    }
+
+    protected Pawn create() {
+        return new Pawn();
     }
 }

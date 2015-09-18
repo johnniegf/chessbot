@@ -1,4 +1,4 @@
-package de.htwsaar.engine.%PKGNAME;
+package de.htwsaar.chessbot.%PKGNAME;
 
 /**
 * Ausnahme für ...

@@ -45,6 +45,7 @@
             <src path="${srcDir}"  />
             <include name="**/*.java" />
             <compilerarg value="-g" />
+            <compilerarg value="-O" />
             <compilerarg value="-Xlint:all"  />
         </javac>
     </target>

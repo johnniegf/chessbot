@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Der Turm.
 *
@@ -16,70 +18,81 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Rook extends Piece {
+public class Rook
+     extends AbstractPiece
+{
+    public static final int ID = 2;
 
-    public Rook() {
-        super();
+    public int id() {
+        return ID;
     }
 
-    public Rook(final Position position) {
-        super(position);
-    }
-
-    public Rook(final Position position, 
-                final boolean isWhite) 
-    {
-        super(position, isWhite);
-    }
-
-    public Rook(final Position position, 
-                final boolean isWhite, 
-                final boolean hasMoved) 
-    {
-        super(position, isWhite, hasMoved);
-    }
-    
-    public int hashCode() {
-        return super.hashCode() * (hasMoved() ? 61 : 67);
-    }
-
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> possibleMoves = new ArrayList<Position>(14);
-        Position p = getPosition();
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
         
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                if (i == j || i == -j) continue;
-                int c = 1;
-                p = getPosition().transpose(c*i, c*j);
-                while(p.existsOn(context)) 
-                {
-                    if (context.isFree(p))
-                       possibleMoves.add(p);
-                    else if (context.pieceAt(p).isWhite() != isWhite()) {
-                        possibleMoves.add(p);
+        Position p0 = getPosition();
+        Position pt;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if ( Math.abs(dx) == Math.abs(dy) )
+                    continue;
+                pt = p0;
+                while(true) {
+                    pt = pt.transpose(dx,dy);
+                    if ( !pt.isValid() )
                         break;
-                    } else {
+                    
+                    attacks.add(pt);
+                    if (!context.isFree(pt)) 
                         break;
-                    }
-                    c += 1;
-                    p = getPosition().transpose(c*i, c*j);
-               } 
+                }
             }
         }
-        return possibleMoves;
+        return attacks;
     }
 
-    public final String getName() {
-        return "Turm";
-    }
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p))
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
 
-    public final String toSAN() {
-        return "R";
+                moves.add( MV(myPos,p) );
+            }
+        }
+        return moves;
     }
     
-    public final Rook clone() {
-        return new Rook(getPosition().clone(), isWhite(), hasMoved());
+    public boolean equals(final Object other) {
+        if (super.equals(other)) {
+            Piece op = (Piece) other;
+            return hasMoved() == op.hasMoved();
+        }
+        return false;
     }
-}
+   
 
+    protected char fen() {
+        return 'R';
+    }
+
+    /**
+    * Gib den Hashwert dieses Objekts aus.
+    *
+    * @return Hashwert dieses Objekts.
+    */
+    public int hashCode() {
+        int hash = 0;
+        // Berechnungen
+
+        return hash;
+    }
+
+    protected Rook create() {
+        return new Rook();
+    }
+
+}

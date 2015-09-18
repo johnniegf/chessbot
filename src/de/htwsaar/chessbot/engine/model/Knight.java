@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Der Springer.
 *
@@ -14,71 +16,69 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Knight extends Piece {
+public class Knight
+     extends AbstractPiece
+{
+    public static final int ID = 3;
 
-    public Knight() {
-        super();
+    public int id() {
+        return ID;
     }
 
-    public Knight(Position position) {
-        super(position);
-    }
-
-    public Knight(final Position position, 
-                  final boolean isWhite) 
-    {
-        super(position, isWhite);
-    }
-    
-    public Knight(final Position position, 
-                  final boolean isWhite,
-                  final boolean hasMoved) 
-    {
-        super(position, isWhite);
-    }
-
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> possibleMoves = new ArrayList<Position>(8);
-        Position p = getPosition();
-        for (int d = -2; d <= 2; d += 4) {
-            for (int e = -1; e <= 1; e += 2) {
-                for ( Position pn : new Position[] {p.transpose(d,e), p.transpose(e,d)} )
-                    if (pn.existsOn(context)) 
-                        if (context.isFree(pn) || 
-                            context.pieceAt(pn).isWhite() != isWhite() )
-                        {
-                            possibleMoves.add(pn);
-                        }
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
+        
+        Position p0 = getPosition();
+        Position pt;
+        for (int m = -1; m <= 1; m += 2) {
+            for (int n = -2; n <= 2; n += 4) {
+                pt = p0.transpose(m,n);
+                if (pt.isValid())
+                    attacks.add(pt);
+                
+                pt = p0.transpose(n,m);
+                if (pt.isValid())
+                    attacks.add(pt);
             }
         }
-        return possibleMoves; 
+        return attacks;
     }
 
-    public final String getName() {
-        return "Springer";
-    }
-
-    public final String toSAN() {
-        return "N";
-    }
-    
-    public boolean equals(final Object other) {
-        if (other == null) 
-            return false;
-        if (other == this)
-            return true;
-
-        try {
-            Knight k = (Knight) other;
-            return k.getPosition().equals(getPosition())
-                && k.isWhite() == isWhite();
-        } catch (ClassCastException cce) {
-            return false;
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            Piece pc;
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p)) {
+                    pc = context.getPieceAt(p);
+                    if (pc.isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
+            }
         }
+        return moves;
     }
 
-    public final Knight clone() {
-        return new Knight(getPosition().clone(), isWhite());
+    protected char fen() {
+        return 'N';
     }
+
+    /**
+    * Gib den Hashwert dieses Objekts aus.
+    *
+    * @return Hashwert dieses Objekts.
+    */
+    public int hashCode() {
+        int hash = 0;
+        // Berechnungen
+
+        return hash;
+    }
+
+    protected Knight create() {
+        return new Knight();
+    }
+
 }
-

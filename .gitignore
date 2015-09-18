@@ -16,6 +16,10 @@ build
 doc/doxygen
 doc/javadoc
 dist
+<<<<<<< HEAD
 
 *.iml
 .idea
+=======
+/bin/
+>>>>>>> sprint/Engine

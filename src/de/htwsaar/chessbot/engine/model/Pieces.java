@@ -1,141 +1,173 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.ArrayList;
-
+import java.util.Collection;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 /**
- * Fabrik zur Bereitstellung von Schachfiguren-Objekten.
- *
- * @author David Holzapfel
- * @author Dominik Becker
- * @version 0.2
- */
-public class Pieces {
+* Figurfabrik.
+*
+* Erzeugt und verwaltet Figuren. Hierbei kommt <em>lazy loading</em>
+* zum Einsatz, d.h. Figuren werden erst erzeugt und im 
+* Zwischenspeicher abgelegt, sobald sie das erste Mal angefordert
+* werden.
+*
+* Figuren werden durch Kopieren von Prototypen, welche beim Erstellen
+* der Fabrik übergeben werden, erzeugt.
+*
+* Die Fabrik ist ein Singleton, d.h. es existiert zu jeder Zeit nur eine
+* Instanz.
+*
+* @author Dominik Becker
+* @author David Holzapfel
+* @author Johannes Haupt
+*/
+public final class Pieces {
 
-    //Fehlermeldungen
-    private static final String ERR_INVALID_PIECETYPE =
-            "Fehler: Ungueltiger Figurentyp: %d";
-    private static final String ERR_INVALID_POSITION =
-            "Fehler: Position ist 'null'";
-
-    //Konstanten für jeden der 6 Figurentypen
-    public static final int PAWN = 0;
-    public static final int ROOK = 1;
-    public static final int KNIGHT = 2;
-    public static final int BISHOP = 3;
-    public static final int QUEEN = 4;
-    public static final int KING = 5;
-
-    //Klasseninstanz
-    private static Pieces INSTANCE;
-
-    //Array, das einen Prototypen jedes Figurentyps enthält
-    private Piece[] prototypes;
-    //Liste mit allen bisher erstellten Figurenobjekten
-    private ArrayList<Piece> existingPieces;
-
-    //Privater Konstruktor, da die Klasse als Singleton implementiert ist.
-    private Pieces() {
-        this.prototypes = new Piece[6];
-        this.existingPieces = new ArrayList<Piece>();
+    public static Piece PC(final char fenShort,
+                           final Position position,
+                           final boolean hasMoved)
+    {
+        return getInstance().get(fenShort, position, hasMoved);
     }
 
-    /**
-     * @return Die Klasseninstanz der Fabrik
-     */
+    public static Piece PC(final char fenShort, final Position position) {
+        return PC(fenShort, position, true);
+    }
+
+
+    private static Pieces sInstance;
+
     public static Pieces getInstance() {
-        if(INSTANCE == null) {
-            INSTANCE = new Pieces();
-        }
+        initInstance();
+        return sInstance;
+    }
 
-        return INSTANCE;
+    private static void initInstance() {
+        if (sInstance == null) {
+            Collection<Piece> prototypes = Arrays.asList(new Piece[]{
+                new King(), new Queen(), new Rook(),
+                new Bishop(), new Knight(), new Pawn()
+            });
+            sInstance = new Pieces(prototypes);
+        }
+    }
+
+//---------------------------------------------------------
+
+    private Map<Character,Piece> mPrototypes;
+    private Map<Integer,Piece>   mCache;
+
+    private Pieces(final Collection<Piece> prototypes) {
+        if ( prototypes == null )
+            throw new NullPointerException("prototypes");
+
+        mPrototypes = new HashMap<Character,Piece>();
+        for ( Piece pc : prototypes ) {
+            addPrototype(pc);
+        }
+        mCache = new HashMap<Integer,Piece>();
+    }
+
+    public int size() {
+        return mCache.size();
+    }
+
+    private boolean addPrototype(final Piece prototype) {
+        Piece current;
+        for (int i = 0; i < 2; i++) {
+            current = prototype.clone();
+            current.setIsWhite(i % 2 == 0);
+            mPrototypes.put(current.fenShort(), current);
+        }
+        return true;
+    }
+
+    private Piece getPrototype(final char fenShort) {
+        return mPrototypes.get(fenShort);
+    }
+
+    private Piece createPiece(final char fenShort,
+                              final Position position,
+                              final boolean hasMoved)
+    {
+        Piece newPiece = getPrototype(fenShort).clone();
+        newPiece.setPosition(position);
+        newPiece.setHasMoved(hasMoved);
+        return newPiece;
     }
 
     /**
-     * Prüft, ob ein Exemplar einer Schachfigur existiert und erstellt bei
-     * Bedarf ein neues Objekt.
-     *
-     * @param pieceType Figurentyp
-     * @param position  Position auf dem Schachbrett
-     * @param isWhite   Farbe der Schachfigur
-     * @param hasMoved  Ob die Figur bereits bewegt wurde
-     * @return  Ein Figurenobjekt mit den angegebenen Parametern
-     */
-    public Piece getPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
-        }
-        if(position == null) {
-            throw new IllegalArgumentException(ERR_INVALID_POSITION);
-        }
+    * Gib die Figur mit den übergebenen Eigenschaften zurück.
+    *
+    * Falls die Figur nicht existiert, wird sie zunächst erzeugt
+    * und im Zwischenspeicher abgelegt.
+    *
+    * @param fenShort FEN-Kürzel der Figur
+    * @param position Feld der Figur
+    * @param hasMoved ob die Figur bereits gezogen wurde
+    * @return die Figur mit den übergebenen Eigenschaften
+    * @throws NullPointerException falls <code>position == null</code>
+    * @throws PieceFactoryException falls die Figur nicht erzeugt 
+    *           werden kann, z.B. wenn für das FEN-Kürzel kein 
+    *           Prototyp hinterlegt ist
+    */
+    public synchronized Piece get(final char fenShort,
+                                  final Position position,
+                                  final boolean hasMoved)
+    {
+        if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
+            throw new IllegalArgumentException("fenShort '" + fenShort + "'");
+        if ( position == null )
+            throw new NullPointerException("position");
 
-        Piece piece = getExistingPiece(pieceType, position, isWhite, hasMoved);
-        if(piece == null) {
-            piece = this.getPrototypeCopy(pieceType);
-            piece.setPosition(position);
-            piece.setColor(isWhite);
-            piece.setHasMoved(hasMoved);
-            this.existingPieces.add(piece);
+        int index = makeIndex(fenShort, position, hasMoved);
+        
+        Piece result = mCache.get(index);
+        if ( result == null ) {
+            result = createPiece(fenShort, position, hasMoved);
+            mCache.put(index, result);
         }
-        return piece;
+        return result;       
     }
 
-    //Prüft, ob ein Figurenobjekt bereits existiert. Ist das der Fall wird es zurückgegeben, wenn nicht wird
-    //null zurückgegeben.
-    private Piece getExistingPiece(int pieceType, Position position, boolean isWhite, boolean hasMoved)
-        throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
-        }
-        if(position == null) {
-            throw new IllegalArgumentException(ERR_INVALID_POSITION);
-        }
-
-        Piece foundPiece = null;
-        for(int i = 0; i < existingPieces.size() && foundPiece == null; i++) {
-            Piece piece = existingPieces.get(i);
-            if(piece.getPosition().equals(position) && piece.isWhite() == isWhite && piece.hasMoved() == hasMoved) {
-                foundPiece = piece;
-            }
-        }
-
-        return foundPiece;
+    public Piece get(final char fenShort, final Position position) {
+        return get(fenShort, position, true);   
     }
 
-    //Erzeugt eine Kopie des Prototypen von einem bestimmten Figurentyp
-    private Piece getPrototypeCopy(int pieceType) throws IllegalArgumentException {
-        if(pieceType < 0 || pieceType > 5) {
-            throw new IllegalArgumentException(String.format(ERR_INVALID_PIECETYPE, pieceType));
-        }
+    /**
+    * Stringkonversion.
+    *
+    * @return Stringdarstellung dieses Objekts.
+    */
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
 
-        if(this.prototypes[pieceType] == null) {
-            Piece newPrototype;
-            switch(pieceType) {
-                case PAWN:
-                    newPrototype = new Pawn();
-                    break;
-                case ROOK:
-                    newPrototype = new Rook();
-                    break;
-                case KNIGHT:
-                    newPrototype = new Knight();
-                    break;
-                case BISHOP:
-                    newPrototype = new Bishop();
-                    break;
-                case QUEEN:
-                    newPrototype = new Queen();
-                    break;
-                case KING:
-                    newPrototype = new King();
-                    break;
-                default:
-                    return null;
-            }
-            this.prototypes[pieceType] = newPrototype;
-        }
+        return sb.toString();
+    }
 
-        return this.prototypes[pieceType].clone();
+    private static boolean isFenLetter(char character) {
+        final String fenLetters = "[PpQqKkNnBbRr]";
+        return (character + "").matches(fenLetters);
+    }
+
+    private static final int makeIndex(final char fenShort,
+                                       final Position position,
+                                       final boolean hasMoved)
+    {
+        int index = 0;
+        index += (hasMoved ? 1 : 0);
+        
+        index = index << 1;
+        boolean isWhite = Character.isUpperCase(fenShort);
+        index += (isWhite  ? 1 : 0);
+
+        index = index << 5;
+        index += (int) (fenShort - (isWhite ? 'A' : 'a'));
+
+        index = index << 11;
+        index += position.hashCode();
+        return index;
     }
 
 }

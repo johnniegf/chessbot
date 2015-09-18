@@ -22,7 +22,8 @@ import org.junit.runner.RunWith;
 *
 * @author %AUTHOR
 */
-public class %CLASSNAMETest { 
+@RunWith(Parameterized.class)
+public class %CLASSNAME { 
 
     // Testvariablen
     private ...
@@ -48,7 +49,7 @@ public class %CLASSNAMETest {
     *
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
-    public %CLASSNAMETest() {
+    public %CLASSNAME {
     
     }
 

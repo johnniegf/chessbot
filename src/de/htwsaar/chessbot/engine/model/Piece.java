@@ -1,266 +1,145 @@
 package de.htwsaar.chessbot.engine.model;
 
-import de.htwsaar.chessbot.exception.*;
-import java.util.*;
+import java.util.Collection;
 /**
-* Interne Darstellung einer Schachfigur.
+* Schachfigur.
+*
+* Jede Schachfigur wird durch 2 Haupteigenschaften bestimmt, nämlich
+* ihre Farbe und ihre Position. Jede Figurart hat eigene Zugregeln,
+* welche in den Unterklassen implementiert werden. Figuren werden
+* erzeugt und zwischengespeichert von der Figurenfabrik. Diese 
+* wiederrum wird von der aktiven Spielvariante erzeugt und 
+* bereitgestellt.
 *
 * @author Kevin Alberts
 * @author Johannes Haupt
+* @see Piece
+* @see ChessVariant
 */
-public abstract class Piece {
+public interface Piece {
     
-    private Position position;
-    private boolean  isWhite;
-    private boolean  hasMoved;
-
     /**
-    * Erzeuge eine neue Schachfigur.
-    */
-    protected Piece() {
-        this(Position.INVALID);
-    }
-
-    /**
-    * Erzeuge eine neue weiße Schachfigur an der übergebenen Position.
+    * Gib die Liste der von der Figur bedrohten Felder zurück.
     *
-    * @param position Die Position der neuen Figur
-    * @throws NullPointerException wenn <code>position == null</code>
+    * @param context derzeitige Stellung der Figur
+    * @return Liste bedrohter Felder.
     */
-    protected Piece(final Position position) {
-        this(position, true);
-    }
+    Collection<Position> getAttacks(final Board context);
 
     /**
-    * Erzeuge eine neue Schachfigur an der übergebenen Position.
+    * Gib zurück, ob in der übergebenen Stellung diese Figur das
+    * übergebene Feld angreift.
     *
-    * @param position Die Position der neuen Figur
-    * @param isWhite  Die Farbe der neuen Figur (<code>true</code> für weiß)
-    * @throws NullPointerException wenn <code>position == null</code>
+    * @param context die aktuelle Stellung
+    * @param targetSquare das zu prüfende Feld
+    * @return <code>true</code>, falls diese Figur <code>targetSquare
+    *         </code> angreift, sonst <code>false</code>
     */
-    protected Piece(final Position position, 
-                    final boolean isWhite) 
-    {
-        this(position, isWhite, false);
-    }
+    boolean attacks(final Board context, 
+                    final Position targetSquare);
 
     /**
-    * Erzeuge eine neue Schachfigur an der übergebenen Position.
+    * Gib die Liste möglicher Züge zurück.
     *
-    * @param position Die Position der neuen Figur
-    * @param isWhite  Die Farbe der neuen Figur (<code>true</code> für weiß)
-    * @param hasMoved Ob die Figur bereits bewegt wurde.
-    * @throws NullPointerException wenn <code>position == null</code>
+    * @param context die aktuelle Stellung
+    * @return ein <code>Collection<code> aller möglichen Züge
+    *         in der Stellung
     */
-    protected Piece(final Position position, 
-                    final boolean isWhite, 
-                    final boolean hasMoved) 
-    {
-        this.setPosition(position);
-        this.isWhite  = isWhite;
-        this.hasMoved = hasMoved;
-    }
+    Collection<Move> getMoves(final Board context);
 
     /**
-    * Gib die aktuelle Position der Figur aus.
+    * Gib zurück, ob in der übergebenen Stellung diese Figur auf
+    * das übergebene Feld ziehen kann
     *
-    * @return die aktuelle Position der Figur
-    */
-    public Position getPosition() {
-        return this.position;
-    }
-
-    /**
-    * Lege die Position der Figur fest.
-    *
-    * @param newPosition neue Position der Figur
-    */
-    public void setPosition(final Position newPosition) {
-        if ( newPosition == null ) {
-            throw new NullPointerException();
-        }
-        this.position = newPosition;
-    }
-
-    /**
-    * Gib die Farbe der Figur aus.
-    *
-    * @return <code>true</code> für weiß, <code>false</code> für schwarz
+    * @return <code>true</code>, falls die Figur auf das Feld ziehen
+    *         kann, sonst false
     */ 
-    public boolean isWhite() {
-        return this.isWhite;
-    }
+    boolean canMoveTo(final Board context, 
+                      final Position targetSquare);
+
+    /**
+    * Gib die eindeutige Identifikationsnummer dieser Figurart zurück.
+    *
+    * @return ID dieser Figurenart
+    */
+    int id();
+
+    /**
+    * Gib zurück, ob die Figur weiß ist.
+    *
+    * @return <code>true</code> falls die Figur weiß ist,
+    *         sonst <code>false</code>
+    */
+    boolean isWhite();
 
     /**
     * Lege die Farbe der Figur fest.
     *
-    * @param isWhite Farbe der Figur. <code>true</code> für weiß, 
-    *                <code>false</code> für schwarz
+    * Binär kodiert, <code>true</code> steht für weiß, 
+    * <code>false</code> für schwarz.
+    *
+    * @param isWhite Farbe der Figur
     */
-    public void setColor(final boolean isWhite) {
-        this.isWhite = isWhite;
-    }
+    void setIsWhite(final boolean isWhite);
 
     /**
-    * Gib aus, ob die Figur bewegt wurde.
+    * Gib zurück, ob die Figur bereits bewegt wurde.
     *
-    * @return <code>true</code> wenn die Figur bewegt wurde,
+    * @return <code>true</code> falls die Figur bewegt wurde,
     *         sonst <code>false</code>
     */
-    public boolean hasMoved() {
-        return this.hasMoved;
-    }
-    
+    boolean hasMoved();
+
     /**
     * Lege fest, ob die Figur bewegt wurde.
     *
-    * @param hasMoved ob die Figur bewegt wurde.
+    * @param hasMoved <code>true</code> falls die Figur bereits gezogen
+    *                 wurde, sonst <code>false</code>
     */
-    public void setHasMoved(final boolean hasMoved) {
-        this.hasMoved = hasMoved;
-    }
+    void setHasMoved(final boolean hasMoved);
 
     /**
-    * Bewege die Figur an die übergebene Position.
+    * Gib die aktuelle Position der Figur aus.
     *
-    * @param  targetPosition Zielposition der Figur
-    * @param  context        Aktuelle Stellung des Schachbretts
-    * @return eine Kopie dieser Figur an der übergebenen Position
-    * @throws InvalidMove wenn die Figur nicht auf das übergebene 
-    *                     Feld ziehen kann
+    * @return das Feld, auf dem die Figur derzeit steht.
     */
-    public Piece move(final Position targetPosition,final Board context) {
-        if (targetPosition == null)
-            throw new NullPointerException();
-        Piece target = this.clone();
-        if ( !target.canMoveTo(targetPosition, context) )
-            throw new InvalidMove();
-        
-        target.setPosition( targetPosition );
-        target.setHasMoved( true );
-        return target;
-    }
+    Position getPosition();
 
     /**
-    * Gib aus, ob ein Zug auf das übergebene Feld für eine 
-    * Stellung möglich ist.
+    * Lege die Position dieser Figur fest.
     *
-    * @param  targetPosition Zielposition der Figur
-    * @param  context        Aktuelle Stellung des Schachbretts
-    * @return <code>true</code> wenn der Zug möglich ist, sonst
-    *         <code>false</code>
+    * @param newPosition Zielfeld der Figur
     */
-    public boolean canMoveTo(final Position targetPosition, 
-                             final Board context) 
-    {
-        if (targetPosition == null || !targetPosition.isValid())
-            return false;
-        Collection<Position> validMoves = getValidMoves(context);
-        return validMoves != null 
-            && validMoves.contains(targetPosition);
-    }
-
-    public boolean attacks(final Position targetPosition,
-                           final Board context)
-    {
-        return canMoveTo(targetPosition, context);
-    }
+    void setPosition(final Position newPosition);
 
     /**
-    * Erzeuge einen Hashwert aus dieser Figur.
+    * Gib das Kürzel der Figur aus, wie es in einem FEN-String erscheint.
     *
-    * @return Hashwert dieser Figur
+    * @return FEN-Kürzel der Figur.
     */
-    public int hashCode() {
-        int hash = 0;
-        hash += getName().hashCode() * 17;
-        hash += getPosition().hashCode() * 13;
-        hash += hash + (isWhite() ? 23 : 19);
-        hash *= (hash < 0 ? -1 : 1);
-        return hash;
-    }
+    char fenShort();
 
     /**
-    * Prüfe, ob das übergebe Objekt gleich dieser Figur ist.
+    * Kopiere diese Figur.
     *
-    * @param other das zu prüfende Objekt.
-    * @return <code>true</code> wenn das übergebene Objekt eine Figur
-    *         gleich dieser ist, sonst <code>false</code>
+    * @return eine Kopie dieser Figur
     */
-    public boolean equals(final Object other) {
-        if (other == null)
-            return false;
-
-        try {
-            Piece p = (Piece) other;
-            return getClass().isInstance(p)
-                && p.getPosition().equals(getPosition())
-                && p.isWhite()  == isWhite()
-                && p.hasMoved() == hasMoved();
-
-        } catch (ClassCastException cce) {
-            return false;
-        }
-    }
+    Piece clone();
 
     /**
-    * Erzeuge eine Kopie dieser Figur.
+    * Ziehe diese Figur auf das übergebene Feld.
     *
-    * @return eine Kopie dieser Figur.
+    * @param targetSquare Zielfeld.
+    * @return die gezogene Figur
     */
-    public abstract Piece clone();
+    Piece move(final Position targetSquare);
 
     /**
-    * Gib die Bezeichnung der Figur aus.
+    * Gib den Zobrist-Hash dieser Figur zurück.
     *
-    * @return die Bezeichnung der Figur
+    * @return Hashwert der Figur
     */
-    public abstract String getName();
+    long hash();
 
-    /**
-    * Gib das Kürzel der Figur in algebraischer Notation aus.
-    *
-    * @return Figurkürzel in algebraischer Notation
-    */
-    public abstract String toSAN();
-
-    /**
-    * Gib das Kürzel der Figur für FEN-Notation aus.
-    *
-    * Großschreibung steht für weiße, Kleinschreibung für schwarze Figuren
-    *
-    * @return Figurkürzel in FEN-Notation
-    */
-    public String toFEN() {
-        return (isWhite() ? getFEN().toUpperCase() : getFEN().toLowerCase());
-    }
-
-    /**
-    * Gib den Buchstaben der Figur für FEN-Notation aus.
-    *
-    * @return Buchstabe für die Figur in FEN-Notation
-    */
-    protected String getFEN() {
-        return toSAN();
-    }
-
-    /**
-    * Gib eine Beschreibung der Figur aus.
-    */
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getName()).append(" ")
-          .append( isWhite ? "w" : "b" ).append(" ")
-          .append(getPosition());
-        return sb.toString();
-    }
-
-    /**
-    * Gib eine Liste aller möglichen Züge zurück.
-    *
-    * TODO: Stellung prüfen. Zur Zeit wird ein leeres Brett angenommen.
-    *
-    * @return Liste aller möglichen Züge für die übergebene Stellung 
-    */
-    public abstract Collection<Position> getValidMoves(Board context);
+    String toString();
 }

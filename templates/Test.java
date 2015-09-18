@@ -17,7 +17,7 @@ import org.junit.*;
 *
 * @author %AUTHOR
 */
-public class %CLASSNAMETest { 
+public class %CLASSNAME { 
 
     // Testvariablen
 

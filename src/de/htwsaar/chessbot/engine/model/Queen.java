@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Die Dame.
 *
@@ -15,62 +17,74 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Queen extends Piece {
-   
-    public Queen() {
-        super();
+public class Queen 
+     extends AbstractPiece
+{
+    public static final int ID = 1;
+
+    public int id() {
+        return ID;
     }
 
-    public Queen(final Position position) {
-        super(position);
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
+        
+        Position p0 = getPosition();
+        Position pt;
+        Piece pc;
+        for (byte dx = -1; dx <= 1; dx += 1) {
+            for (byte dy = -1; dy <= 1; dy += 1) {
+                if (dx == 0 && dy == 0) 
+                    continue;
+                pt = p0;
+                while (true) {
+                    pt = pt.transpose(dx,dy);
+                    if (!pt.isValid())
+                        break;
+
+                    attacks.add(pt);
+                    if (!context.isFree(pt)) {
+                        break;
+                    }
+                }
+            }
+        }
+        return attacks;
     }
 
-    public Queen(final Position position, 
-                 final boolean isWhite) 
-    {
-        super(position, isWhite);
-    }
-
-    public Queen(final Position position, 
-                 final boolean isWhite,
-                 final boolean hasMoved) 
-    {
-        super(position, isWhite);
-    }
-
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> result = new ArrayList<Position>();
-        Bishop b = new Bishop(getPosition(), isWhite());
-        Rook   r = new Rook(getPosition(), isWhite(), true);
-        result.addAll(b.getValidMoves(context));
-        result.addAll(r.getValidMoves(context));
-        return result;
-    }
-
-    public final String getName() {
-        return "Dame";
-    }
-
-    public final String toSAN() {
-        return "Q";
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p)) {
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
+                }
+                moves.add( MV(myPos,p) );
+            }
+        }
+        return moves;
     }
     
-    public boolean equals(final Object other) {
-        if (other == null) 
-            return false;
-        if (other == this)
-            return true;
-
-        try {
-            Queen q = (Queen) other;
-            return q.getPosition().equals(getPosition())
-                && q.isWhite() == isWhite();
-        } catch (ClassCastException cce) {
-            return false;
-        }
+    protected char fen() {
+        return 'Q';
     }
 
-    public final Queen clone() {
-        return new Queen(getPosition().clone(), isWhite());
+    /**
+    * Gib den Hashwert dieses Objekts aus.
+    *
+    * @return Hashwert dieses Objekts.
+    */
+    public int hashCode() {
+        int hash = 0;
+        // Berechnungen
+
+        return hash;
     }
+
+    protected Queen create() {
+        return new Queen();
+    }
+
 }

@@ -1,7 +1,9 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.*;
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 
+import java.util.Collection;
+import java.util.ArrayList;
 /**
 * Der Läufer.
 * <ul>
@@ -12,78 +14,70 @@ import java.util.*;
 * @author Kevin Alberts
 * @author Johannes Haupt
 */
-public final class Bishop extends Piece {
-    
-    public Bishop() {
-        super();
+public class Bishop
+     extends AbstractPiece
+{
+    public static final int ID = 4;
+
+    public int id() {
+        return ID;
     }
 
-    public Bishop(final Position position) {
-        super(position);
-    }
-
-    public Bishop(final Position position, 
-                  final boolean isWhite) 
-    {
-        super(position, isWhite);
-    }
-
-    public Bishop(final Position position,
-                  final boolean isWhite, 
-                  final boolean hasMoved) 
-    {
-        super(position, isWhite);
-    }
-
-    public final Collection<Position> getValidMoves(final Board context) {
-        Collection<Position> result =  new ArrayList<Position>();
-        Position p; 
-        for (int i = -1; i <= 1; i += 2) {
-            for (int j = -1; j <= 1; j += 2) {
-                int c = 1;
-                p = getPosition().transpose(c*i, c*j);
-                while(p.existsOn(context)) 
-                {
-                    if (context.isFree(p))
-                       result.add(p);
-                    else if (context.pieceAt(p).isWhite() != isWhite()) {
-                        result.add(p);
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
+        
+        Position p0 = getPosition();
+        Position pt;
+        for (int dx = -1; dx <= 1; dx += 2) {
+            for (int dy = -1; dy <= 1; dy += 2) {
+                pt = p0;
+                while (true) {
+                    pt = pt.transpose(dx, dy);
+                    if (!pt.isValid())
                         break;
-                    } else {
+                    attacks.add(pt);
+                    if (!context.isFree(pt)) {
                         break;
                     }
-                    c += 1;
-                    p = getPosition().transpose(c*i, c*j);
-               } 
+                }
             }
         }
-        return result;
+        return attacks;
     }
 
-    public final String getName() {
-        return "Läufer";
-    }
-
-    public final String toSAN() {
-        return "B";
-    }
-
-    public boolean equals(final Object other) {
-        if (other == null) 
-            return false;
-        if (other == this)
-            return true;
-
-        try {
-            Bishop b = (Bishop) other;
-            return b.getPosition().equals(getPosition())
-                && b.isWhite() == isWhite();
-        } catch (ClassCastException cce) {
-            return false;
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        if (context.isWhiteAtMove() == isWhite()) {
+            Position myPos = getPosition();
+            for (Position p : getAttacks(context)) {
+                if (!context.isFree(p))
+                    if (context.getPieceAt(p).isWhite() == isWhite())
+                        continue;
+            
+                moves.add( MV(myPos,p) );
+            }
         }
+        return moves;
     }
 
-    public final Bishop clone() {
-        return new Bishop(getPosition().clone(), isWhite());
+    protected char fen() {
+        return 'B';
     }
+
+    /**
+    * Gib den Hashwert dieses Objekts aus.
+    *
+    * @return Hashwert dieses Objekts.
+    */
+    public int hashCode() {
+        int hash = 0;
+        // Berechnungen
+
+        return hash;
+    }
+
+    protected Bishop create() {
+        return new Bishop();
+    }
+
 }
