@@ -125,6 +125,7 @@ public class GameTree {
 		int newLayerSize = layer.size();
 		String debug = "## cut %d of %d (%d remain) : %d -> %d";
 		System.out.println(String.format(debug, cutNodes, childCount, newChildCount, layerSize, newLayerSize));
+		//Hello World
 	}
 
 	public static final class Node
