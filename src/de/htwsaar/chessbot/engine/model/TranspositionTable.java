@@ -6,7 +6,10 @@ import java.util.Map;
 public class TranspositionTable {
 	
 	private static TranspositionTable INSTANCE;
-	private static final int BITS_PER_ENTRY = 6 * 64 + 6 * 32 + 12 * 64;
+	private static final int BITS_PER_ENTRY = 
+			6 * 64 + //6 longs | 8 byte
+			6 * 32 + //6 ints | 4 byte
+			12 * 64; //12 Objekte | 8 byte
 	
 	public static TranspositionTable getInstance() {
 		if(INSTANCE == null) {
@@ -54,7 +57,7 @@ public class TranspositionTable {
 			depthTable.put(hash, depth);
 			accessTable.put(hash, 0);
 		}
-		System.out.println("info hashfull " + getMemoryFillingRate());
+		UCISender.getInstance().sendToGUI("info hashfull " + getMemoryFillingRate());
 	}
 	
 	private void checkFreeMemory() {

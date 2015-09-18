@@ -136,7 +136,7 @@ public class AlphaBetaSearch extends Thread {
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
 	private void sendInfo(Move currentMove, int currentScore) {
 		long timeSpent = System.currentTimeMillis() - this.startTime;
-		System.out.println(
+		UCISender.getInstance().sendToGUI(
 				"info currmove " + currentMove +
 				" currmovenumber " + this.currentMoveNumber +
 				" depth " + this.currentSearchDepth +
@@ -149,7 +149,7 @@ public class AlphaBetaSearch extends Thread {
 
 	//Sendet den "besten" Zug nachdem die Suche beendet wurde
 	public void sendBestMove() {
-		System.out.println("bestmove " + this.getCurrentBestMove().toString());
+		UCISender.getInstance().sendToGUI("bestmove " + this.getCurrentBestMove().toString());
 	}
 
 	//Startet die Suche
