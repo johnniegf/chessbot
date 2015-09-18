@@ -104,7 +104,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 	
 	private int getPositionValue(Board b, Piece p) {
 		int x = getX(p);
-		int y = getY(p, b.isWhiteAtMove());
+		int y = getY(p, p.isWhite());
 		
 		if(p instanceof Pawn) {
 			return PAWN_VALUES[x][y];

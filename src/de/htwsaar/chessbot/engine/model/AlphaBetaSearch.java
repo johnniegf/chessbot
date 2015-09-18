@@ -3,8 +3,6 @@ package de.htwsaar.chessbot.engine.model;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import de.htwsaar.chessbot.engine.model.GameTree.Node;
 
@@ -19,13 +17,14 @@ public class AlphaBetaSearch extends Thread {
 
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
-				//"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN6 b - - 0 1"
+				//"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
 				);
 
 		AlphaBetaSearch alphaBetaSearch = new AlphaBetaSearch(game);
-		alphaBetaSearch.setMaxSearchDepth(100000);
-		alphaBetaSearch.setTimeLimit(2500);
-		new Thread(alphaBetaSearch).start();
+		alphaBetaSearch.setMaxSearchDepth(5);
+		alphaBetaSearch.setTimeLimit(30000);
+		alphaBetaSearch.start();
+		alphaBetaSearch.startSearch();
 	}
 
 	private Game game;
@@ -59,9 +58,9 @@ public class AlphaBetaSearch extends Thread {
 	public void setGame(Game game) {
 		this.game = game;
 	}
-	
+
 	public void startSearch() {
-		this.setExitSearch(false);
+		this.exitSearch = false;
 	}
 
 	@Override
@@ -76,15 +75,14 @@ public class AlphaBetaSearch extends Thread {
 			}
 			this.startTime = System.currentTimeMillis();
 			startAlphaBeta();
-			sendBestMove();
 		}
 	}
-	
+
 	public void stopSearch() {
-		this.setExitSearch(true);
+		this.exitSearch = true;
 	}
 
-	
+
 	/**
 	 * Setzt die maximale Suchtiefe für den Baum.
 	 * 
@@ -112,22 +110,12 @@ public class AlphaBetaSearch extends Thread {
 	public void setLimitedMoveList(Collection<Move> moveList) {
 		this.limitedMoveList = moveList;
 	}
-	
+
 	/**
 	 * Hebt die Zuglistenbeschraenkung auf.
 	 */
 	public void resetLimitMoveList() {
 		this.limitedMoveList = null;
-	}
-
-	/**
-	 * Setzt eine Flag, die den Algorithmus dazu bewegt, so bald
-	 * wie moeglich abzubrechen.
-	 * 
-	 * @param exitSearch
-	 */
-	public synchronized void setExitSearch(boolean exitSearch) {
-		this.exitSearch = exitSearch;
 	}
 
 	/**
@@ -147,7 +135,7 @@ public class AlphaBetaSearch extends Thread {
 	}
 
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
-	private void sendInfo(Move currentMove) {
+	private void sendInfo(Move currentMove, int currentScore) {
 		long timeSpent = System.currentTimeMillis() - this.startTime;
 		System.out.println(
 				"info currmove " + currentMove +
@@ -155,15 +143,14 @@ public class AlphaBetaSearch extends Thread {
 				" depth " + this.currentSearchDepth +
 				" time " + timeSpent +
 				" nps " + (int)this.nodesPerSecond +
-				" nodes " +  this.nodesSearched
-				//" score cp " + this.currentBestScore
+				" nodes " +  this.nodesSearched +
+				" score cp " + currentScore
 				);
 	}
 
 	//Sendet den "besten" Zug nachdem die Suche beendet wurde
 	public void sendBestMove() {
 		System.out.println("bestmove " + this.getCurrentBestMove().toString());
-		System.out.println("score = " + this.currentBestScore);
 	}
 
 	//Startet die Suche
@@ -177,131 +164,106 @@ public class AlphaBetaSearch extends Thread {
 		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
-			alphaBeta(i, gameTree.getRoot(), startMax,
-					Integer.MIN_VALUE, Integer.MAX_VALUE);
+			this.gameTree.deepen(i);
+			this.gameTree.printTreeSize();
+			alphaBeta(gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
 
 			this.nodesPerSecond = 
 					(1000d * this.nodesSearched) / (System.currentTimeMillis() - this.startTime);
 		}
+
+		sendBestMove();
 		this.exitSearch = true;
 	}
 
-	//Rekursion
-	private void alphaBeta(final int depth, Node currentNode,
-			boolean isMax, int alpha, int beta) {
 
-		//Zeitlimit ueberschritten -> abbrechen
+	private void alphaBeta(Node n, int alpha, int beta, int depth, boolean max) {
+
 		if(this.maxTime > 0) {
 			if(System.currentTimeMillis() - this.startTime >= this.maxTime) {
 				this.exitSearch = true;
 			}
 		}
 
-		//Abbruchbedingung erfuellt -> zurueckgeben
 		if(this.exitSearch) {
 			return;
 		}
 
-		//Zaehler der untersuchten Knoten erhoehen
 		this.nodesSearched++;
 
-		//Falls Blatt wird die Stellung bewertet
-		if(depth == 0) {
-			currentNode.setScore(
-					gameTree.getEvaluationFunction().evaluate(currentNode.getBoard()));
-		} else {
-			//Andernfalls Min-Maxing der Kindknoten
-			if(isMax) {
-				currentNode.setScore(Integer.MIN_VALUE);
-			} else {
-				currentNode.setScore(Integer.MAX_VALUE);
+		Board board = n.getBoard();
+		TranspositionTable tTable = TranspositionTable.getInstance();
+
+		if(tTable.contains(board.hash(), max) && tTable.getDepth(board.hash(), max) >= depth) {
+			n.setScore(tTable.getScore(board.hash(), max));
+			return;
+		} else if(n.getChildren().isEmpty()) {
+			n.setScore(this.gameTree.getEvaluationFunction().evaluate(board));
+			return;
+		}
+
+		if(n.isRoot() && n.childCount() == 1) {
+			bestMove(((ArrayList<Move>)n.getBoard().getMoveList()).get(0), 0);
+			return;
+		}
+
+		
+		for(Node child : n.getChildren()) {
+			
+			if(this.exitSearch) {
+				break;
+			}
+			
+			Move move = child.getLeadsTo();
+			
+			if(n.isRoot() && this.limitedMoveList != null) {
+				if(!this.limitedMoveList.contains(move)) {
+					continue;
+				}
 			}
 
-			List<Move> moveList;
-			//Falls in der Wurzel und beschraenkte MoveList, wird diese genommen statt
-			//der Liste aller moeglichen Zuege
-			if(currentNode == gameTree.getRoot() && this.limitedMoveList != null) {
-				moveList = new ArrayList<Move>();
-				moveList.addAll(limitedMoveList);
-			} else {
-				moveList = (List<Move>) currentNode.getBoard().getMoveList();
+			if(n.isRoot()) {
+				this.currentMoveNumber++;
 			}
-			//Kindknoten der Wurzel werden gemischt, damit im Falle der Gleichwertigkeit
-			//Nicht immer der erste Zug genommen wird
-			if(currentNode == gameTree.getRoot()) {
-				//Collections.shuffle(moveList);
-			}
-			//Fuer jeden Zug aus der MoveList den Kindknoten untersuchen
-			for(Move move : moveList) {
-				//Falls Abbruchbedingung erfuellt ist, wird Schleife verlassen
-				if(this.exitSearch) {
-					break;
-				}
-				if(currentNode == gameTree.getRoot()) {
-					currentMoveNumber++;
-				}
-				if(this.currentBestMove == null && currentNode == gameTree.getRoot()) {
-					this.currentBestMove = move;
-				}
+			
+			alphaBeta(child, alpha, beta, depth - 1, !max);
 
-				//Stellung erzeugen und Zobrist-Hash errechnen
-				Board board = move.execute(currentNode.getBoard());
-				long hash = board.hash();
-				Node childNode = null;
-				for(Node n : currentNode.getChildren()) {
-					if(n.getBoard().equals(board)) {
-						childNode = n;
+			//sendInfo(move, this.gameTree.getEvaluationFunction().evaluate(move.execute(board)));
+			
+			if(max) {
+
+				if(child.getScore() > alpha) {
+					alpha = child.getScore();
+					if(alpha >= beta) {
+						n.setScore(alpha);
+						tTable.put(n.getBoard().hash(), depth, alpha, max);
+						this.gameTree.cutoff(n, child, depth);
 						break;
 					}
-				}
-				if(childNode == null) {
-					childNode = new Node(board);
-					currentNode.addChild(childNode);
-				}
-				//Eintrag in der TranspositionTable enthalten -> Bewertung setzen
-				//und viiiiel Zeit sparen
-				if(TranspositionTable.getInstance().contains(hash, isMax) &&
-						TranspositionTable.getInstance().getDepth(hash, isMax) >= depth) {
-					childNode.setScore(TranspositionTable.getInstance().getScore(hash, isMax));
-				} else {
-					//Andernfalls eben bis zur Suchtiefe durchrechnen
-					alphaBeta(depth - 1, childNode, !isMax, alpha, beta);
+					if(n.isRoot()) {
+						bestMove(move, alpha);
+					}
 				}
 
-				if(isMax) {
-					if(childNode.getScore() > beta) {
-						continue;
+			} else {
+
+				if(child.getScore() < beta) {
+					beta = child.getScore();
+					if(beta <= alpha) {
+						n.setScore(beta);
+						tTable.put(n.getBoard().hash(), depth, beta, max);
+						this.gameTree.cutoff(n, child, depth);
+						break;
 					}
-					if(childNode.getScore() > currentNode.getScore()) {
-						currentNode.setScore(childNode.getScore());
-						if(currentNode == gameTree.getRoot()) {
-							bestMove(move, currentNode.getScore());
-						}
-						if(currentNode.getScore() > alpha) {
-							alpha = currentNode.getScore();
-						}
-					}
-				} else {
-					if(childNode.getScore() < alpha) {
-						continue;
-					}
-					if(childNode.getScore() < currentNode.getScore()) {
-						currentNode.setScore(childNode.getScore());
-						if(currentNode == gameTree.getRoot()) {
-							bestMove(move, currentNode.getScore());
-						}
-						if(currentNode.getScore() < beta) {
-							beta = currentNode.getScore();
-						}
+					if(n.isRoot()) {
+						bestMove(move, beta);
 					}
 				}
-				
-				//Errechnete Bewertung in der TranspositionTable speichern
-				TranspositionTable.getInstance().put(hash, depth, currentNode.getScore(), isMax);
 
-				//Infos fuer die GUI senden
-				sendInfo(move);
 			}
+
 		}
+		
 	}
+
 }
