@@ -36,7 +36,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 	
 	@Override
 	public int evaluate(Board b) {
-		return super.evaluate(b) - calculate(b) - new RookEvaluator().evaluate(b);
+		return calculate(b);
 	}
 	
 	private int calculate(Board b) {
