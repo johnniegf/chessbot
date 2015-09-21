@@ -7,6 +7,9 @@ package de.htwsaar.chessbot.engine.model;
  */
 public class MaterialEvaluator extends EvaluationFunction{
 
+	/**
+	 * wertet die Figuren auf dem Schachbrett basierend auf ihren Werten aus.
+	 */
 	@Override
 	public int evaluate(Board b) {
 		int materialCount = 0;
