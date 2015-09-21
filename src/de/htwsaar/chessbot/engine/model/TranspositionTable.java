@@ -33,11 +33,6 @@ public class TranspositionTable {
 	
 	
 	public void put(long hash, int depth, int nodeScore, boolean max) {
-		/**
-		String s = "hash: %d depth: %d score %d %s";
-		System.out.println(String.format(s, hash, depth, nodeScore, max ? "max" : "min"));
-		**/
-		
 		HashMap<Long, Integer> scoreTable = max ? this.scoreMaxTable : this.scoreMinTable;
 		HashMap<Long, Integer> depthTable = max ? this.depthMaxTable : this.depthMinTable;
 		HashMap<Long, Integer> accessTable = max ? this.accessMaxTable : this.accessMinTable;
