@@ -127,6 +127,7 @@ public class Engine {
 	 */
 	public void quit() {
 		moveSearcher.interrupt();
+		Logger.getInstance().close();
 		System.exit(0);
 	}
 	

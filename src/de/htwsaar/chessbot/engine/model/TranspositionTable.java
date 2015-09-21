@@ -58,6 +58,7 @@ public class TranspositionTable {
 			accessTable.put(hash, 0);
 		}
 		UCISender.getInstance().sendToGUI("info hashfull " + getMemoryFillingRate());
+		UCISender.getInstance().sendDebug("Added hash entry, now " + getTableSize() + " entries total");
 	}
 	
 	private void checkFreeMemory() {

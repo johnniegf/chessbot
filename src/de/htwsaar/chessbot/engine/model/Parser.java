@@ -160,7 +160,7 @@ public class Parser {
 	}
 	
 	private static void sendCmd(String cmd) {
-        System.out.println(cmd);
+        UCISender.getInstance().sendToGUI(cmd);
     }
  
     private static void setUCIParameter() {
