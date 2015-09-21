@@ -79,6 +79,7 @@ public class Parser {
 		List<Move> moves = null;
 		int depth = 0;
 		boolean infinite =  false;
+		engine.getSearcher().setTimeLimit(0);
 		String[] cmds = line.split(" ");
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
@@ -120,9 +121,10 @@ public class Parser {
 		if(moves != null && depth != 0){
 			engine.searchmoves(moves, depth);
 		}
-		else if(moves != null){engine.searchmoves(moves, 2000);}
+		else if(moves != null){engine.searchmoves(moves, 5);}
 		else if(depth != 0){engine.search(depth);}
 		else if(infinite)engine.search(Integer.MAX_VALUE);
+		else engine.search(3);
 	}
 	
 	
@@ -158,7 +160,7 @@ public class Parser {
 	}
 	
 	private static void sendCmd(String cmd) {
-        System.out.println(cmd);
+        UCISender.getInstance().sendToGUI(cmd);
     }
  
     private static void setUCIParameter() {

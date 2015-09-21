@@ -17,12 +17,11 @@ public class AlphaBetaSearch extends Thread {
 
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
-				//"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
+				"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
 				);
 
 		AlphaBetaSearch alphaBetaSearch = new AlphaBetaSearch(game);
-		alphaBetaSearch.setMaxSearchDepth(5);
-		alphaBetaSearch.setTimeLimit(30000);
+		alphaBetaSearch.setMaxSearchDepth(6);
 		alphaBetaSearch.start();
 		alphaBetaSearch.startSearch();
 	}
@@ -137,7 +136,7 @@ public class AlphaBetaSearch extends Thread {
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
 	private void sendInfo(Move currentMove, int currentScore) {
 		long timeSpent = System.currentTimeMillis() - this.startTime;
-		System.out.println(
+		UCISender.getInstance().sendToGUI(
 				"info currmove " + currentMove +
 				" currmovenumber " + this.currentMoveNumber +
 				" depth " + this.currentSearchDepth +
@@ -150,7 +149,7 @@ public class AlphaBetaSearch extends Thread {
 
 	//Sendet den "besten" Zug nachdem die Suche beendet wurde
 	public void sendBestMove() {
-		System.out.println("bestmove " + this.getCurrentBestMove().toString());
+		UCISender.getInstance().sendToGUI("bestmove " + this.getCurrentBestMove().toString());
 	}
 
 	//Startet die Suche
@@ -164,8 +163,7 @@ public class AlphaBetaSearch extends Thread {
 		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
-			this.gameTree.deepen(i);
-			this.gameTree.printTreeSize();
+			this.gameTree.deepen(i, (i % 2 != 0) ? !startMax : startMax);
 			alphaBeta(gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
 
 			this.nodesPerSecond = 
@@ -228,7 +226,7 @@ public class AlphaBetaSearch extends Thread {
 			
 			alphaBeta(child, alpha, beta, depth - 1, !max);
 
-			//sendInfo(move, this.gameTree.getEvaluationFunction().evaluate(move.execute(board)));
+			sendInfo(move, this.gameTree.getEvaluationFunction().evaluate(move.execute(board)));
 			
 			if(max) {
 
@@ -237,7 +235,7 @@ public class AlphaBetaSearch extends Thread {
 					if(alpha >= beta) {
 						n.setScore(alpha);
 						tTable.put(n.getBoard().hash(), depth, alpha, max);
-						this.gameTree.cutoff(n, child, depth);
+						this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
 						break;
 					}
 					if(n.isRoot()) {
@@ -252,7 +250,7 @@ public class AlphaBetaSearch extends Thread {
 					if(beta <= alpha) {
 						n.setScore(beta);
 						tTable.put(n.getBoard().hash(), depth, beta, max);
-						this.gameTree.cutoff(n, child, depth);
+						this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
 						break;
 					}
 					if(n.isRoot()) {

@@ -1,14 +1,15 @@
 package de.htwsaar.chessbot.engine.model;
  
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.plaf.SliderUI;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
  
 /**
 *   Universal Chess Interface
@@ -34,6 +35,7 @@ public class UCI  {
     private static final String UCI = "uci";
     private static final String READY = "isready";
     private static final String NEWGAME = "ucinewgame";
+    
      
     /**
      * startet die Endlosschleife und kann dauerhaft Kommandos empfangen.
@@ -50,7 +52,7 @@ public class UCI  {
             ioe.printStackTrace();
         }
     }
-     
+    
     /**
      * liest die Ausgabe und sendet diese an den Parser weiter,
      * wenn ein gueltiges Kommando dabei war.
@@ -59,8 +61,11 @@ public class UCI  {
     public void start() throws IOException{
         while(true) {
             cmd = engineIn.readLine();
+            Logger.getInstance().log(cmd, Logger.GUI_TO_ENGINE);
+            
             if (cmd.startsWith("quit"))
                 System.exit(0);
+            
             
             String [] result = cmd.split(" ");
             for(int i = 0; i < result.length; i++) {

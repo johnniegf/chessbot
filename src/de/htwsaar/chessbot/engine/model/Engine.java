@@ -3,9 +3,6 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.List;
 
 /**
- * Enthaelt Main-Methode des Programms.
- * erzeugt Game,UCI und AlphaBetaSearch-Objekt.
- * bekommt verarbeitete UCI-Kommandos vom Parser gesendet und fuehrt diese aus.
  * 
  * @author David Holzapfel
  * @author Dominik Becker
@@ -18,14 +15,10 @@ public class Engine {
 	private AlphaBetaSearch moveSearcher;
 	private UCI uci;
 	
-	/**
-	 * Konstruktor 
-	 * erzeugt Game,UCI und AlphaBetaSearch
-	 */
 	public Engine() {
 		this.game = new Game();
 		moveSearcher = new AlphaBetaSearch(game);
-		moveSearcher.setTimeLimit(5000);
+		moveSearcher.start();
 		uci = new UCI(this);
 	}
 	
@@ -33,26 +26,14 @@ public class Engine {
 	//= uci
 	//======================================
 	
-	/**
-	 * gibt das aktuelle Spiel zurueck.
-	 * @return game
-	 */
 	public Game getGame() {
 		return this.game;
 	}
 	
-	/**
-	 * gibt den aktuellen AlphaBetaSearcher zurueck.
-	 * @return moveSearcher
-	 */
 	public AlphaBetaSearch getSearcher() {
 		return moveSearcher;
 	}
 	
-	/**
-	 * wird aufgerufen, wenn von der GUI "uci" gesendet wird. 
-	 * gibt den Namen, Author und uciok auf der Standardausgabe aus
-	 */
 	public void uci() {
 		System.out.println("id name chessbot\n");
 		System.out.println("id author grpKretschmer\n");
@@ -63,7 +44,6 @@ public class Engine {
 	//= isready
 	//======================================
 	
-	//wird aufgerufen, wenn von der GUI "isready" gesendet wird.
 	public void isready() {
 		System.out.println("readyok\n");
 	}
@@ -71,14 +51,12 @@ public class Engine {
 	//======================================
 	//= newucigame
 	//======================================
-	
 	/*
-	 * wird aufgerufen, wenn von der GUI "ucinewgame" gesendet wird.
 	 * erstellt ein neues Spiel.
 	 */
 	public void newGame() {
 		this.game = new Game();
-		this.moveSearcher = new AlphaBetaSearch(game);
+		this.moveSearcher.setGame(game);
 	}
 	
 	
@@ -119,37 +97,24 @@ public class Engine {
 	//= go
 	//========================================
 	
-	/**
-	 * AlphaBetaSearch sucht bis zur mitgegebenen Tiefe.
-	 * @param depth
-	 */
 	public void search(int depth) {
 		moveSearcher.resetLimitMoveList();
 		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.run();
+		moveSearcher.startSearch();
 	}
 	
-	/**
-	 * sucht bis zur mitgegebenen Tiefe.
-	 * sucht nur die mitgegebenen Zuege durch.
-	 * @param moves
-	 * @param depth
-	 */
 	public void searchmoves(List<Move> moves, int  depth) {
 		moveSearcher.setMaxSearchDepth(depth);
 		moveSearcher.setLimitedMoveList(moves);
-		moveSearcher.run();
+		moveSearcher.startSearch();
 	}
 	
 	//========================================
 	//= stop
 	//========================================
 	
-	/**
-	 * stoppt die Suche.
-	 */
 	public void stop() {
-		moveSearcher.stop();
+		moveSearcher.stopSearch();
 	}
 	
 	
@@ -161,6 +126,8 @@ public class Engine {
 	 * beendet das Programm
 	 */
 	public void quit() {
+		moveSearcher.interrupt();
+		Logger.getInstance().close();
 		System.exit(0);
 	}
 	
@@ -171,5 +138,7 @@ public class Engine {
 		//UCIManager anlegen
 		new Engine();
 	}
+	
+	
 	
 }

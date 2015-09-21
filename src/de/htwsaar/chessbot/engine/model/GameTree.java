@@ -56,14 +56,16 @@ public class GameTree {
 	
 	public void printTreeSize() {
 		for(List<Node> layer : layers) {
-			System.out.print(layer.size() + "-");
+			UCISender.getInstance().sendDebug(layer.size() + "-");
 		}
-		System.out.println();
 	}
 
-	public void deepen(final int toDepth) {
+	public void deepen(final int toDepth, boolean max) {
+		int nodes = 0;
+		long time = System.currentTimeMillis();
 		if (toDepth >= this.layers.size()) {
-			deepen(toDepth - 1);
+			deepen(toDepth - 1, !max);
+			UCISender.getInstance().sendToGUI("info string Start deepening to layer " + toDepth + "...");
 			
 			Board b;
 			ArrayList<Node> layer = new ArrayList<Node>();
@@ -74,11 +76,18 @@ public class GameTree {
 					appendNode.setLeadsTo(m);
 					n.addChild(appendNode);
 					layer.add(appendNode);
+					nodes++;
 				}
 				Collections.sort(n.getChildren());
+				if(max) {
+					Collections.reverse(n.getChildren());
+				}
 			}
 			this.layers.add(layer);
 		}
+		
+		time = System.currentTimeMillis() - time;
+		UCISender.getInstance().sendToGUI("info string Done. (" + nodes + " nodes in " + time + "ms)");
 	}
 
 	public List<Node> getLayer(int atDepth) {
@@ -124,7 +133,7 @@ public class GameTree {
 		int newChildCount = parent.childCount();
 		int newLayerSize = layer.size();
 		String debug = "## cut %d of %d (%d remain) : %d -> %d";
-		System.out.println(String.format(debug, cutNodes, childCount, newChildCount, layerSize, newLayerSize));
+		//UCISender.getInstance().sendDebug(String.format(debug, cutNodes, childCount, newChildCount, layerSize, newLayerSize));
 	}
 
 	public static final class Node
