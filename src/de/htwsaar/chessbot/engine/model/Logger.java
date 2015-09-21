@@ -26,7 +26,7 @@ public class Logger {
 	private static Logger INSTANCE;
 
 	private Writer logWriter;
-	private String logFilePath = "C:/users/david/desktop/chess.log";
+	private String logFilePath = "C:/users/david/desktop/chessbot.log";
 	private File logFile;
 	private SimpleDateFormat dateFormat;
 	private boolean loggingDisabled = false;

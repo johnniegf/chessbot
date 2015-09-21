@@ -38,7 +38,6 @@ public class TranspositionTable {
 		HashMap<Long, Integer> accessTable = max ? this.accessMaxTable : this.accessMinTable;
 		if(scoreTable.containsKey(hash)) {
 			if(depthTable.get(hash) < depth) {
-				checkFreeMemory();
 				scoreTable.remove(hash);
 				depthTable.remove(hash);
 				scoreTable.put(hash, nodeScore);
