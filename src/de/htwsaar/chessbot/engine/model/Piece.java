@@ -24,7 +24,7 @@ public interface Piece {
     * @param context derzeitige Stellung der Figur
     * @return Liste bedrohter Felder.
     */
-    Collection<Position> getAttacks(final Board context);
+    long getAttacks(final Board context);
 
     /**
     * Gib zurück, ob in der übergebenen Stellung diese Figur das

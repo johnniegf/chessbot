@@ -169,6 +169,10 @@ public final class Position
         return (file() + rank()) % 2 != 0; 
     }
 
+    public long toLong() {
+        return 1 << (hashCode()-1);
+    }
+
     public int hashCode() {
         return (MAX_FILE * (mRank-1)) + mFile;
     }
