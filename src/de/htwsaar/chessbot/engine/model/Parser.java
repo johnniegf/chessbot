@@ -124,7 +124,7 @@ public class Parser {
 		else if(moves != null){engine.searchmoves(moves, 5);}
 		else if(depth != 0){engine.search(depth);}
 		else if(infinite)engine.search(Integer.MAX_VALUE);
-		else engine.search(3);
+		else engine.search(4);
 	}
 	
 	

@@ -22,13 +22,14 @@ public class AlphaBetaSearch extends Thread {
 
 		AlphaBetaSearch alphaBetaSearch = new AlphaBetaSearch(game);
 		alphaBetaSearch.setMaxSearchDepth(6);
+		alphaBetaSearch.setTimeLimit(10000);
 		alphaBetaSearch.start();
 		alphaBetaSearch.startSearch();
 	}
 
 	private Game game;
 	private GameTree gameTree;
-	private final EvaluationFunction evalFunc = new PositionBasedEvaluator();
+	private final EvaluationFunction evalFunc = new Evaluator();
 
 	private int maxSearchDepth;
 	private int maxTime = 0;
@@ -80,7 +81,14 @@ public class AlphaBetaSearch extends Thread {
 	public void stopSearch() {
 		this.exitSearch = true;
 	}
-
+	
+	public boolean getSearchStopped() {
+		if(this.maxTime > 0 && getPassedTime() >= this.maxTime) {
+			this.exitSearch = true;
+		}
+		
+		return this.exitSearch;
+	}
 
 	/**
 	 * Setzt die maximale Suchtiefe für den Baum.
@@ -98,6 +106,10 @@ public class AlphaBetaSearch extends Thread {
 	 */
 	public void setTimeLimit(int millis) {
 		this.maxTime = millis;
+	}
+	
+	public int getPassedTime() {
+		return (int) (System.currentTimeMillis() - this.startTime);
 	}
 
 	/**
@@ -135,12 +147,11 @@ public class AlphaBetaSearch extends Thread {
 
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
 	private void sendInfo(Move currentMove, int currentScore) {
-		long timeSpent = System.currentTimeMillis() - this.startTime;
 		UCISender.getInstance().sendToGUI(
 				"info currmove " + currentMove +
 				" currmovenumber " + this.currentMoveNumber +
 				" depth " + this.currentSearchDepth +
-				" time " + timeSpent +
+				" time " + getPassedTime() +
 				" nps " + (int)this.nodesPerSecond +
 				" nodes " +  this.nodesSearched +
 				" score cp " + currentScore
@@ -163,31 +174,29 @@ public class AlphaBetaSearch extends Thread {
 		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
-			this.gameTree.deepen(i, (i % 2 != 0) ? !startMax : startMax);
+			UCISender.getInstance().sendToGUI("info string Deepening to depth " + i + "...");
+			this.gameTree.deepen(i, (i % 2 != 0) ? !startMax : startMax, this);
+			UCISender.getInstance().sendToGUI("info string Done. " + this.gameTree.getLastDeepeningStats());
 			alphaBeta(gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
 
 			this.nodesPerSecond = 
-					(1000d * this.nodesSearched) / (System.currentTimeMillis() - this.startTime);
+					(1000d * this.nodesSearched) / getPassedTime();
 		}
 
 		sendBestMove();
+		UCISender.getInstance().sendToGUI("info string Search completed in " + getPassedTime() + "ms.");
 		this.exitSearch = true;
 	}
 
 
 	private void alphaBeta(Node n, int alpha, int beta, int depth, boolean max) {
 
-		if(this.maxTime > 0) {
-			if(System.currentTimeMillis() - this.startTime >= this.maxTime) {
-				this.exitSearch = true;
-			}
-		}
-
-		if(this.exitSearch) {
+		if(getSearchStopped()) {
 			return;
 		}
 
 		this.nodesSearched++;
+		UCISender.getInstance().sendToGUI("info nodes " + this.nodesSearched);
 
 		Board board = n.getBoard();
 		TranspositionTable tTable = TranspositionTable.getInstance();

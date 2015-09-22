@@ -138,7 +138,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 				
 			}
 		malus -= specialCases(pawnCounts);
-		System.out.println("Malus Bauern: "+malus);
+		//System.out.println("Malus Bauern: "+malus);
 		return malus;
 	}
 	

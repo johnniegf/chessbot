@@ -5,10 +5,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-
-import de.htwsaar.chessbot.engine.model.GameTree.Node;
 
 /**
  * Beschreibung.
@@ -24,6 +21,13 @@ public class GameTree {
 	private EvaluationFunction mEval;
 	private Node mRoot = null;
 	private ArrayList<ArrayList<Node>> layers;
+	
+	private int deepeningCurrentLayer;
+	private int deepeningParentIndex;
+	private int deepeningChildIndex;
+	
+	private int deepeningCreatedNodes;
+	private long deepeningTime;
 
 	/**
 	 * Standardkonstruktor.
@@ -60,36 +64,60 @@ public class GameTree {
 		}
 	}
 
-	public void deepen(final int toDepth, boolean max) {
-		int nodes = 0;
+	public void deepen(final int toDepth, boolean max, AlphaBetaSearch searcher) {
+		if(searcher.getSearchStopped()) {
+			return;
+		}
+		
 		long time = System.currentTimeMillis();
+		this.deepeningTime = 0;
+		this.deepeningCreatedNodes = 0;
 		if (toDepth >= this.layers.size()) {
-			deepen(toDepth - 1, !max);
-			UCISender.getInstance().sendToGUI("info string Start deepening to layer " + toDepth + "...");
+			deepen(toDepth - 1, !max, searcher);
+			
+			this.deepeningCurrentLayer = toDepth;
+			this.deepeningParentIndex = 0;
+			this.deepeningChildIndex = 0;
 			
 			Board b;
 			ArrayList<Node> layer = new ArrayList<Node>();
 			for (Node n : getLayer(toDepth-1)) {
+				if(searcher.getSearchStopped()) {
+					break;
+				}
+				
+				this.deepeningChildIndex = 0;
+				
 				for(Move m : n.getBoard().getMoveList()) {
+					if(searcher.getSearchStopped()) {
+						break;
+					}
+					
+					UCISender.getInstance().sendDebug(
+							"d" + this.deepeningCurrentLayer +
+							" p" + this.deepeningParentIndex + " (" + n.getLeadsTo() +
+							") c" + this.deepeningChildIndex + " (" + m + ")");
 					b = m.execute(n.getBoard());
 					Node appendNode = new Node(b);
 					appendNode.setLeadsTo(m);
 					n.addChild(appendNode);
 					layer.add(appendNode);
-					nodes++;
+					this.deepeningCreatedNodes++;
+					this.deepeningChildIndex++;
 				}
 				Collections.sort(n.getChildren());
 				if(max) {
 					Collections.reverse(n.getChildren());
 				}
+				
+				this.deepeningParentIndex++;
 			}
 			this.layers.add(layer);
 		}
 		
-		time = System.currentTimeMillis() - time;
-		UCISender.getInstance().sendToGUI("info string Done. (" + nodes + " nodes in " + time + "ms)");
+		this.deepeningTime = System.currentTimeMillis() - time;
 	}
-
+	
 	public List<Node> getLayer(int atDepth) {
 		return this.layers.get(atDepth);
 	}
@@ -117,9 +145,6 @@ public class GameTree {
 		Node current;
 		int idx;
 		List<Node> layer = getLayer(parentDepth+1);
-		int cutNodes = 0;
-		int childCount = parent.childCount();
-		int layerSize = layer.size();
 		for (idx = 0; idx < parent.childCount(); idx++) {
 			current = parent.getChild(idx);
 			if (child.equals(current)) break;
@@ -128,13 +153,17 @@ public class GameTree {
 			current = parent.getChild(i);
 			parent.removeChild(i);
 			layer.remove(current);
-			cutNodes++;
 		}
-		int newChildCount = parent.childCount();
-		int newLayerSize = layer.size();
-		String debug = "## cut %d of %d (%d remain) : %d -> %d";
-		//UCISender.getInstance().sendDebug(String.format(debug, cutNodes, childCount, newChildCount, layerSize, newLayerSize));
 	}
+	
+	public String getLastDeepeningStats() {
+		return String.format("(%d nodes in %dms)",
+				this.deepeningCreatedNodes,
+				this.deepeningTime);
+	}
+	
+	
+	
 
 	public static final class Node
 	implements Comparable<Node>
