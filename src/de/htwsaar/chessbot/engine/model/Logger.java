@@ -17,10 +17,11 @@ public class Logger {
 	public static final byte ENGINE_TO_GUI = 0b0010;
 	public static final byte DEBUG = 0b0100;
 	public static final byte ERROR = 0b1000;
+	
 	private static Logger INSTANCE;
 
 	private Writer logWriter;
-	private String logFilePath = "C:/users/david/desktop/chess.log";
+	private String logFilePath = "C:/users/david/desktop/chessbot.log";
 	private File logFile;
 	private SimpleDateFormat dateFormat;
 	private boolean loggingDisabled = false;
