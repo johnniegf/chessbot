@@ -35,6 +35,7 @@ public class UCI  {
     private static final String UCI = "uci";
     private static final String READY = "isready";
     private static final String NEWGAME = "ucinewgame";
+    private static final String SETOPTION = "setoption";
     
      
     /**
@@ -87,6 +88,9 @@ public class UCI  {
             		break;
             	case NEWGAME:
             		Parser.ucinewgame(this.engine);
+            		break;
+            	case SETOPTION:
+            		Parser.setoption(cmd);
             		break;
             		
             		

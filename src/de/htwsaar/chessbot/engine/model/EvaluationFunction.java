@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import de.htwsaar.chessbot.util.Exceptions;
 /**
 * Bewertungsfunktion für Stellungen.
 *
@@ -11,26 +10,33 @@ import java.util.Map;
 * @author Johannes Haupt, Dominik Becker
 */
 public abstract class EvaluationFunction {
+	private static int[] scores;
 	
-	//Wertigkeiten der Figuren.
-	@SuppressWarnings("unchecked")
-	public static Map<Class<? extends Piece>,Integer> sPieceValues =
-				(Map<Class<? extends Piece>,Integer>) new HashMap();
+	static{
+		scores = new int[6];
+		scores[0] = (Integer)Config.getInstance().getOption("PawnScore").getValue();
+		scores[1] = (Integer)Config.getInstance().getOption("KingScore").getValue();
+		scores[2] = (Integer)Config.getInstance().getOption("QueenScore").getValue();
+		scores[3] = (Integer)Config.getInstance().getOption("KnightScore").getValue();
+		scores[4] = (Integer)Config.getInstance().getOption("BishopScore").getValue();
+		scores[5] = (Integer)Config.getInstance().getOption("RookScore").getValue();
+	}
 	
-	public static final int KING_SCORE = 1000000;
-	public static final int QUEEN_SCORE = 900;
-	public static final int PAWN_SCORE = 100;
-	public static final int KNIGHT_SCORE = 300;
-	public static final int BISHOP_SCORE = 300;
-	public static final int ROOK_SCORE = 500;
-	
-	static {
-		sPieceValues.put(King.class, KING_SCORE);
-		sPieceValues.put(Queen.class, QUEEN_SCORE);
-		sPieceValues.put(Pawn.class, PAWN_SCORE);
-		sPieceValues.put(Knight.class, KNIGHT_SCORE);
-		sPieceValues.put(Bishop.class, BISHOP_SCORE);
-		sPieceValues.put(Rook.class, ROOK_SCORE);
+	static int getPieceValue(int id) {
+		Exceptions.checkInBounds(id, "pieceId", 0, 5);
+		switch(id){
+		case King.ID:
+			return (Integer)Config.getInstance().getOption("KingScore").getValue();
+		case Pawn.ID:
+			return (Integer)Config.getInstance().getOption("PawnScore").getValue();
+		case Queen.ID:
+			return (Integer)Config.getInstance().getOption("QueenScore").getValue();
+		case Knight.ID:
+			return (Integer)Config.getInstance().getOption("KnightScore").getValue();
+		case Bishop.ID:
+			return (Integer)Config.getInstance().getOption("RookScore").getValue();
+		}
+		return -1;
 	}
 	
 

@@ -27,7 +27,7 @@ public class Logger {
 	private static Logger INSTANCE;
 
 	private Writer logWriter;
-	private String logFilePath = "C:/users/david/desktop/chessbot.log";
+	private String logFilePath = "chessbot.log";
 	private File logFile;
 	private SimpleDateFormat dateFormat;
 	private boolean loggingDisabled = false;
@@ -52,7 +52,7 @@ public class Logger {
 					new FileOutputStream(logFile), "utf-8"));
 		} catch (UnsupportedEncodingException | FileNotFoundException e) {
 			setLoggingDisabled(true);
-			UCISender.getInstance().sendError("Could not open log file. Logging disabled");
+			System.out.println("Could not open log file. Logging disabled");
 		}
 	}
 	

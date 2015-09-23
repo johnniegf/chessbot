@@ -15,6 +15,8 @@ public class Parser {
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
 	private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
+	private static final String OPTION = "setoption name (?<name>*)(?: value (?<value>*))?$";
+	private static final String OPTION_REPLACEMENT = "$name;$value";
 	
 	public static void uci() {
 		setUCIParameter();
@@ -155,6 +157,18 @@ public class Parser {
 		engine.stop();
 	}
 	
+	/**
+	 * aendert die Optionen der Engine.
+	 * @param line
+	 */
+	public static void setoption(String line) {
+		if(!line.matches(OPTION))
+			return;
+		String result = line.replaceFirst(OPTION, OPTION_REPLACEMENT);
+		String[] options = result.split(";");
+		//TODO ergebnis mit config datei vergleichen.
+	}
+	
 	public static void illegalCmd(String line) {
 		sendCmd(ILLEGALCMD+line);
 	}
@@ -166,23 +180,7 @@ public class Parser {
     private static void setUCIParameter() {
         sendCmd("id name Chessbot");
         sendCmd("id author Projektgruppe 2015 Schachengine");
-        sendCmd("option name Evaluation Table type spin default 8 min 1 max 64");
-        sendCmd("option name Pawn Table type spin default 8 min 1 max 64");
-        sendCmd("option name Write Debug Log type check default false");
-        sendCmd("option name Contempt type spin default 0 min -100 max 100");
-        sendCmd("option name Min Split Depth type spin default 0 min 0 max 12");
-        sendCmd("option name Threads type spin default 1 min 1 max 128");
-        sendCmd("option name Hash type spin default 16 min 1 max 1048576");
-        sendCmd("option name Clear Hash type button");
-        sendCmd("option name Ponder type check default false");
-        sendCmd("option name MultiPV type spin default 1 min 1 max 500");
-        sendCmd("option name Skill Level type spin default 20 min 0 max 20");
-        sendCmd("option name Move Overhead type spin default 30 min 0 max 5000");
-        sendCmd("option name Minimum Thinking Time type spin default 20 min 0 max 5000");
-        sendCmd("option name Slow Mover type spin default 80 min 10 max 1000");
-        sendCmd("option name UCI_Chess960 type check default false");
- 
-        sendCmd("setoption name Hash value 32");
+        sendCmd(Config.getInstance().toString());
  
     }
     

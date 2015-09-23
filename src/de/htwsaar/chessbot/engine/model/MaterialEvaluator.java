@@ -13,10 +13,9 @@ public class MaterialEvaluator extends EvaluationFunction{
 		int sign;
 		for (Piece piece : b.getPieces()) {
 			sign = piece.isWhite() ? 1 : -1;
-			materialCount += sign * sPieceValues.get(piece.getClass());
+			materialCount += sign * getPieceValue(piece.id());
 		}
-		//sign = b.isWhiteAtMove() ? 1 : -1;
-		return materialCount /* sign*/;
+		return materialCount ;
 	}
 	
 }
