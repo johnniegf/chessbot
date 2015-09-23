@@ -34,7 +34,7 @@ public class RookEvaluator {
 	}
 	
 	public int evaluate(Board b) {
-		return calculate(b);
+		return -calculate(b);
 	}
 	
 	/**
