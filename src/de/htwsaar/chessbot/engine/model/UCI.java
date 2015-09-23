@@ -35,6 +35,7 @@ public class UCI  {
     private static final String UCI = "uci";
     private static final String READY = "isready";
     private static final String NEWGAME = "ucinewgame";
+    private static final String PONDERHIT = "ponderhit";
     
      
     /**
@@ -88,8 +89,8 @@ public class UCI  {
             	case NEWGAME:
             		Parser.ucinewgame(this.engine);
             		break;
-            		
-            		
+            	case PONDERHIT:
+            		Parser.ponderhit(this.engine);
             	}
             }
         } 

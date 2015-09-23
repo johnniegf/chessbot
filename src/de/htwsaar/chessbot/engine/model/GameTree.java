@@ -58,14 +58,16 @@ public class GameTree {
 		return  this.mEval;
 	}
 	
-	public void printTreeSize() {
+	public String getTreeSize() {
+		String treeSize = "";
 		for(List<Node> layer : layers) {
-			UCISender.getInstance().sendDebug(layer.size() + "-");
+			treeSize += layer.size() + "-";
 		}
+		return treeSize;
 	}
 
 	public void deepen(final int toDepth, boolean max, AlphaBetaSearch searcher) {
-		if(searcher.getSearchStopped()) {
+		if(toDepth < this.layers.size() || searcher.getSearchStopped()) {
 			return;
 		}
 		
@@ -139,6 +141,7 @@ public class GameTree {
 		checkNull(newRoot, "newRoot");
 
 		mRoot = newRoot;
+		mRoot.setParent(null);
 	}
 	
 	public void cutoff(Node parent, Node child, int parentDepth) {
@@ -153,6 +156,39 @@ public class GameTree {
 			current = parent.getChild(i);
 			parent.removeChild(i);
 			layer.remove(current);
+		}
+	}
+	
+	public void replaceRoot(Node newRoot) {
+		this.setRoot(newRoot);
+		this.layers = new ArrayList<ArrayList<Node>>();
+		updateLayers(newRoot.getDepth());
+		UCISender.getInstance().sendDebug("Root replaced, new structure: " + this.getTreeSize());
+	}
+
+	private void updateLayers(int depth) {
+		if(depth == 0) {
+			ArrayList<Node> rootLayer = new ArrayList<Node>();
+			rootLayer.add(this.getRoot());
+			if(this.layers.size() < 1) {
+				this.layers.add(rootLayer);
+			} else {
+				this.layers.set(0, rootLayer);
+			}
+		} else {
+			updateLayers(depth - 1);
+			ArrayList<Node> newLayer = new ArrayList<Node>();
+			List<Node> prevLayer = getLayer(depth - 1);
+			for(Node n : prevLayer) {
+				newLayer.addAll(n.getChildren());
+			}
+			if(!newLayer.isEmpty()) {
+				if(this.layers.size() <= depth) {
+					this.layers.add(newLayer);
+				} else {
+					this.layers.set(depth, newLayer);
+				}
+			}
 		}
 	}
 	
@@ -355,6 +391,21 @@ public class GameTree {
 
 		public void removeChild(Node c) {
 			this.mChildren.remove(c);
+		}
+		
+		public int getDepth() {
+			if(this.childCount() == 0) {
+				return 0;
+			}
+			
+			int maxDepth = 0;
+			for(Node n : this.getChildren()) {
+				int d = n.getDepth() + 1;
+				if(d > maxDepth) {
+					maxDepth = d;
+				}
+			}
+			return maxDepth;
 		}
 	}
 

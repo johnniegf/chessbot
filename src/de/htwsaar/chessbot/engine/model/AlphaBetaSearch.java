@@ -21,8 +21,9 @@ public class AlphaBetaSearch extends Thread {
 				);
 
 		AlphaBetaSearch alphaBetaSearch = new AlphaBetaSearch(game);
-		alphaBetaSearch.setMaxSearchDepth(6);
+		alphaBetaSearch.setMaxSearchDepth(10);
 		alphaBetaSearch.setTimeLimit(10000);
+		alphaBetaSearch.setPondering(true);
 		alphaBetaSearch.start();
 		alphaBetaSearch.startSearch();
 	}
@@ -34,14 +35,19 @@ public class AlphaBetaSearch extends Thread {
 	private int maxSearchDepth;
 	private int maxTime = 0;
 	private Collection<Move> limitedMoveList = null;
+	private boolean isPondering = false;
+	private boolean ponderHit = false;
 
 	private long startTime = 0;
 	private long nodesSearched = 0;
 	private double nodesPerSecond = 0;
 	private volatile boolean exitSearch = false;
 
-	private volatile Move currentBestMove;
+	private Move currentBestMove;
+	private Move currentPonderMove;
+	private Node ponderNode;
 	private int currentBestScore = 0;
+	private int currentPonderScore = 0;
 	private int currentMoveNumber = 0;
 	private int currentSearchDepth = 0;
 
@@ -74,7 +80,7 @@ public class AlphaBetaSearch extends Thread {
 				}
 			}
 			this.startTime = System.currentTimeMillis();
-			startAlphaBeta();
+			startAlphaBeta(this.ponderHit);
 		}
 	}
 
@@ -111,7 +117,15 @@ public class AlphaBetaSearch extends Thread {
 	public int getPassedTime() {
 		return (int) (System.currentTimeMillis() - this.startTime);
 	}
-
+	
+	public void setPondering(boolean isPondering) {
+		this.isPondering = isPondering;
+	}
+	
+	public void ponderhit() {
+		this.ponderHit = true;
+	}
+	
 	/**
 	 * Gibt dem Algorithmus eine Liste von Zuegen vor, die ausschließlich
 	 * untersucht werden soll.
@@ -140,9 +154,15 @@ public class AlphaBetaSearch extends Thread {
 	}
 
 	//Setzt den bisher besten Zug
-	private synchronized void bestMove(Move move, int score) {
+	private void bestMove(Move move, int score) {
 		this.currentBestMove = move;
 		this.currentBestScore = score;
+	}
+	
+	private void ponderMove(Move move, int score, Node ponderNode) {
+		this.currentPonderMove = move;
+		this.currentPonderScore = score;
+		this.ponderNode = ponderNode;
 	}
 
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
@@ -160,16 +180,26 @@ public class AlphaBetaSearch extends Thread {
 
 	//Sendet den "besten" Zug nachdem die Suche beendet wurde
 	public void sendBestMove() {
-		UCISender.getInstance().sendToGUI("bestmove " + this.getCurrentBestMove().toString());
+		String bestMove = "bestmove " + this.currentBestMove;
+		if(this.isPondering) {
+			bestMove += " ponder " + this.currentPonderMove;
+		}
+		UCISender.getInstance().sendToGUI(bestMove);
 	}
 
 	//Startet die Suche
-	private void startAlphaBeta() {
+	private void startAlphaBeta(boolean ponderHit) {
 		this.currentBestMove = null;
 		this.exitSearch = false;
-		this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
+		if(!ponderHit) {
+			this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
+		}
+		else {
+			this.ponderHit = false;
+			this.gameTree.replaceRoot(this.ponderNode);
+		}
 		this.nodesSearched = 0;
-		boolean startMax = this.game.getCurrentBoard().isWhiteAtMove();
+		boolean startMax = this.gameTree.getRoot().getBoard().isWhiteAtMove();
 
 		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
 			this.currentSearchDepth = i;
@@ -177,14 +207,15 @@ public class AlphaBetaSearch extends Thread {
 			UCISender.getInstance().sendToGUI("info string Deepening to depth " + i + "...");
 			this.gameTree.deepen(i, (i % 2 != 0) ? !startMax : startMax, this);
 			UCISender.getInstance().sendToGUI("info string Done. " + this.gameTree.getLastDeepeningStats());
-			alphaBeta(gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
+			alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
 
 			this.nodesPerSecond = 
 					(1000d * this.nodesSearched) / getPassedTime();
 		}
 
 		sendBestMove();
-		UCISender.getInstance().sendToGUI("info string Search completed in " + getPassedTime() + "ms.");
+		UCISender.getInstance().sendToGUI("info string Search completed in " + getPassedTime() + "ms ("
+				+ "to depth " + this.currentSearchDepth + ")");
 		this.exitSearch = true;
 	}
 
@@ -250,6 +281,9 @@ public class AlphaBetaSearch extends Thread {
 					if(n.isRoot()) {
 						bestMove(move, alpha);
 					}
+					else if(n.getParent().isRoot()) {
+						ponderMove(move, alpha, child);
+					}
 				}
 
 			} else {
@@ -264,6 +298,9 @@ public class AlphaBetaSearch extends Thread {
 					}
 					if(n.isRoot()) {
 						bestMove(move, beta);
+					}
+					else if(n.getParent().isRoot()) {
+						ponderMove(move, beta, child);
 					}
 				}
 

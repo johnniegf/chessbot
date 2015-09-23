@@ -80,6 +80,7 @@ public class Parser {
 		int depth = 0;
 		boolean infinite =  false;
 		engine.getSearcher().setTimeLimit(0);
+		engine.getSearcher().setPondering(false);
 		String[] cmds = line.split(" ");
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
@@ -113,6 +114,9 @@ public class Parser {
 				break;
 			case "infinite":
 				infinite = true;
+				break;
+			case "ponder":
+				engine.getSearcher().setPondering(true);
 				break;
 			}
 		}
@@ -155,6 +159,11 @@ public class Parser {
 		engine.stop();
 	}
 	
+	//Ponderhit-Kommando
+	public static void ponderhit(Engine engine) {
+		engine.getSearcher().ponderhit();
+	}
+	
 	public static void illegalCmd(String line) {
 		sendCmd(ILLEGALCMD+line);
 	}
@@ -185,6 +194,7 @@ public class Parser {
         sendCmd("setoption name Hash value 32");
  
     }
+
     
 
 }
