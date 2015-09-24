@@ -14,12 +14,14 @@ public abstract class EvaluationFunction {
 	
 	static{
 		scores = new int[6];
+		/*
 		scores[0] = (Integer)Config.getInstance().getOption("PawnScore").getValue();
 		scores[1] = (Integer)Config.getInstance().getOption("KingScore").getValue();
 		scores[2] = (Integer)Config.getInstance().getOption("QueenScore").getValue();
 		scores[3] = (Integer)Config.getInstance().getOption("KnightScore").getValue();
 		scores[4] = (Integer)Config.getInstance().getOption("BishopScore").getValue();
 		scores[5] = (Integer)Config.getInstance().getOption("RookScore").getValue();
+		*/
 	}
 	
 	static int getPieceValue(int id) {

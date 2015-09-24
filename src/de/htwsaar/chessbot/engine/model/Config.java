@@ -20,23 +20,28 @@ public class Config {
 	}
 	
 	private static Config sInstance;
+	private static boolean initialized = false;
 	
 	public static Config getInstance() {
-		if(sInstance == null)
+		if(sInstance == null) {
 			sInstance = new Config();
+			sInstance.init();
+		}
 		return sInstance;
 	}
 	
 	//initialisiert die Standardoptionen
 	public void init() {
-		
-		addSpinOption("PawnScore", 100, 0, 10000000);
-		addSpinOption("KingScore" ,1000000, 0, 1000000);
-		addSpinOption("QueenScore", 900, 0, 1000000);
-		addSpinOption("KnightScore", 300, 0, 1000000);
-		addSpinOption("BishopScore", 300, 0, 1000000);
-		addSpinOption("RookScore", 500, 0, 1000000);
-		addCheckOption("Ponder", true);
+		if (!initialized) {
+			addSpinOption("PawnScore", 100, 0, 10000000);
+			addSpinOption("KingScore" ,1000000, 0, 1000000);
+			addSpinOption("QueenScore", 900, 0, 1000000);
+			addSpinOption("KnightScore", 300, 0, 1000000);
+			addSpinOption("BishopScore", 300, 0, 1000000);
+			addSpinOption("RookScore", 500, 0, 1000000);
+			addCheckOption("Ponder", true);
+			initialized = true;
+		}
 	}
 	
 	public void addSpinOption(String key, Object value, int min, int max){

@@ -132,7 +132,7 @@ public class Parser {
 		else if(infinite)engine.search(Integer.MAX_VALUE);
 		else {
 			engine.getSearcher().setTimeLimit(20000);
-			engine.search(4);
+			engine.search(10);
 		}
 	}
 	

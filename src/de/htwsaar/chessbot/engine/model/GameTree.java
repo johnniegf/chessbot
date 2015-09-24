@@ -5,6 +5,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -120,10 +121,6 @@ public class GameTree {
 					this.deepeningCreatedNodes++;
 					this.deepeningChildIndex++;
 				}
-				Collections.sort(n.getChildren());
-				if(max) {
-					Collections.reverse(n.getChildren());
-				}
 				
 				this.deepeningParentIndex++;
 				this.deepeningTime = System.currentTimeMillis() - time;
@@ -209,6 +206,29 @@ public class GameTree {
 		}
 	}
 	
+	public void reduceLayer(int depth, int survivors, boolean max) {
+		ArrayList<Node> childList;
+		ArrayList<Node> toRemove = new ArrayList<Node>();
+		ArrayList<Node> childsToKill = new ArrayList<Node>();
+		for(Node parent : getLayer(depth - 1)) {
+			childList = (ArrayList<Node>) parent.getChildren();
+			Collections.sort(childList);
+			if(max) {
+				Collections.reverse(childList);
+			}
+			int startIndex = Math.min(survivors, childList.size());
+			
+			childsToKill.clear();
+			for(int i = startIndex; i < childList.size(); i++) {
+				Node child = childList.get(i);
+				toRemove.add(child);
+				childsToKill.add(child);
+			}
+			parent.removeChildren(childsToKill);
+		}
+		this.layers.get(depth).removeAll(toRemove);
+	}
+	
 	public String getLastDeepeningStats() {
 		return String.format("(%d nodes in %dms%s)",
 				this.deepeningCreatedNodes,
@@ -232,6 +252,12 @@ public class GameTree {
 
 		private Node() {
 			this(new Board());   
+		}
+
+		public void removeChildren(List<Node> children) {
+			for(Node n : children) {
+				removeChild(n);
+			}
 		}
 
 		public Node(final Board board) {
