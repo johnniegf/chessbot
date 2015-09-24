@@ -21,6 +21,7 @@ public class GameTree {
 	private EvaluationFunction mEval;
 	private Node mRoot = null;
 	private ArrayList<ArrayList<Node>> layers;
+	private int finishedLayers = 0;
 	
 	private int deepeningCurrentLayer;
 	private int deepeningParentIndex;
@@ -66,8 +67,15 @@ public class GameTree {
 		return treeSize;
 	}
 
-	public void deepen(final int toDepth, boolean max, AlphaBetaSearch searcher) {
-		if(toDepth < this.layers.size() || searcher.getSearchStopped()) {
+	public void deepen(final int toDepth, boolean max, DeepeningInterrupter interrupter) {
+		
+		if(interrupter.stopDeepening()) {
+			return;
+		}
+		
+		if(toDepth < this.layers.size()) {
+			UCISender.getInstance().sendDebug("Skipped deepening to " + toDepth + 
+					", tree is already deeper.");
 			return;
 		}
 		
@@ -75,7 +83,7 @@ public class GameTree {
 		this.deepeningTime = 0;
 		this.deepeningCreatedNodes = 0;
 		if (toDepth >= this.layers.size()) {
-			deepen(toDepth - 1, !max, searcher);
+			deepen(toDepth - 1, !max, interrupter);
 			
 			this.deepeningCurrentLayer = toDepth;
 			this.deepeningParentIndex = 0;
@@ -84,15 +92,15 @@ public class GameTree {
 			Board b;
 			ArrayList<Node> layer = new ArrayList<Node>();
 			for (Node n : getLayer(toDepth-1)) {
-				if(searcher.getSearchStopped()) {
+				if(interrupter.stopDeepening()) {
 					break;
 				}
 				
 				this.deepeningChildIndex = 0;
 				
 				for(Move m : n.getBoard().getMoveList()) {
-					if(searcher.getSearchStopped()) {
-						break;
+					if(interrupter.stopDeepening()) {
+						return;
 					}
 					
 					UCISender.getInstance().sendDebug(
@@ -115,6 +123,7 @@ public class GameTree {
 				this.deepeningParentIndex++;
 			}
 			this.layers.add(layer);
+			this.finishedLayers++;
 		}
 		
 		this.deepeningTime = System.currentTimeMillis() - time;
@@ -162,7 +171,9 @@ public class GameTree {
 	public void replaceRoot(Node newRoot) {
 		this.setRoot(newRoot);
 		this.layers = new ArrayList<ArrayList<Node>>();
-		updateLayers(newRoot.getDepth());
+		int nrDepth = newRoot.getDepth();
+		updateLayers(nrDepth);
+		this.finishedLayers = nrDepth;
 		UCISender.getInstance().sendDebug("Root replaced, new structure: " + this.getTreeSize());
 	}
 

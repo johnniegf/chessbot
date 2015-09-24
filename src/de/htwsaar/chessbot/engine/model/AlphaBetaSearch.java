@@ -13,7 +13,7 @@ import de.htwsaar.chessbot.engine.model.GameTree.Node;
  *
  */
 
-public class AlphaBetaSearch extends Thread {
+public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
@@ -96,6 +96,10 @@ public class AlphaBetaSearch extends Thread {
 		return this.exitSearch;
 	}
 
+	public GameTree getGameTree() {
+		return this.gameTree;
+	}
+	
 	/**
 	 * Setzt die maximale Suchtiefe für den Baum.
 	 * 
@@ -195,6 +199,7 @@ public class AlphaBetaSearch extends Thread {
 			this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
 		}
 		else {
+			UCISender.getInstance().sendToGUI("info string Ponderhit!");
 			this.ponderHit = false;
 			this.gameTree.replaceRoot(this.ponderNode);
 		}
@@ -216,6 +221,7 @@ public class AlphaBetaSearch extends Thread {
 		sendBestMove();
 		UCISender.getInstance().sendToGUI("info string Search completed in " + getPassedTime() + "ms ("
 				+ "to depth " + this.currentSearchDepth + ")");
+		UCISender.getInstance().sendToGUI("info string Pondering on " + this.currentPonderMove);
 		this.exitSearch = true;
 	}
 
@@ -308,6 +314,11 @@ public class AlphaBetaSearch extends Thread {
 
 		}
 		
+	}
+
+	@Override
+	public boolean stopDeepening() {
+		return this.getSearchStopped();
 	}
 
 }
