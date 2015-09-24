@@ -15,9 +15,9 @@ public class BackgroundDeepener extends Thread implements DeepeningInterrupter {
 	}
 	
 	@Override
-	public synchronized void start() {
+	public synchronized void run() {
 		while(true) {
-			while(!isActive) {
+			while(!isActive || getTree() == null) {
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {

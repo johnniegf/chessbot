@@ -4,7 +4,7 @@ public class UCISender {
 
 	private static UCISender INSTANCE;
 	
-	private boolean showDebug = true;
+	private boolean showDebug = false;
 	private boolean showError = true;
 	
 	

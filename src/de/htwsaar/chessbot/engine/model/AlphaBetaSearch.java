@@ -30,6 +30,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 
 	private Game game;
 	private GameTree gameTree;
+	private BackgroundDeepener bgDeepener;
 	private final EvaluationFunction evalFunc = new Evaluator();
 
 	private int maxSearchDepth;
@@ -59,6 +60,9 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public AlphaBetaSearch(Game game) {
 		this.game = game;
 		this.exitSearch = true;
+		this.bgDeepener = new BackgroundDeepener(this);
+		this.bgDeepener.setMaxDepth(15);
+		this.bgDeepener.start();
 	}
 
 	public void setGame(Game game) {
@@ -73,12 +77,16 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public void run() {
 		while(true) {
 			while(exitSearch) {
+				if(this.isPondering) {
+					this.bgDeepener.beginDeepening();
+				}
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
+			this.bgDeepener.endDeepening();
 			this.startTime = System.currentTimeMillis();
 			startAlphaBeta(this.ponderHit);
 		}
@@ -199,7 +207,6 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 			this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
 		}
 		else {
-			UCISender.getInstance().sendToGUI("info string Ponderhit!");
 			this.ponderHit = false;
 			this.gameTree.replaceRoot(this.ponderNode);
 		}
@@ -221,7 +228,6 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		sendBestMove();
 		UCISender.getInstance().sendToGUI("info string Search completed in " + getPassedTime() + "ms ("
 				+ "to depth " + this.currentSearchDepth + ")");
-		UCISender.getInstance().sendToGUI("info string Pondering on " + this.currentPonderMove);
 		this.exitSearch = true;
 	}
 

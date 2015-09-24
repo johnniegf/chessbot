@@ -102,11 +102,13 @@ public class GameTree {
 					if(interrupter.stopDeepening()) {
 						return;
 					}
-					
-					UCISender.getInstance().sendDebug(
+					/*
+					String p = interrupter instanceof BackgroundDeepener ? "(bg) " : "";
+					UCISender.getInstance().sendDebug(p +
 							"d" + this.deepeningCurrentLayer +
 							" p" + this.deepeningParentIndex + " (" + n.getLeadsTo() +
 							") c" + this.deepeningChildIndex + " (" + m + ")");
+					*/
 					b = m.execute(n.getBoard());
 					Node appendNode = new Node(b);
 					appendNode.setLeadsTo(m);
