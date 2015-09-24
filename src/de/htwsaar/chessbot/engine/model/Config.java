@@ -69,7 +69,6 @@ public class Config {
 	
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-		sb.append("Config").append("\n");
 		for(String s : options.keySet()) {
 			sb.append(options.get(s).toString()).append("\n");
 		}
