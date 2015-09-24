@@ -36,7 +36,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 	
 	@Override
 	public int evaluate(Board b) {
-		return calculate(b);
+		return -calculate(b);
 	}
 	
 	private int calculate(Board b) {

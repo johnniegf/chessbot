@@ -96,10 +96,10 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 		for (Piece piece : b.getPieces()) {
 			sign = piece.isWhite() ? 1 : -1;
 			materialCount += sign * 
-					(PIECE_VALUE_WEIGHT * sPieceValues.get(piece.getClass()) +
+					(PIECE_VALUE_WEIGHT * getPieceValue(piece.id()) +
 					 PIECE_POSITION_WEIGHT * getPositionValue(b, piece));
 		}
-		return (int)materialCount;
+		return -(int)materialCount;
 	}
 	
 	private int getPositionValue(Board b, Piece p) {

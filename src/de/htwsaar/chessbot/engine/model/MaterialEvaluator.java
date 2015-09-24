@@ -7,21 +7,15 @@ package de.htwsaar.chessbot.engine.model;
  */
 public class MaterialEvaluator extends EvaluationFunction{
 
-	/**
-	 * wertet die Figuren auf dem Schachbrett basierend auf ihren Werten aus.
-	 */
 	@Override
 	public int evaluate(Board b) {
 		int materialCount = 0;
 		int sign;
 		for (Piece piece : b.getPieces()) {
 			sign = piece.isWhite() ? 1 : -1;
-			materialCount += sign * sPieceValues.get(piece.getClass());
+			materialCount += sign * getPieceValue(piece.id());
 		}
-		//sign = b.isWhiteAtMove() ? 1 : -1;
-		return materialCount /* sign*/;
+		return materialCount ;
 	}
 	
 }
-
-

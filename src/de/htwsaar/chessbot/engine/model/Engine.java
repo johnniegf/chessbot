@@ -17,6 +17,7 @@ public class Engine {
 	
 	public Engine() {
 		this.game = new Game();
+		Config.getInstance().init();
 		moveSearcher = new AlphaBetaSearch(game);
 		moveSearcher.start();
 		uci = new UCI(this);
