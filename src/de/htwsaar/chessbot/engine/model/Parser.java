@@ -178,7 +178,22 @@ public class Parser {
 			return;
 		String result = line.replaceFirst(OPTION, OPTION_REPLACEMENT);
 		String[] options = result.split(";");
-		//TODO ergebnis mit config datei vergleichen.
+		if(Config.getInstance().containsKey(options[0])){
+			Config.getInstance().getOption(options[0]).setValue(options[1]);
+		}
+	}
+	
+	/**
+	 * stellt die Debug-Funktion ein oder aus
+	 * @param line
+	 */
+	public static void setDebug(String line) {
+		String[] result = line.split(" ");
+		if(result[1].equals("on")){
+			UCISender.getInstance().setShowDebug(true);
+		}
+		else if(result[1].equals("off"))
+			UCISender.getInstance().setShowDebug(false);
 	}
 	
 	public static void illegalCmd(String line) {
