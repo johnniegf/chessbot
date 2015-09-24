@@ -3,6 +3,14 @@ package de.htwsaar.chessbot.engine.model;
 import java.util.HashMap;
 import java.util.Properties;
 
+/**
+ * Config Klasse zur Verwaltung von Optionen die die Engine
+ * der GUI zur Verfuegung stellt.
+ * es gibt festgelegte Optionen, es kann aber auch
+ * Optionen hinzugefuegt werden.
+ * @author Dominik Becker
+ *
+ */
 public class Config {
 	
 	private HashMap<String, Option> options;
@@ -18,6 +26,8 @@ public class Config {
 			sInstance = new Config();
 		return sInstance;
 	}
+	
+	//initialisiert die Standardoptionen
 	public void init() {
 		
 		addSpinOption("PawnScore", 100, 0, 10000000);
@@ -26,10 +36,23 @@ public class Config {
 		addSpinOption("KnightScore", 300, 0, 1000000);
 		addSpinOption("BishopScore", 300, 0, 1000000);
 		addSpinOption("RookScore", 500, 0, 1000000);
+		addCheckOption("Ponder", true);
 	}
 	
 	public void addSpinOption(String key, Object value, int min, int max){
 		options.put(key, new SpinOption(key, value, min, max));
+	}
+	
+	public void addCheckOption(String key, Object value) {
+		options.put(key, new CheckOption(key, value));
+	}
+	
+	public void addButtonOption(String key, Object value) {
+		options.put(key, new ButtonOption(key, value));
+	}
+	
+	public void addComboOption(String key, Object value) {
+		options.put(key, new ComboOption(key, value));
 	}
 	
 	public void setOption(String key, Object value) {
@@ -40,10 +63,13 @@ public class Config {
 		return options.get(key);
 	}
 	
+	public boolean containsKey(String key){
+		return options.containsKey(key);
+	}
+	
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
 		sb.append("Config").append("\n");
-		sb.append(options.get("PawnScore")).append("\n");
 		for(String s : options.keySet()) {
 			sb.append(options.get(s).toString()).append("\n");
 		}
