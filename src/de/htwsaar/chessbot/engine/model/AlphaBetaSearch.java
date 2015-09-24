@@ -62,11 +62,14 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		this.exitSearch = true;
 		this.bgDeepener = new BackgroundDeepener(this);
 		this.bgDeepener.setMaxDepth(15);
+		this.bgDeepener.setPriority(Thread.MIN_PRIORITY);
 		this.bgDeepener.start();
 	}
 
 	public void setGame(Game game) {
 		this.game = game;
+		this.gameTree = null;
+		this.ponderHit = false;
 	}
 
 	public void startSearch() {
@@ -77,7 +80,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public void run() {
 		while(true) {
 			while(exitSearch) {
-				if(this.isPondering) {
+				if((boolean)Config.getInstance().getOption("Ponder").getValue()) {
 					this.bgDeepener.beginDeepening();
 				}
 				try {
@@ -178,15 +181,14 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	}
 
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
-	private void sendInfo(Move currentMove, int currentScore) {
+	private void sendInfo(Move currentMove) {
 		UCISender.getInstance().sendToGUI(
 				"info currmove " + currentMove +
 				" currmovenumber " + this.currentMoveNumber +
 				" depth " + this.currentSearchDepth +
 				" time " + getPassedTime() +
 				" nps " + (int)this.nodesPerSecond +
-				" nodes " +  this.nodesSearched +
-				" score cp " + currentScore
+				" nodes " +  this.nodesSearched
 				);
 	}
 
@@ -278,7 +280,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 			
 			alphaBeta(child, alpha, beta, depth - 1, !max);
 
-			sendInfo(move, this.gameTree.getEvaluationFunction().evaluate(move.execute(board)));
+			sendInfo(move);
 			
 			if(max) {
 

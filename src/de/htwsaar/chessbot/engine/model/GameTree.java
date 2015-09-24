@@ -29,6 +29,7 @@ public class GameTree {
 	
 	private int deepeningCreatedNodes;
 	private long deepeningTime;
+	private boolean lastDeepeningInterrupted = false;
 
 	/**
 	 * Standardkonstruktor.
@@ -70,6 +71,7 @@ public class GameTree {
 	public void deepen(final int toDepth, boolean max, DeepeningInterrupter interrupter) {
 		
 		if(interrupter.stopDeepening()) {
+			this.lastDeepeningInterrupted = true;
 			return;
 		}
 		
@@ -100,6 +102,7 @@ public class GameTree {
 				
 				for(Move m : n.getBoard().getMoveList()) {
 					if(interrupter.stopDeepening()) {
+						this.lastDeepeningInterrupted = true;
 						return;
 					}
 					/*
@@ -123,12 +126,13 @@ public class GameTree {
 				}
 				
 				this.deepeningParentIndex++;
+				this.deepeningTime = System.currentTimeMillis() - time;
 			}
 			this.layers.add(layer);
 			this.finishedLayers++;
 		}
 		
-		this.deepeningTime = System.currentTimeMillis() - time;
+		this.lastDeepeningInterrupted = false;
 	}
 	
 	public List<Node> getLayer(int atDepth) {
@@ -206,9 +210,10 @@ public class GameTree {
 	}
 	
 	public String getLastDeepeningStats() {
-		return String.format("(%d nodes in %dms)",
+		return String.format("(%d nodes in %dms%s)",
 				this.deepeningCreatedNodes,
-				this.deepeningTime);
+				this.deepeningTime,
+				this.lastDeepeningInterrupted ? ", INTERRUPTED" : "");
 	}
 	
 	

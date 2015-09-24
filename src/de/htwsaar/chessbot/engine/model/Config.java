@@ -72,7 +72,7 @@ public class Config {
 		for(String s : options.keySet()) {
 			sb.append(options.get(s).toString()).append("\n");
 		}
-		return sb.toString();
+		return sb.toString().substring(0, sb.length() - 1);
 	}
 
 }

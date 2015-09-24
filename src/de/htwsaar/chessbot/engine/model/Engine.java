@@ -13,14 +13,13 @@ public class Engine {
 
 	private Game game;
 	private AlphaBetaSearch moveSearcher;
-	private UCI uci;
 	
 	public Engine() {
 		this.game = new Game();
 		Config.getInstance().init();
 		moveSearcher = new AlphaBetaSearch(game);
 		moveSearcher.start();
-		uci = new UCI(this);
+		new UCI(this);
 	}
 	
 	//======================================
