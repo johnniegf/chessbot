@@ -15,7 +15,8 @@ public class PawnEvaluator extends MaterialEvaluator{
 	private static final int DOUBLE_PAWN = 10;
 	private static final int ISOLATED_PAWN = 20;
 	private static final int BACKWARD_PAWN = 8;
-	private static final int FREE_PAWN_COM = 20;
+	private static final int PASSED_PAWN = 20;
+	private static final int PAWN_CHAIN = 8;
 	private String[] col;
 	
 	public PawnEvaluator() {
@@ -47,6 +48,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 				Piece pa = b.getPieceAt(P(col[0]+y));
 				if(pa instanceof Pawn && pa.isWhite()) {
 					pawnCounts[0] += 1;
+					malus -= pawnChain(b, 0, y, true);
 					if(pawnCounts[1] ==  0) {
 						malus += BACKWARD_PAWN;
 					}
@@ -55,6 +57,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 					Piece p = b.getPieceAt(P(col[x]+y));
 					if(p instanceof Pawn && p.isWhite()) {
 						pawnCounts[x] += 1;
+						malus -= pawnChain(b, x, y, true);
 						
 						if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
 							malus += BACKWARD_PAWN;
@@ -72,7 +75,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 					} else if(p instanceof Pawn && !p.isWhite()){
 								if(x!= 0) {
 									Piece pp = b.getPieceAt(P(col[x-1]+y));
-									malus += freePawn(pawnCounts, true, x, pp);
+									malus += passedPawn(pawnCounts, true, x, pp);
 								}
 					}
 				}
@@ -80,6 +83,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 				Piece ph = b.getPieceAt(P(col[7]+y));
 				if(ph instanceof Pawn && ph.isWhite()) {
 					pawnCounts[7] += 1;
+					malus -= pawnChain(b, 8, y, true);
 					if(pawnCounts[7] == 1) {
 						malus += BACKWARD_PAWN;
 					}
@@ -95,6 +99,8 @@ public class PawnEvaluator extends MaterialEvaluator{
 				Piece pa = b.getPieceAt(P(col[0]+y));
 				if(pa instanceof Pawn && !pa.isWhite()) {
 					pawnCounts[0] += 1;
+					malus += pawnChain(b, 0, y, false);
+					
 					if(pawnCounts[1] == 0) {
 						malus -= BACKWARD_PAWN;
 					}
@@ -103,6 +109,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 					Piece p = b.getPieceAt(P(col[x]+y));
 					if(p instanceof Pawn && !p.isWhite()) {
 						pawnCounts[x] += 1;
+						malus += pawnChain(b, x, y, false);
 						
 						if(pawnCounts[x-1] == 0 && pawnCounts[x+1] == 0) {
 							malus -= BACKWARD_PAWN;
@@ -120,7 +127,7 @@ public class PawnEvaluator extends MaterialEvaluator{
 					} else if(p instanceof Pawn && p.isWhite()){
 							if(x != 0) {
 								Piece pp = b.getPieceAt(P(col[x-1]+y));
-								malus -= freePawn(pawnCounts, false, x, pp);
+								malus -= passedPawn(pawnCounts, false, x, pp);
 							}
 					}
 				}
@@ -128,6 +135,8 @@ public class PawnEvaluator extends MaterialEvaluator{
 				Piece ph = b.getPieceAt(P(col[7]+y));
 				if(ph instanceof Pawn && !ph.isWhite()) {
 					pawnCounts[7] += 1;
+					malus += pawnChain(b, 8, y, false);
+					
 					if(pawnCounts[7] == 1) {
 						malus -= BACKWARD_PAWN;
 					}
@@ -142,28 +151,28 @@ public class PawnEvaluator extends MaterialEvaluator{
 		return malus;
 	}
 	
-	private int freePawn(int[] pawnCounts, boolean isWhite, int x, Piece pp) {
+	private int passedPawn(int[] pawnCounts, boolean isWhite, int x, Piece pp) {
 		int malus = 0;
 		if(pawnCounts[x] == 0) {
 			if(x != 7 && pawnCounts[x+1]== 0){
 				if(x == 0) {
-					malus += FREE_PAWN_COM;
+					malus += PASSED_PAWN;
 				}
 				else if(pp instanceof Pawn &&(pp.isWhite() == isWhite)){
 					if(pawnCounts[x-1] == 1)
-						malus += FREE_PAWN_COM;
+						malus += PASSED_PAWN;
 				}
 				else if(pawnCounts[x-1] == 0){
-					malus += FREE_PAWN_COM;
+					malus += PASSED_PAWN;
 				}
 			}
 			else if(x == 7){
 				if(pp instanceof Pawn &&(pp.isWhite() == isWhite)){
 					if(pawnCounts[x-1] == 1)
-						malus += FREE_PAWN_COM;
+						malus += PASSED_PAWN;
 				}
 				else if(pawnCounts[x-1] == 0){
-					malus += FREE_PAWN_COM;
+					malus += PASSED_PAWN;
 				}
 			}
 		}
@@ -190,6 +199,23 @@ public class PawnEvaluator extends MaterialEvaluator{
 			}
 		}
 		return malus;
+	}
+	
+	private int pawnChain(Board b, int x, int y, boolean isWhite) {
+		int malus = 0;
+		if(x > 0) {
+			Piece pl = b.getPieceAt(P(col[x-1]+(y+1)));
+			if(pl instanceof Pawn && pl.isWhite() == isWhite){
+				malus += PAWN_CHAIN;
+			}
+		}
+		if(x < 8) {
+			Piece pr = b.getPieceAt(P(col[x+1]+(y+1)));
+			if(pr instanceof Pawn && pr.isWhite() == isWhite) {
+				malus += PAWN_CHAIN;
+			}
+		}
+		return  malus;
 	}
 	
 	

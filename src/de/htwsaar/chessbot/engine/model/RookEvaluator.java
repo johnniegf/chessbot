@@ -78,7 +78,6 @@ public class RookEvaluator {
 			open = true;
 			halfOpen = false;
 		}
-		//System.out.println("Malus Türme: "+malus);
 		return malus;
 	}
 }

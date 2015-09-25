@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
 import java.util.HashMap;
-import java.util.Properties;
 
 /**
  * Config Klasse zur Verwaltung von Optionen die die Engine
