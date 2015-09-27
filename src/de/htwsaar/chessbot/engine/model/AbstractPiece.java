@@ -1,9 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Pieces.PC;
-
-import java.util.Collection;
-import java.util.Random;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 /**
 * Abstrakter Figurtyp (zur Vereinfachung der Implementierung).
@@ -15,7 +13,6 @@ public abstract class AbstractPiece
 {
     private Position mPosition;
     private boolean  mIsWhite;
-    private boolean  mHasMoved;
     private long     mZobristHash;
     private boolean  mHashIsSet;
 
@@ -23,19 +20,17 @@ public abstract class AbstractPiece
     * Erzeuge eine neue uninitialisierte Figur.
     */
     protected AbstractPiece() {
-        this(Position.INVALID, false, false);
+        this(Position.INVALID, false);
     }
 
     /**
     *
     */
     protected AbstractPiece(final Position position,
-                            final boolean isWhite,
-                            final boolean hasMoved)
+                            final boolean isWhite)
     {
         setPosition(position);
         setIsWhite(isWhite);
-        setHasMoved(hasMoved);
         mZobristHash = -1L;
         mHashIsSet = false;
         init();
@@ -55,8 +50,7 @@ public abstract class AbstractPiece
     }
 
     public void setPosition(final Position position) {
-        if (position == null)
-            throw new NullPointerException("position");
+        checkNull(position, "position");
         mPosition = position;
     }
 
@@ -67,22 +61,12 @@ public abstract class AbstractPiece
     public void setIsWhite(final boolean isWhite) {
         mIsWhite = isWhite;   
     }
-
-    public boolean hasMoved() {
-        return mHasMoved;
-    }
-
-    public void setHasMoved(final boolean hasMoved) {
-        mHasMoved = hasMoved;
-    }
  
     public boolean attacks(final Board context, 
                            final Position targetSquare) 
     {
-        if (context == null)
-            throw new NullPointerException("context");
-        if (targetSquare == null)
-            throw new NullPointerException("targetSquare");
+        checkNull(context, "context");
+        checkNull(targetSquare, "targetSquare");
         
         return getAttacks(context).contains(targetSquare);
     }
@@ -133,14 +117,13 @@ public abstract class AbstractPiece
     public Piece move(final Position targetSquare) {
         if (targetSquare == null)
             throw new NullPointerException("targetSquare");
-        return PC(fenShort(), targetSquare, true);
+        return PC(id(), isWhite(), targetSquare);
     }
 
     public Piece clone() {
         Piece copy = create();
         copy.setIsWhite(isWhite());
         copy.setPosition(getPosition());
-        copy.setHasMoved(hasMoved());
         return copy;
     }
 
@@ -154,10 +137,48 @@ public abstract class AbstractPiece
     }
 
     protected abstract Piece create();
+    
+    private static long[][] rayAttacks = new long[8][64];
+    private static long[] fileMasks    = new long[8];
+    private static long[] rankMasks    = new long[8];
+    
+    private static final void initRayAttacks() {
+        rayAttacks = new long[8][64];
+        for (int i = Direction.North; i <= Direction.NorthWest; i++) {
+            for (int sq = 0; sq < 64; sq++) {
+                rayAttacks[i][sq] = generateRayAttack(i, sq);
+            }
+        }
+        
+    }
+    
+    private static final long generateRayAttack(int direction, int sq) {
+        return 0L;
+    }
+    
+    public static final class Direction {
+        public static final int North = 0;
+        public static final int NorthEast = 1;
+        public static final int East = 2;
+        public static final int SouthEast = 3;
+        public static final int South = 4;
+        public static final int SouthWest = 5;
+        public static final int West = 6;
+        public static final int NorthWest = 7;
+    }
+    
 
-    private static final long WHITE_HASH = 0x74d8019166506d3dL;
-    private static final long BLACK_HASH = 0x405ae4a7840f7b4fL;
-    private static final long HAS_MOVED_HASH = 0x89bcf19b0dd79f98L;
-    private static final long HAS_NOT_MOVED_HASH = 0xc5c8222936746874L;
+    private static void initMasks() {
+        long fileMask = 0x0101_0101_0101_0101L;
+        long rankMask = 0x0000_0000_0000_00ffL;
+        for (int i = 0; i < 8; i++, 
+                               fileMask <<= 1,
+                               rankMask <<= 8) 
+        {
+            fileMasks[i] = fileMask;
+            rankMasks[i] = rankMask;
+        }
 
+    }
+    
 }

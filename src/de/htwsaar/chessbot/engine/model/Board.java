@@ -42,24 +42,25 @@ public class Board {
 
 //---------------------------------------------------------
 
-    private Map<Position,Piece> mPieces;
-    private short mPieceCount;
+    // Bitboards
+    private long[] mColors = new long[2];
+    private long[] mPieces = new long[6];
+    private long mOccupied = 0L;
+    private long mEnPassant = 0L;
+    
+    
+    private byte mPieceCount;
     private boolean mWhiteAtMove;
-    private Position mEnPassant;
-    private int mHalfMoves;
-    private int mFullMoves;
+    private short mHalfMoves;
+    private short mFullMoves;
     private long mZobristHash;
-    private transient Collection<Move> tMoveList = null;
-    private transient boolean needsUpdate = true;
     /**
     * Erzeuge ein leeres Schachbrett. 
     */
     public Board() {
         mWhiteAtMove = true;
-        mEnPassant = Position.INVALID;
         mHalfMoves = 0;
         mFullMoves = 1;
-        mPieces = new TreeMap<Position,Piece>();
         mPieceCount = 0;
         mZobristHash = 0L;
     }
@@ -94,18 +95,16 @@ public class Board {
     *         sonst <code>false</code>
     */
     public boolean putPiece(final Piece piece) {
-        if ( piece == null )
-            return false;
+        checkNull(piece, "piece");
+        
         Position p = piece.getPosition();
-        if ( !p.isValid() )
+        if (!p.isValid() || !isFree(p)) {
             return false;
-        if ( !isFree(p) )
-            return false;
+        }
 
-        mPieces.put(p, piece);
+        mPieces[piece.id()] |= p.toLong();
         applyHash(piece.hash());
         mPieceCount += 1;
-        needsUpdate = true;
         return true;
     }
 
@@ -127,7 +126,7 @@ public class Board {
     * @return alle Figuren der gesuchten Figurart, die auf dem 
     *         Schachbrett stehen.
     */
-    public Collection<Piece> getPiecesByType(long pieceId) {
+    public Piece[] getPiecesByType(long pieceId) {
         Collection<Piece> pieces = new ArrayList<Piece>();
         for (Piece pc : getPieces()) {
             if (pieceId == pc.id())

@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.Collection;
 import java.util.Arrays;
 import java.util.Map;
@@ -24,15 +26,15 @@ import java.util.HashMap;
 */
 public final class Pieces {
 
-    public static Piece PC(final char fenShort,
-                           final Position position,
-                           final boolean hasMoved)
-    {
-        return getInstance().get(fenShort, position, hasMoved);
+    public static Piece PC(final char fenShort, final Position position) {
+        return getInstance().get(fenShort, position);
     }
 
-    public static Piece PC(final char fenShort, final Position position) {
-        return PC(fenShort, position, true);
+    public static Piece PC(final int pieceId,
+                           final boolean isWhite,
+                           final Position position)
+    {
+        return getInstance().get(pieceId, isWhite, position);
     }
 
 
@@ -45,55 +47,51 @@ public final class Pieces {
 
     private static void initInstance() {
         if (sInstance == null) {
-            Collection<Piece> prototypes = Arrays.asList(new Piece[]{
-                new King(), new Queen(), new Rook(),
-                new Bishop(), new Knight(), new Pawn()
-            });
             sInstance = new Pieces(prototypes);
         }
     }
 
 //---------------------------------------------------------
 
-    private Map<Character,Piece> mPrototypes;
-    private Map<Integer,Piece>   mCache;
+    private static final Piece[] mPrototypes = new Piece[] {
+        new Pawn(), new Knight(), new King(),
+        new Rook(), new Bishop(), new Queen()
+    };
+    private Piece[] mCache;
 
-    private Pieces(final Collection<Piece> prototypes) {
+    private Pieces() {
         if ( prototypes == null )
             throw new NullPointerException("prototypes");
 
-        mPrototypes = new HashMap<Character,Piece>();
+        mPrototypes = new Piece[PIECE_TYPES];
         for ( Piece pc : prototypes ) {
             addPrototype(pc);
         }
-        mCache = new HashMap<Integer,Piece>();
+        mCache = new Piece[MAX_PIECES];
     }
-
-    public int size() {
-        return mCache.size();
-    }
+    private static final int PIECE_TYPES = 6;
+    private static final int MAX_PIECES = PIECE_TYPES * 2 * 64;
 
     private boolean addPrototype(final Piece prototype) {
+        checkNull(prototype, "prototype");
         Piece current;
-        for (int i = 0; i < 2; i++) {
-            current = prototype.clone();
-            current.setIsWhite(i % 2 == 0);
-            mPrototypes.put(current.fenShort(), current);
-        }
+        current = prototype.clone();
+        mPrototypes[prototype.id()] = current;
         return true;
     }
 
-    private Piece getPrototype(final char fenShort) {
-        return mPrototypes.get(fenShort);
+    private Piece getPrototype(final int pieceId) {
+        checkInBounds(pieceId, "pieceId", 0, 5);
+        return mPrototypes[pieceId];
     }
 
-    private Piece createPiece(final char fenShort,
-                              final Position position,
-                              final boolean hasMoved)
+    private Piece createPiece(final int pieceId,
+                              final boolean isWhite,
+                              final Position position)
     {
-        Piece newPiece = getPrototype(fenShort).clone();
+        Piece newPiece = getPrototype(pieceId).clone();
+        newPiece.setIsWhite(isWhite);
         newPiece.setPosition(position);
-        newPiece.setHasMoved(hasMoved);
         return newPiece;
     }
 
@@ -103,36 +101,32 @@ public final class Pieces {
     * Falls die Figur nicht existiert, wird sie zunächst erzeugt
     * und im Zwischenspeicher abgelegt.
     *
-    * @param fenShort FEN-Kürzel der Figur
+    * @param pieceId ID der zu erzeugenden Figur
+    * @param isWhite Farbe der Figur
     * @param position Feld der Figur
-    * @param hasMoved ob die Figur bereits gezogen wurde
     * @return die Figur mit den übergebenen Eigenschaften
     * @throws NullPointerException falls <code>position == null</code>
-    * @throws PieceFactoryException falls die Figur nicht erzeugt 
-    *           werden kann, z.B. wenn für das FEN-Kürzel kein 
-    *           Prototyp hinterlegt ist
     */
-    public synchronized Piece get(final char fenShort,
-                                  final Position position,
-                                  final boolean hasMoved)
+    public synchronized Piece get(final int pieceId,
+                                  final boolean isWhite,
+                                  final Position position)
     {
-        if ( !isFenLetter(fenShort) || !mPrototypes.containsKey(fenShort) )
-            throw new IllegalArgumentException("fenShort '" + fenShort + "'");
-        if ( position == null )
-            throw new NullPointerException("position");
+        checkNull(position, "position");
 
-        int index = makeIndex(fenShort, position, hasMoved);
+        int index = index(pieceId, isWhite, position);
         
-        Piece result = mCache.get(index);
+        Piece result = mCache[index];
         if ( result == null ) {
-            result = createPiece(fenShort, position, hasMoved);
-            mCache.put(index, result);
+            result = createPiece(pieceId, isWhite, position);
+            mCache[index] = result;
         }
         return result;       
     }
 
     public Piece get(final char fenShort, final Position position) {
-        return get(fenShort, position, true);   
+        int pieceId = getIdFromFen(fenShort);
+        boolean isWhite = Character.isUpperCase(fenShort);
+        return get(pieceId, isWhite, position);
     }
 
     /**
@@ -146,28 +140,37 @@ public final class Pieces {
         return sb.toString();
     }
 
-    private static boolean isFenLetter(char character) {
-        final String fenLetters = "[PpQqKkNnBbRr]";
-        return (character + "").matches(fenLetters);
+    private static int getIdFromFen(char character) {
+        switch (character) {
+            case 'P':
+            case 'p':
+                return Pawn.ID;
+            case 'B':
+            case 'b':
+                return Bishop.ID;
+            case 'N':
+            case 'n':
+                return Knight.ID;
+            case 'R':
+            case 'r':
+                return Rook.ID;
+            case 'Q':
+            case 'q':
+                return Queen.ID;
+            case 'K':
+            case 'k':
+                return King.ID;
+             
+            default:
+                return -1;
+        }
     }
 
-    private static final int makeIndex(final char fenShort,
-                                       final Position position,
-                                       final boolean hasMoved)
+    private int index(final int pieceId,
+                      final boolean isWhite,
+                      final Position position)
     {
-        int index = 0;
-        index += (hasMoved ? 1 : 0);
-        
-        index = index << 1;
-        boolean isWhite = Character.isUpperCase(fenShort);
-        index += (isWhite  ? 1 : 0);
-
-        index = index << 5;
-        index += (int) (fenShort - (isWhite ? 'A' : 'a'));
-
-        index = index << 11;
-        index += position.hashCode();
-        return index;
+        return pieceId << 7 + (isWhite ? 0 : 1) << PIECE_TYPES + position.index();
     }
 
 }

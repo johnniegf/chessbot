@@ -27,7 +27,7 @@ public class PieceTest {
     private Piece currentPrototype;
     private char fen;
     private boolean isWhite;
-    private boolean hasMoved;
+    private int pieceId;
     private Position position;
     
     // Kontrollwerte
@@ -39,12 +39,12 @@ public class PieceTest {
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] { 
             // piece, fen, isWhite, hasMoved, position
-            { new Pawn(),   'P', true,  false, P("h2") },
-            { new Knight(), 'n', false, true,  P("c3") },
-            { new Rook(),   'R', true,  true,  P("e8") },
-            { new Queen(),  'q', false, true,  P("f1") },
-            { new Bishop(), 'B', true,  true,  P("a6") },
-            { new King(),   'k', false, false, P("e8") }
+            { new Pawn(),   Pawn.ID,   'P', true,  P("h2") },
+            { new Knight(), Knight.ID, 'n', false, P("c3") },
+            { new Rook(),   Rook.ID,   'R', true,  P("e8") },
+            { new Queen(),  Queen.ID,  'q', false, P("f1") },
+            { new Bishop(), Bishop.ID, 'B', true,  P("a6") },
+            { new King(),   King.ID,   'k', false, P("e8") }
         });
     }
     
@@ -55,14 +55,14 @@ public class PieceTest {
     */
     public PieceTest(final Piece prototype,
                      final char fen,
+                     final int pieceId,
                      final boolean isWhite,
-                     final boolean hasMoved,
                      final Position position) 
     {
         this.currentPrototype = prototype;
+        this.pieceId = pieceId;
         this.fen = fen;
         this.isWhite = isWhite;
-        this.hasMoved = hasMoved;
         this.position = position;
     }
 
@@ -110,14 +110,6 @@ public class PieceTest {
                      isWhite);
     }
 
-    @Test public void testHasMoved() {
-        Piece p = currentPrototype.clone();
-        p.setHasMoved(hasMoved);
-        assertEquals("",
-                     p.hasMoved(),
-                     hasMoved);
-    }
-
     @Test public void testFen() {
         Piece p = currentPrototype.clone();
         p.setIsWhite(isWhite);
@@ -132,10 +124,9 @@ public class PieceTest {
         a.setIsWhite(isWhite);
         a.setHasMoved(hasMoved);
         
-        Piece b = currentPrototype.clone();
+        Piece b = Pieces.PC(pieceId, isWhite, position);
         b.setPosition(position);
         b.setIsWhite(isWhite);
-        b.setHasMoved(hasMoved);
         
         Piece c = a.clone();
         c.setIsWhite(!isWhite);

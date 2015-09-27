@@ -15,8 +15,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 
-import com.sun.jmx.snmp.Timestamp;
-
 public class Logger {
 
 	public static final byte GUI_TO_ENGINE = 0b0001;
