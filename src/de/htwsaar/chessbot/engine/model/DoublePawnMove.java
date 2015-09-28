@@ -46,8 +46,6 @@ public class DoublePawnMove extends Move {
         Piece pc = onBoard.getPieceAt(getStart());
         if ( !(pc instanceof Pawn) ) 
             return null;
-        if ( pc.hasMoved() )
-            return null;
     
         Board result = super.tryExecute(onBoard);
         if (result != null) {

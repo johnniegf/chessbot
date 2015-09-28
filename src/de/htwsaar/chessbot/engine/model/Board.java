@@ -12,19 +12,17 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 */
 public class Board {
 
-
-    
     // bitboards for pieces
     protected long[] mColors;
     protected long[] mPieces;
     protected long mOccupied;
     protected long mEnPassant;
     
-    private long mZobristHash;
+    private long    mZobristHash;
     private boolean mWhiteAtMove;
-    private short mHalfMoves;
-    private short mMoveNumber;
-    private byte mCastlings;
+    private short   mHalfMoves;
+    private short   mMoveNumber;
+    private byte    mCastlings;
     
     public Board clone() {
         Board copy = new Board();
@@ -50,6 +48,7 @@ public class Board {
         mWhiteAtMove = true;
         mHalfMoves   = 0;
         mMoveNumber  = 0;
+        applyHash(getColorHash(WHITE));
     }
     
     public boolean isAttacked(final Position pos, final boolean byWhite) {
@@ -78,7 +77,7 @@ public class Board {
             pc = Pieces.PC(i, 
                            (i == Pawn.ID ? !color(color) : color(color)), 
                            Position.P(Bitwise.lowestBit(position)));
-            reverseAttacks = pc.getAttacks(this);
+            reverseAttacks = pc.getAttackBits(this);
             
             attackers = mPieces[i] & colorMask & reverseAttacks;
             if (countAllAttacks) {
@@ -223,6 +222,53 @@ public class Board {
         mColors[color] |= position;
         return true;
     }
+    
+    public byte getCastlings() {
+        return mCastlings;
+    }
+    
+    public void setCastlings(final byte castlings) {
+        checkInBounds(castlings, "castlings", 0, 15);
+        mCastlings = castlings;
+    }
+    
+    public byte getPieceCount() {
+        return Bitwise.count(occupied());
+    }
+    
+    public Piece[] getPieces() {
+        long currentPieces = 0L;
+        Piece[] pieceList = new Piece[getPieceCount()];
+        int offset = 0;
+        for (int type = 0; type < 6; type++) {
+            for (Piece p : getPiecesByType(type))
+                pieceList[offset++] = p;
+            
+        }
+        return pieceList;
+    }
+    
+    private Piece getPiece(final int pieceId, final long atPosition) {
+        boolean isWhite = (atPosition & mColors[WHITE]) != 0L;
+        return Pieces.PC(pieceId, isWhite, Position.P(atPosition));    
+    }
+    
+    public Piece[] getPiecesByType(final int pieceType) {
+        checkInBounds(pieceType, "pieceType", 0, 1);
+        long pieces = mPieces[pieceType];
+        long position;
+        int count = Bitwise.count(pieces);
+        int offset = 0;
+        Piece[] pieceList = new Piece[count];
+        byte index = 0;
+        while (pieces != 0L) {
+            index = Bitwise.lowestBit(pieces);
+            position = 1L << index;
+            pieceList[offset++] = getPiece(pieceType, position);
+            pieces = Bitwise.popLowestBit(pieces);
+        }
+        return pieceList;
+    }
 
     public boolean removePieceAt(final Position pos) {
         checkNull(pos, "position");
@@ -305,7 +351,7 @@ public class Board {
     }
     
     private static int invert(final int color) {
-        return Bitwise.xor(color,1);
+        return (int) Bitwise.xor(color,1);
     }
     
     private static void checkBitBoardPosition(final long bb) {
@@ -337,6 +383,18 @@ public class Board {
     private static final long sEnPassantMask = 0x0000_ff00_00ff_0000L;
     private static final long sIllegalWhitePawns = 0x0000_0000_0000_00ffL;
     private static final long sIllegalBlackPawns = 0xff00_0000_0000_0000L;
+    
+    private static final byte CASTLING_W_KING  = 1 << 3;
+    private static final byte CASTLING_W_QUEEN = 1 << 2;
+    private static final byte CASTLING_B_KING  = 1 << 1;
+    private static final byte CASTLING_B_QUEEN = 1 << 0;
+    
+    private static final String[] sCastlings = new String[] {
+        "-",    "q",   "k",   "kq",
+        "Q", "  Qq",  "Qk",  "Qkq",
+        "K",   "Kq",  "Kk",  "Kkq",
+        "KQ", "KQq", "KQk", "KQkq"
+    };
 
 
 }

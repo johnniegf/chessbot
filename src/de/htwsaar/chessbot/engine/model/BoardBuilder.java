@@ -66,7 +66,6 @@ public class BoardBuilder {
             char current = row.charAt(x);
             if (Character.isLetter(current)) {
                 Piece p = Pieces.PC(current, currentPosition);
-                checkForStartingPos(p);
                 if (p == null)
                     throw new FenStringParseException(
                         msg(EXN_UNKOWN_PIECE, current)
@@ -107,64 +106,6 @@ public class BoardBuilder {
         return true;
     }
 
-    private static boolean setCastlings(final String castleString, final Board context) {
-        String castlings = castleString.trim();
-        if (castlings == "-") {
-            for (Piece p : context.getPiecesByType(new King().id())) {
-                p.setHasMoved(false);
-            }
-            return true;
-        }
-        
-        Position kingPos, rookPos;
-        for (int i = 0; i < castlings.length(); i++) {
-            char c = castlings.charAt(i);
-            switch(c) {
-                case 'Q':
-                    kingPos = P("e1");
-                    rookPos = P("a1");
-                    break;
-                case 'K':
-                    kingPos = P("e1");
-                    rookPos = P("h1");
-                    break;
-                case 'q':
-                    kingPos = P("e8");
-                    rookPos = P("a8");
-                    break;
-                case 'k':
-                    kingPos = P("e8");
-                    rookPos = P("h8");
-                    break;
-                default:
-                    rookPos = Position.INVALID;
-                    kingPos = Position.INVALID;
-            }
-            if (rookPos.isValid()) {
-                Piece p = context.getPieceAt(rookPos);
-                if (p instanceof Rook) {
-                    p.setHasMoved(false);
-                }
-                p = context.getPieceAt(kingPos);
-                if (p instanceof King) {
-                    p.setHasMoved(false);
-                } 
-            }
-
-        }
-        return true;
-    }
-
-    private static void checkForStartingPos(Piece p) {
-        if (p instanceof Pawn) {
-            if (p.isWhite()) {
-                p.setHasMoved( p.getPosition().rank() != 2 );
-            } else {
-                p.setHasMoved( p.getPosition().rank() != 7 );
-            }
-        }
-    }
-
     private static void setEnPassant(final String enPassant, Board context) {
         if (enPassant.trim().equals("-")) {
             context.setEnPassant(Position.INVALID);
@@ -182,6 +123,10 @@ public class BoardBuilder {
     private static void setFullMoves(final String fullMoves, Board context) {
         int full = Integer.valueOf(fullMoves);
         context.setFullMoves(full);
+    }
+    
+    private static void setCastlings(final String castlings, Board context) {
+        context.setCastlings(castlings);
     }
 
     private static final String REGEX_FEN_STRING = 

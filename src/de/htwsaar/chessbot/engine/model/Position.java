@@ -99,6 +99,8 @@ public final class Position
 
     private final byte mFile;
     private final byte mRank;
+    private final long mLong;
+    private final byte mIndex;
 
     /**
     * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
@@ -110,6 +112,8 @@ public final class Position
     protected Position(final byte file, final byte rank) {
         mFile = file;
         mRank = rank;
+        mLong = toLong(file,rank);
+        mIndex = makeIndex(file,rank);
     }
 
     /**
@@ -181,11 +185,11 @@ public final class Position
     }
 
     public long toLong() {
-        return 1 << (hashCode()-1);
+        return mLong;
     }
     
-    public int index() {
-        return (MAX_FILE * (rank()-1)) + (file()-1);
+    public byte index() {
+        return mIndex;
     }
 
     public int hashCode() {
@@ -248,6 +252,14 @@ public final class Position
         if ( file < 1 || file > MAX_FILE )
             throw new IllegalArgumentException("file");
         return (char) ('a' + (file-1));
+    }
+    
+    private static long toLong(final byte file, final byte rank) {
+        return 1L << makeIndex(file,rank);
+    }
+    
+    private static byte makeIndex(final byte file, final byte rank) {
+        return (byte) ((rank-1) * MAX_RANK + (file-1));
     }
 }
 
