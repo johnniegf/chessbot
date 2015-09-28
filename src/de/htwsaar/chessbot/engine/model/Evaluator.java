@@ -13,6 +13,7 @@ public class Evaluator extends EvaluationFunction {
 	MaterialEvaluator mEval;
 	PositionBasedEvaluator bEval;
 	TrappedEvaluator tEval;
+	MobilityEvaluator mobEval;
 	
 	/**
 	 * Konstruktor der sämtliche Evaluatoren beinhaltet.
@@ -23,6 +24,7 @@ public class Evaluator extends EvaluationFunction {
 		this.mEval = new MaterialEvaluator();
 		this.bEval = new PositionBasedEvaluator();
 		this.tEval = new TrappedEvaluator();
+		this.mobEval = new MobilityEvaluator();
 	}
 	
 	/**
@@ -30,6 +32,6 @@ public class Evaluator extends EvaluationFunction {
 	 */
 	public int evaluate(Board b) {
 		return pEval.evaluate(b) + rEval.evaluate(b) + bEval.evaluate(b)
-				+ tEval.evaluate(b);
+				+ tEval.evaluate(b) + mobEval.evaluate(b);
 	}
 }

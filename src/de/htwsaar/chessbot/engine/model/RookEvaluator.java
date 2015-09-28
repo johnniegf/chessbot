@@ -1,6 +1,5 @@
 package de.htwsaar.chessbot.engine.model;
 
-import java.util.ArrayList;
 
 /**
  * Bewertung der Türme auf dem Schachbrett:

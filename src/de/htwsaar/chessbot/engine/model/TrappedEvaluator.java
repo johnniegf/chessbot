@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
+
 /**
  * ueberprueft ob eine Figur trapped ist, d.h.
  * ob sie sich nur auf eins oder kein Feld bewegen kann,
@@ -57,5 +58,5 @@ public class TrappedEvaluator extends EvaluationFunction{
 			return false;
 		else return true;
 	}
-
+	
 }
