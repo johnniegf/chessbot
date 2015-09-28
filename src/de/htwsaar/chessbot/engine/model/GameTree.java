@@ -69,7 +69,7 @@ public class GameTree {
 		return treeSize;
 	}
 
-	public void deepen(final int toDepth, boolean max, DeepeningInterrupter interrupter) {
+	public void deepen(final int toDepth, boolean max, DeepeningInterrupter interrupter, boolean background) {
 		
 		if(interrupter.stopDeepening()) {
 			this.lastDeepeningInterrupted = true;
@@ -86,7 +86,7 @@ public class GameTree {
 		this.deepeningTime = 0;
 		this.deepeningCreatedNodes = 0;
 		if (toDepth >= this.layers.size()) {
-			deepen(toDepth - 1, !max, interrupter);
+			deepen(toDepth - 1, !max, interrupter, background);
 			
 			this.deepeningCurrentLayer = toDepth;
 			this.deepeningParentIndex = 0;
@@ -124,6 +124,14 @@ public class GameTree {
 				
 				this.deepeningParentIndex++;
 				this.deepeningTime = System.currentTimeMillis() - time;
+				
+				if(background) {
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			this.layers.add(layer);
 			this.finishedLayers++;
@@ -206,11 +214,19 @@ public class GameTree {
 		}
 	}
 	
-	public void reduceLayer(int depth, int survivors, boolean max) {
+	public void reduceLayer(int depth, int survivors, boolean max, DeepeningInterrupter interrupter) {
+		if(depth < 2 || depth >= this.layers.size()) {
+			return;
+		}
+		
 		ArrayList<Node> childList;
 		ArrayList<Node> toRemove = new ArrayList<Node>();
 		ArrayList<Node> childsToKill = new ArrayList<Node>();
 		for(Node parent : getLayer(depth - 1)) {
+			if(interrupter.stopDeepening()) {
+				return;
+			}
+			
 			childList = (ArrayList<Node>) parent.getChildren();
 			Collections.sort(childList);
 			if(max) {
@@ -220,6 +236,10 @@ public class GameTree {
 			
 			childsToKill.clear();
 			for(int i = startIndex; i < childList.size(); i++) {
+				if(interrupter.stopDeepening()) {
+					return;
+				}
+				
 				Node child = childList.get(i);
 				toRemove.add(child);
 				childsToKill.add(child);
@@ -227,6 +247,7 @@ public class GameTree {
 			parent.removeChildren(childsToKill);
 		}
 		this.layers.get(depth).removeAll(toRemove);
+		updateLayers(getRoot().getDepth());
 	}
 	
 	public String getLastDeepeningStats() {

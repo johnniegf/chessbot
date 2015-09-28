@@ -1,12 +1,13 @@
 package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.Position.*;
-import static de.htwsaar.chessbot.util.Exceptions.*;
+import static de.htwsaar.chessbot.engine.model.Position.P;
+import static de.htwsaar.chessbot.engine.model.Position.PList;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 /**
 * Das Schachbrett.
 *
@@ -59,7 +60,7 @@ public class Board {
         mEnPassant = Position.INVALID;
         mHalfMoves = 0;
         mFullMoves = 1;
-        mPieces = new TreeMap<Position,Piece>();
+        mPieces = new HashMap<Position,Piece>();
         mPieceCount = 0;
         mZobristHash = 0L;
     }

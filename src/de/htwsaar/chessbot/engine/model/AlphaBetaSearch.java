@@ -17,12 +17,12 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
-				"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
+				//"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
 				);
 
 		AlphaBetaSearch alphaBetaSearch = new AlphaBetaSearch(game);
-		alphaBetaSearch.setMaxSearchDepth(20);
-		alphaBetaSearch.setTimeLimit(Integer.MAX_VALUE);
+		alphaBetaSearch.setMaxSearchDepth(10000);
+		alphaBetaSearch.setTimeLimit(0);
 		alphaBetaSearch.setPondering(true);
 		alphaBetaSearch.start();
 		alphaBetaSearch.startSearch();
@@ -205,7 +205,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	private void startAlphaBeta(boolean ponderHit) {
 		this.currentBestMove = null;
 		this.exitSearch = false;
-		if(!ponderHit) {
+		if(!ponderHit || this.gameTree == null) {
 			this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
 		}
 		else {
@@ -215,16 +215,16 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		this.nodesSearched = 0;
 		boolean startMax = this.gameTree.getRoot().getBoard().isWhiteAtMove();
 
-		for(int i = 1; i <= maxSearchDepth && !this.exitSearch; i++) { 
+		for(int i = 1; i <= maxSearchDepth && !getSearchStopped(); i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
 			boolean max = (i % 2 != 0) ? !startMax : startMax;
 			UCISender.getInstance().sendToGUI("info string Deepening to depth " + i + "...");
-			this.gameTree.deepen(i, max, this);
+			this.gameTree.deepen(i, max, this, false);
 			UCISender.getInstance().sendToGUI("info string Done. " + this.gameTree.getLastDeepeningStats());
 			UCISender.getInstance().sendToGUI("info string Tree: " + this.gameTree.getTreeSize());
 			alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
-			this.gameTree.reduceLayer(i, 5, max);
+			this.gameTree.reduceLayer(i, 15, max, this);
 
 			this.nodesPerSecond = 
 					(1000d * this.nodesSearched) / getPassedTime();
@@ -265,8 +265,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		
 		for(Node child : n.getChildren()) {
 			
-			if(this.exitSearch) {
-				break;
+			if(getSearchStopped()) {
+				return;
 			}
 			
 			Move move = child.getLeadsTo();
@@ -292,7 +292,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 					if(alpha >= beta) {
 						n.setScore(alpha);
 						tTable.put(n.getBoard().hash(), depth, alpha, max);
-						this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
+						
+						//this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
 						break;
 					}
 					if(n.isRoot()) {
@@ -310,7 +311,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 					if(beta <= alpha) {
 						n.setScore(beta);
 						tTable.put(n.getBoard().hash(), depth, beta, max);
-						this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
+						
+						//this.gameTree.cutoff(n, child, this.currentSearchDepth - depth);
 						break;
 					}
 					if(n.isRoot()) {
