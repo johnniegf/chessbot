@@ -47,26 +47,19 @@ public final class Pieces {
 
     private static void initInstance() {
         if (sInstance == null) {
-            sInstance = new Pieces(prototypes);
+            sInstance = new Pieces();
         }
     }
 
 //---------------------------------------------------------
 
-    private static final Piece[] mPrototypes = new Piece[] {
+    private final Piece[] mPrototypes = new Piece[] {
         new Pawn(), new Knight(), new King(),
         new Rook(), new Bishop(), new Queen()
     };
     private Piece[] mCache;
 
     private Pieces() {
-        if ( prototypes == null )
-            throw new NullPointerException("prototypes");
-
-        mPrototypes = new Piece[PIECE_TYPES];
-        for ( Piece pc : prototypes ) {
-            addPrototype(pc);
-        }
         mCache = new Piece[MAX_PIECES];
     }
     private static final int PIECE_TYPES = 6;

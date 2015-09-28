@@ -23,41 +23,8 @@ public class Bishop
         return ID;
     }
 
-    public Collection<Position> getAttacks(final Board context) {
-        Collection<Position> attacks = new ArrayList<Position>();
-        
-        Position p0 = getPosition();
-        Position pt;
-        for (int dx = -1; dx <= 1; dx += 2) {
-            for (int dy = -1; dy <= 1; dy += 2) {
-                pt = p0;
-                while (true) {
-                    pt = pt.transpose(dx, dy);
-                    if (!pt.isValid())
-                        break;
-                    attacks.add(pt);
-                    if (!context.isFree(pt)) {
-                        break;
-                    }
-                }
-            }
-        }
-        return attacks;
-    }
-
-    public Collection<Move> getMoves(final Board context) {
-        Collection<Move> moves = new ArrayList<Move>();
-        if (context.isWhiteAtMove() == isWhite()) {
-            Position myPos = getPosition();
-            for (Position p : getAttacks(context)) {
-                if (!context.isFree(p))
-                    if (context.getPieceAt(p).isWhite() == isWhite())
-                        continue;
-            
-                moves.add( MV(myPos,p) );
-            }
-        }
-        return moves;
+    public long getAttackBits(final Board context) {
+        return 0L;
     }
 
     protected char fen() {

@@ -25,40 +25,8 @@ public class Knight
         return ID;
     }
 
-    public Collection<Position> getAttacks(final Board context) {
-        Collection<Position> attacks = new ArrayList<Position>();
-        
-        Position p0 = getPosition();
-        Position pt;
-        for (int m = -1; m <= 1; m += 2) {
-            for (int n = -2; n <= 2; n += 4) {
-                pt = p0.transpose(m,n);
-                if (pt.isValid())
-                    attacks.add(pt);
-                
-                pt = p0.transpose(n,m);
-                if (pt.isValid())
-                    attacks.add(pt);
-            }
-        }
-        return attacks;
-    }
-
-    public Collection<Move> getMoves(final Board context) {
-        Collection<Move> moves = new ArrayList<Move>();
-        if (context.isWhiteAtMove() == isWhite()) {
-            Position myPos = getPosition();
-            Piece pc;
-            for (Position p : getAttacks(context)) {
-                if (!context.isFree(p)) {
-                    pc = context.getPieceAt(p);
-                    if (pc.isWhite() == isWhite())
-                        continue;
-                }
-                moves.add( MV(myPos,p) );
-            }
-        }
-        return moves;
+    public long getAttackBits(final Board context) {
+        return 0L;
     }
 
     protected char fen() {

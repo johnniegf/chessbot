@@ -1,6 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.Move.MV;
+import de.htwsaar.chessbot.util.Bitwise;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -25,47 +26,15 @@ public class Queen
     public int id() {
         return ID;
     }
-
-    public Collection<Position> getAttacks(final Board context) {
-        Collection<Position> attacks = new ArrayList<Position>();
-        
-        Position p0 = getPosition();
-        Position pt;
-        Piece pc;
-        for (byte dx = -1; dx <= 1; dx += 1) {
-            for (byte dy = -1; dy <= 1; dy += 1) {
-                if (dx == 0 && dy == 0) 
-                    continue;
-                pt = p0;
-                while (true) {
-                    pt = pt.transpose(dx,dy);
-                    if (!pt.isValid())
-                        break;
-
-                    attacks.add(pt);
-                    if (!context.isFree(pt)) {
-                        break;
-                    }
-                }
-            }
-        }
-        return attacks;
+    
+    public long getAttackBits(final Board context) {
+        long attacks = 0L;
+        Piece rook = Pieces.PC(Rook.ID, isWhite(), getPosition());
+        Piece bishop = Pieces.PC(Bishop.ID, isWhite(), getPosition());
+        return bishop.getAttackBits(context) | rook.getAttackBits(context);
     }
 
-    public Collection<Move> getMoves(final Board context) {
-        Collection<Move> moves = new ArrayList<Move>();
-        if (context.isWhiteAtMove() == isWhite()) {
-            Position myPos = getPosition();
-            for (Position p : getAttacks(context)) {
-                if (!context.isFree(p)) {
-                    if (context.getPieceAt(p).isWhite() == isWhite())
-                        continue;
-                }
-                moves.add( MV(myPos,p) );
-            }
-        }
-        return moves;
-    }
+
     
     protected char fen() {
         return 'Q';

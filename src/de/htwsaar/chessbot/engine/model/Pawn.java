@@ -51,18 +51,8 @@ public class Pawn
         return ID;
     }
 
-    public Collection<Position> getAttacks(final Board context) {
-        Collection<Position> attacks = new ArrayList<Position>();
-        
-        Position p0 = getPosition();
-        Position pt;
-        byte increment = (isWhite() ? (byte) 1 : (byte) -1);
-        for (byte d = -1; d <= 1; d += 2) {
-            pt = p0.transpose(d, increment);
-            if (pt.isValid()) 
-                attacks.add(pt);
-        }   
-        return attacks;
+    public long getAttackBits(final Board context) {
+        return 0L;
     }
 
     private Collection<Position> getTargets(final Board context) {
@@ -85,42 +75,10 @@ public class Pawn
 
     public Collection<Move> getMoves(final Board context) {
         Collection<Move> moves = new ArrayList<Move>();
-        if (context.isWhiteAtMove() == isWhite()) {
-            Position myPos = getPosition();
-            for (Position p : getAttacks(context)) {
-                if (context.isFree(p)) {
-            	    if (p == context.getEnPassant())
-            		    moves.add( MV(myPos,p,MoveEnPassant.FLAG) );
-                    continue;
-                }
-                if (context.getPieceAt(p).isWhite() == isWhite())
-                    continue;
-    
-                if (isPromotion(myPos,p)) {
-                    moves.addAll(getPromotions(myPos, p));
-                } else
-            		moves.add( MV(myPos,p) );
-            }
-            for (Position p : getTargets(context)) {
-            	if ( Math.abs(myPos.rank() - p.rank()) == 2 )
-            		moves.add( MV(myPos,p,DoublePawnMove.FLAG) );
-            	else {
-                    if (isPromotion(myPos,p)) {
-                        moves.addAll(getPromotions(myPos, p));
-                    } else
-                	    moves.add( MV(myPos,p) );
-                }
-            }
-        }
+        moves.addAll( getCaptures(context) );
+        moves.add( getNormalAdvance(context) );
+        moves.add( getDoubleAdvance(context) );
         return moves;
-    }
-
-    public boolean equals(final Object other) {
-        if (super.equals(other)) {
-            Piece op = (Piece) other;
-            return hasMoved() == op.hasMoved();
-        }
-        return false;
     }
    
     private Collection<Move> getPromotions(final Position from, final Position to) {
@@ -160,5 +118,17 @@ public class Pawn
 
     protected Pawn create() {
         return new Pawn();
+    }
+
+    private Collection<? extends Move> getCaptures(Board context) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private Move getNormalAdvance(Board context) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private Move getDoubleAdvance(Board context) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

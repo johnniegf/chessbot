@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import static de.htwsaar.chessbot.engine.model.Position.*;
+import de.htwsaar.chessbot.util.Bitwise;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 /**
 * Schachzug.
 *
@@ -20,28 +22,7 @@ import static de.htwsaar.chessbot.engine.model.Position.*;
 */
 public class Move {
 
-    private static Move.Cache sCache;
-
-    public static int CACHE_SIZE() {
-        return sCache.size();
-    }
-
-    private static Move.Cache getCache() {
-        if (sCache == null) {
-            Collection<Move> proto = Arrays.asList( new Move[] {
-                new Move(), 
-                new DoublePawnMove(), 
-                new Castling(),
-                new MoveEnPassant(),
-                new MovePromotion(new Queen()),
-                new MovePromotion(new Rook()),
-                new MovePromotion(new Bishop()),
-                new MovePromotion(new Knight())
-            });
-            sCache = new Move.Cache(proto);
-        }
-        return sCache;
-    }
+    
 
     public static Move MV(final Position from, 
                           final Position to, 
@@ -56,6 +37,8 @@ public class Move {
 
     public static final char FLAG = '0';
 
+    private short mMove = 0;
+    
     private Position mStart;
     private Position mTarget;
     private transient String tMoveString;
@@ -85,9 +68,14 @@ public class Move {
     * Gib das Startfeld des Zugs zurück.
     */
     public Position getStart() {
-        return mStart;
+        return P((mMove & FROM_MASK) >> FROM_OFFSET);
     }
-
+    
+    public void setStart(final long position) {
+        short index = Bitwise.lowestBit(position);
+        mMove &= ~FROM_MASK;
+        mMove |= index << 6;
+    }
     /**
     * Lege das Startfeld des Zugs fest.
     *
@@ -96,12 +84,9 @@ public class Move {
     * @throws MoveException falls die Position des Startfelds ungültig ist.
     */
     public void setStart(final Position start) {
-        if (start == null)
-            throw new NullPointerException("start");
-        if (!start.isValid())
+        checkNull(start, "start");
+        
             throw new MoveException(EXN_INVALID_START);
-
-        mStart = start;
     }
 
     /**
@@ -119,8 +104,7 @@ public class Move {
     * @throws MoveException falls die Position des Zielfelds ungültig ist.
     */
     public void setTarget(final Position target) {
-        if (target == null)
-            throw new NullPointerException("target");
+        checkNull(target, "target");
         if (!target.isValid())
             throw new MoveException(EXN_INVALID_TARGET);
 
@@ -273,8 +257,37 @@ public class Move {
             return false;
     }
     
-    private static final String MOVE = "[a-h][1-8]{2}";
-	//TODO ausdruck aktualisieren(Bauernumwandlung)
+    private static final short FROM_MASK = 0b0000_0011_1111_0000;
+    private static final int   FROM_OFFSET = 4;
+    private static final short TO_MASK = 0b1111_1100_0000_0000;
+    private static final int   TO_OFFSET = 10;
+    private static final short ID_MASK = 0b0000_0000_0000_1111;
+    private static final int   ID_OFFSET = 0;
+    
+    private static Move.Cache sCache;
+
+    public static int CACHE_SIZE() {
+        return sCache.size();
+    }
+
+    private static Move.Cache getCache() {
+        if (sCache == null) {
+            Collection<Move> proto = Arrays.asList( new Move[] {
+                new Move(), 
+                new DoublePawnMove(), 
+                new Castling(),
+                new MoveEnPassant(),
+                new MovePromotion(new Queen()),
+                new MovePromotion(new Rook()),
+                new MovePromotion(new Bishop()),
+                new MovePromotion(new Knight())
+            });
+            sCache = new Move.Cache(proto);
+        }
+        return sCache;
+    }
+    
+    private static final String MOVE = "[a-h][1-8]{2}[bnrq]?";
 
     private static final String EXN_INVALID_START =
         "Das Startfeld ist keine gültige Position";
@@ -348,6 +361,10 @@ public class Move {
             index += target.hashCode();
             return index;
         }
+        
+
+        
+            
     }
 
 }

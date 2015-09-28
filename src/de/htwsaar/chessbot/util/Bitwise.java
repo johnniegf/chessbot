@@ -42,5 +42,13 @@ public final class Bitwise {
     public static final byte highestBit(final long value) {
         return (byte) (63 - Long.numberOfLeadingZeros(value));
     }
+    
+    public static final byte count(final long value) {
+        return (byte) Long.bitCount(value);
+    }
+
+    public static long popLowestBit(long value) {
+        return xor(value, 1L << Bitwise.lowestBit(value));
+    }
 
 }

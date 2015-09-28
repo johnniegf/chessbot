@@ -24,7 +24,9 @@ public interface Piece {
     * @param context derzeitige Stellung der Figur
     * @return Liste bedrohter Felder.
     */
-    long getAttacks(final Board context);
+    Collection<Position> getAttacks(final Board context);
+    
+    long getAttackBits(final Board context);
 
     /**
     * Gib zurück, ob in der übergebenen Stellung diese Figur das
@@ -46,6 +48,8 @@ public interface Piece {
     *         in der Stellung
     */
     Collection<Move> getMoves(final Board context);
+    
+    long getMoveBits(final Board context);
 
     /**
     * Gib zurück, ob in der übergebenen Stellung diese Figur auf
@@ -81,22 +85,6 @@ public interface Piece {
     * @param isWhite Farbe der Figur
     */
     void setIsWhite(final boolean isWhite);
-
-    /**
-    * Gib zurück, ob die Figur bereits bewegt wurde.
-    *
-    * @return <code>true</code> falls die Figur bewegt wurde,
-    *         sonst <code>false</code>
-    */
-    boolean hasMoved();
-
-    /**
-    * Lege fest, ob die Figur bewegt wurde.
-    *
-    * @param hasMoved <code>true</code> falls die Figur bereits gezogen
-    *                 wurde, sonst <code>false</code>
-    */
-    void setHasMoved(final boolean hasMoved);
 
     /**
     * Gib die aktuelle Position der Figur aus.

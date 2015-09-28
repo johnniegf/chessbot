@@ -1,7 +1,11 @@
 package de.htwsaar.chessbot.engine.model;
 
+import static de.htwsaar.chessbot.engine.model.Move.MV;
 import static de.htwsaar.chessbot.engine.model.Pieces.PC;
+import de.htwsaar.chessbot.util.Bitwise;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
 * Abstrakter Figurtyp (zur Vereinfachung der Implementierung).
@@ -61,6 +65,20 @@ public abstract class AbstractPiece
     public void setIsWhite(final boolean isWhite) {
         mIsWhite = isWhite;   
     }
+    
+    public abstract long getAttackBits(final Board context);
+    
+    public Collection<Position> getAttacks(final Board context) {
+        Collection<Position> attacks = new ArrayList<Position>();
+        long attackBits = getAttackBits(context);
+        int index = 0;
+        while(attackBits != 0L) {
+            index = Bitwise.lowestBit(attackBits);
+            attacks.add( Position.P(index));
+            attackBits = Bitwise.popLowestBit(attackBits);
+        }
+        return attacks;
+    }
  
     public boolean attacks(final Board context, 
                            final Position targetSquare) 
@@ -68,17 +86,33 @@ public abstract class AbstractPiece
         checkNull(context, "context");
         checkNull(targetSquare, "targetSquare");
         
-        return getAttacks(context).contains(targetSquare);
+        return (getAttackBits(context) & targetSquare.toLong()) != 0L;
+    }
+    
+    public long getMoveBits(final Board context) {
+        return getAttackBits(context) ^ context.getPieceBitsForColor(isWhite());
+        
     }
 
+    public Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        Position from, to;
+        from = getPosition();
+        long moveBits = getMoveBits(context);
+        int index = -1;
+        while (moveBits != 0L) {
+            index = Bitwise.lowestBit(moveBits);
+            to = Position.P(index);
+            moves.add( MV(from,to) );
+            moveBits = Bitwise.popLowestBit(moveBits);
+        }
+        return moves;
+    }
+    
     public boolean canMoveTo(final Board context, 
                              final Position targetSquare) 
     {
-        for (Move m : getMoves(context))
-            if (m.getTarget() == targetSquare)
-                return true;
-
-        return false;
+        return (getMoveBits(context) & targetSquare.toLong()) != 0L;
     }
 
     public long hash() {

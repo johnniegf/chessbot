@@ -65,7 +65,7 @@ public class BoardBuilder {
         for (int x = 0; x < row.length(); x++) {
             char current = row.charAt(x);
             if (Character.isLetter(current)) {
-                Piece p = FACTORY.get(current, currentPosition, true);
+                Piece p = Pieces.PC(current, currentPosition);
                 checkForStartingPos(p);
                 if (p == null)
                     throw new FenStringParseException(

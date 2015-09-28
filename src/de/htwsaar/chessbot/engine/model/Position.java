@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.util.Bitwise;
 import java.util.*;
 /**
 * Feld auf dem Schachbrett.
@@ -12,10 +13,10 @@ public final class Position
         implements Comparable<Position> 
 {
     /** Maximale Anzahl Spalten */
-    public static final byte MAX_FILE = Board.WIDTH;
+    public static final byte MAX_FILE = 8;
 
     /** Maximale Anzahl Reihen */
-    public static final byte MAX_RANK = Board.HEIGHT;
+    public static final byte MAX_RANK = 8;
 
     private static PositionCache sCache = new PositionCache(); 
 
@@ -54,6 +55,18 @@ public final class Position
         if ( !isValid(file,rank) )
             return INVALID;
         return sCache.get(file,rank);
+    }
+    
+    public static Position P(final byte index) {
+        if (index < 0 || index > 63)
+            return INVALID;
+        return P(index / 8 + 1, index % 8 + 1);
+    }
+    
+    public static Position P(final long bitboard) {
+        if (Bitwise.count(bitboard) != 1)
+            return INVALID;
+        return P(Bitwise.lowestBit(bitboard));
     }
 
     /**
@@ -121,9 +134,7 @@ public final class Position
     *         Dimensionen des Bretts liegt, sonst <code>false</code>
     */
     public boolean existsOn(final Board board) {
-        return isValid()
-            && mFile <= board.width()
-            && mRank <= board.height();
+        return isValid();
     }
 
     /**
@@ -172,9 +183,13 @@ public final class Position
     public long toLong() {
         return 1 << (hashCode()-1);
     }
+    
+    public int index() {
+        return (MAX_FILE * (rank()-1)) + (file()-1);
+    }
 
     public int hashCode() {
-        return (MAX_FILE * (mRank-1)) + mFile;
+        return index();
     }
 
     /**
