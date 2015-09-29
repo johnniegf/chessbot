@@ -1,9 +1,16 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.engine.model.move.Move;
+import de.htwsaar.chessbot.engine.model.piece.King;
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
+import de.htwsaar.chessbot.engine.model.piece.Piece;
+import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.util.Bitwise;
 import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
 * Beschreibung.
@@ -11,6 +18,21 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 * @author Johannes Haupt
 */
 public class Board {
+    
+    public static final BoardBuilder BUILDER = new BoardBuilder();
+    
+    public static Board B() {
+        return BUILDER.getBoard();
+    }
+    
+    public static Board B(final String fenString) {
+        checkStringNotEmpty(fenString);
+        return BUILDER.fromFenString(fenString);
+    }
+
+    private static void checkStringNotEmpty(String fenString) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     // bitboards for pieces
     protected long[] mColors;
@@ -39,7 +61,7 @@ public class Board {
         return copy;
     }
     
-    protected Board() {
+    public Board() {
         mColors = new long[2];
         mPieces = new long[6];
         mEnPassant = 0L;
@@ -63,28 +85,32 @@ public class Board {
         return attackCount(position,color,true);
     }
     
-    private int attackCount(final long position, 
-                            final int color, 
+    private int attackCount(final long positions,
+                            final int color,
                             final boolean countAllAttacks) 
     {
         checkInBounds(color, "color", 0, 1);
         final long colorMask = mColors[color];
         byte attacks = 0;
-        long attackers;
-        long reverseAttacks;
+        long position, attackers, reverseAttacks;
+        long squares = positions;
         Piece pc;
-        for (int i = 0; i < 6; i++) {
-            pc = Pieces.PC(i, 
-                           (i == Pawn.ID ? !color(color) : color(color)), 
-                           Position.P(Bitwise.lowestBit(position)));
-            reverseAttacks = pc.getAttackBits(this);
-            
-            attackers = mPieces[i] & colorMask & reverseAttacks;
-            if (countAllAttacks) {
-                attacks += Bitwise.count(attackers);
-            } else {
-                return 1;
+        while (squares != 0L) {
+            for (int i = 0; i < 6; i++) {
+                position = Bitwise.lowestBit(squares);
+                pc = Pieces.PC(i, 
+                               (i == Pawn.ID ? !color(color) : color(color)), 
+                               Position.P(Bitwise.lowestBitIndex(position)));
+                reverseAttacks = pc.getAttackBits(this);
+
+                attackers = mPieces[i] & colorMask & reverseAttacks;
+                if (countAllAttacks) {
+                    attacks += Bitwise.count(attackers);
+                } else {
+                    return 1;
+                }
             }
+            squares = Bitwise.popLowestBit(squares);
         }
         return attacks;
     }
@@ -155,22 +181,43 @@ public class Board {
         mMoveNumber = (short) fullMoves;
         
     }
+    
+    public Move[] getMoveList() {
+        Collection<Move> moveList = new ArrayList<Move>();
+        int moveCount = 0;
+        Board b;
+        for (Piece p : getPieces(ALL,c(isWhiteAtMove()))) {
+            for (Move m : p.getMoves(this)) {
+                moveList.add(m);
+                moveCount++;
+            }
+        }
+        return moveList.toArray(new Move[moveCount]);
+    }
+    
+        
+    public byte getCastlings() {
+        return mCastlings;
+    }
+    
+    public boolean canCastle(final byte castlingType) {
+        checkInBounds(castlingType, "castlingType", 0, 15);
+        return (getCastlings() & castlingType) != 0;
+    }
+    
+    public void setCastlings(final byte castlings) {
+        checkInBounds(castlings, "castlings", 0, 15);
+        mCastlings = castlings;
+    }
+    
+    public void unsetCastlings(final byte castlings) {
+        checkInBounds(castlings, "castlings", 0, 15);
+        mCastlings &= ~castlings;
+    }
+    
     //--------------------------------------------------------------------------
     // --- Figurverwaltung -----------------------------------------------------
     //--------------------------------------------------------------------------
-    
-    /**
-     * Leere das Schachbrett.
-     */
-    public void clear() {
-        for (int i = 0; i < 6; i++) {
-            mPieces[i] = 0L;
-            if (i < 2) 
-                mColors[i] = 0L;
-        }
-        mEnPassant = 0L;
-        mOccupied  = 0L;
-    }
     
     /**
      * Prüfe, ob die übergebene Figur auf dem Schachbrett steht.
@@ -203,6 +250,19 @@ public class Board {
         checkBitBoardPosition(position);
         return (occupied() & position) == 0L;
     }
+    
+    /**
+     * Leere das Schachbrett.
+     */
+    public void clear() {
+        for (int i = 0; i < 6; i++) {
+            mPieces[i] = 0L;
+            if (i < 2) 
+                mColors[i] = 0L;
+        }
+        mEnPassant = 0L;
+        mOccupied  = 0L;
+    }
 
     public boolean putPiece(final Piece piece) {
 
@@ -223,14 +283,34 @@ public class Board {
         return true;
     }
     
-    public byte getCastlings() {
-        return mCastlings;
+    public boolean movePieceTo(final Position from, final Position to) {
+        return movePieceTo(from.toLong(), to.toLong());
     }
     
-    public void setCastlings(final byte castlings) {
-        checkInBounds(castlings, "castlings", 0, 15);
-        mCastlings = castlings;
+    public boolean movePieceTo(final long from, final long to) {
+        checkBitBoardPosition(from);
+        checkBitBoardPosition(to);
+        if (isFree(from))
+            return false;
+        if (!isFree(to))
+            return false;
+        
+        int type;
+        for (type = 0; type < 6; type++) {
+            if ((mPieces[type] & from) != 0L) {
+                break;
+            }
+        }
+        int color;
+        for (color = 0; color < 2; color++) {
+            if ((mColors[color] & from) == 0L)
+                break;
+        }
+        removePieceAt(from);
+        putPiece(type,color,to);
+        return true;
     }
+
     
     public byte getPieceCount() {
         return Bitwise.count(occupied());
@@ -241,7 +321,7 @@ public class Board {
         Piece[] pieceList = new Piece[getPieceCount()];
         int offset = 0;
         for (int type = 0; type < 6; type++) {
-            for (Piece p : getPiecesByType(type))
+            for (Piece p : getPieces(type))
                 pieceList[offset++] = p;
             
         }
@@ -253,16 +333,32 @@ public class Board {
         return Pieces.PC(pieceId, isWhite, Position.P(atPosition));    
     }
     
-    public Piece[] getPiecesByType(final int pieceType) {
-        checkInBounds(pieceType, "pieceType", 0, 1);
-        long pieces = mPieces[pieceType];
+    public Piece[] getPieces(final int pieceType) {
+        return getPieces(pieceType, 2);
+    }
+    
+    public Piece[] getPieces(final int pieceType, final int color) {
+        checkInBounds(pieceType, "pieceType", 0, 2);
+        long colorMask = 0L;
+        switch (color) {
+            case WHITE:
+                colorMask = mColors[WHITE];
+                break;
+            case BLACK:
+                colorMask = mColors[BLACK];
+                break;
+            case BOTH:
+                colorMask = mColors[BLACK] ^ mColors[WHITE];
+                break;
+        }
+        long pieces = mPieces[pieceType] & colorMask;
         long position;
         int count = Bitwise.count(pieces);
         int offset = 0;
         Piece[] pieceList = new Piece[count];
         byte index = 0;
         while (pieces != 0L) {
-            index = Bitwise.lowestBit(pieces);
+            index = Bitwise.lowestBitIndex(pieces);
             position = 1L << index;
             pieceList[offset++] = getPiece(pieceType, position);
             pieces = Bitwise.popLowestBit(pieces);
@@ -334,14 +430,6 @@ public class Board {
         return sb.toString();
     }
     
-    protected final int memUsage() {
-        return (6 * 8) // piece bitboards
-             + (2 * 8) // color bitboards
-             + 8       // occupied squares;
-             + 8       // mEnPassant
-             + 8;      // zobrist hash;
-    }
-    
     private static int c(boolean isWhite) {
         return (isWhite ? WHITE : BLACK);
     }
@@ -378,16 +466,18 @@ public class Board {
         return (blackPawns & sIllegalBlackPawns) == 0L;
     }
     
-    private static final int WHITE = 0;
-    private static final int BLACK = 1;
+    public static final int WHITE = 0;
+    public static final int BLACK = 1;
+    private static final int BOTH  = 2;
+    private static final int ALL   = -1;
     private static final long sEnPassantMask = 0x0000_ff00_00ff_0000L;
     private static final long sIllegalWhitePawns = 0x0000_0000_0000_00ffL;
     private static final long sIllegalBlackPawns = 0xff00_0000_0000_0000L;
     
-    private static final byte CASTLING_W_KING  = 1 << 3;
-    private static final byte CASTLING_W_QUEEN = 1 << 2;
-    private static final byte CASTLING_B_KING  = 1 << 1;
-    private static final byte CASTLING_B_QUEEN = 1 << 0;
+    public static final byte CASTLING_W_KING  = 1 << 3;
+    public static final byte CASTLING_W_QUEEN = 1 << 2;
+    public static final byte CASTLING_B_KING  = 1 << 1;
+    public static final byte CASTLING_B_QUEEN = 1;
     
     private static final String[] sCastlings = new String[] {
         "-",    "q",   "k",   "kq",

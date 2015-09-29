@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.util;
 
+import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.Board.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.util.Table;
@@ -76,11 +77,11 @@ public class DivideWorker extends Perft.Worker {
         long result = 0;
         if ( depth > 0 ) {
             Board b;
-            Collection<Move> moveList = board.getMoveList();
+            Move[] moveList = board.getMoveList();
             int index = mDepth-depth+1;
             mDivided.put(move, 
                          index, 
-                         mDivided.get(move,index) + moveList.size());
+                         mDivided.get(move,index) + moveList.length);
             for ( Move m : moveList ) {
                 b = m.execute(board);
                 result += calculate(b, depth-1, move);

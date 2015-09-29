@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
+import de.htwsaar.chessbot.engine.model.piece.Piece;
 import static de.htwsaar.chessbot.engine.model.Position.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
@@ -16,10 +18,6 @@ import java.util.Collection;
 */
 public class BoardBuilder {
 
-    private static final Pieces FACTORY = Pieces.getInstance();
-
-    private Collection<Piece> pieces;
-
     public Board getBoard() {
         return fromFenString(DEFAULT_FEN);
     }
@@ -30,7 +28,7 @@ public class BoardBuilder {
                 msg(EXN_BAD_FORMAT, fenString)
             );
 
-        Board    result = new Board() ;
+        Board    result = new Board();
         String[] fields = fenString.split(" ");
         String[] rows   = fields[0].split("/");
         
@@ -126,7 +124,27 @@ public class BoardBuilder {
     }
     
     private static void setCastlings(final String castlings, Board context) {
-        context.setCastlings(castlings);
+        int castlingBits = 0;
+        for (int i = 0; i < castlings.length(); i++) {
+            switch (castlings.charAt(i)) {
+                case 'K':
+                    castlingBits |= Board.CASTLING_W_KING;
+                    break;
+                case 'Q':
+                    castlingBits |= Board.CASTLING_W_QUEEN;
+                    break;
+                case 'k':
+                    castlingBits |= Board.CASTLING_B_KING;
+                    break;
+                case 'q':
+                    castlingBits |= Board.CASTLING_B_QUEEN;
+                    break;
+                default:
+                    throw new FenStringParseException(EXN_ILLEGAL_CHARACTER);
+            }
+        }
+        
+        context.setCastlings((byte) castlingBits);
     }
 
     private static final String REGEX_FEN_STRING = 

@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.engine.model.piece.Piece;
 import java.util.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 

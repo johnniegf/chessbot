@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.util;
 
+import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.Board.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.engine.model.*;
@@ -101,7 +102,7 @@ public class Perft {
     *
     */
     private Result calculate() {
-        Collection<Move> moveList = mInitial.getMoveList();
+        Collection<Move> moveList = Arrays.asList(mInitial.getMoveList());
         if (moveList.isEmpty())
             return null;
 
@@ -127,7 +128,7 @@ public class Perft {
     }
 
     private void setUpWorkers() {
-        Collection<Move> moveList = mInitial.getMoveList();
+        Collection<Move> moveList = Arrays.asList(mInitial.getMoveList());
         if (moveList.isEmpty()) {
             mWorkers = new Perft.Worker[0];
             return;

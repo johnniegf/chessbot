@@ -6,10 +6,10 @@ import java.util.List;
 import de.htwsaar.chessbot.util.Input;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardBuilder;
-import de.htwsaar.chessbot.engine.model.Engine;
-import de.htwsaar.chessbot.engine.model.Game;
-import de.htwsaar.chessbot.engine.model.Move;
-import de.htwsaar.chessbot.engine.model.PawnEvaluator;
+import de.htwsaar.chessbot.engine.Engine;
+import de.htwsaar.chessbot.engine.Game;
+import de.htwsaar.chessbot.engine.model.move.Move;
+import de.htwsaar.chessbot.engine.eval.PawnEvaluator;
 
 public class ChessDialog {
 	//Konstanten

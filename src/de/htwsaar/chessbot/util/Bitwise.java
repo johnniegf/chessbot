@@ -30,8 +30,12 @@ public final class Bitwise {
         return ~ ( lhs ^ rhs );
     }
 
-    public static final byte lowestBit(final long value) {
+    public static final byte lowestBitIndex(final long value) {
         return (byte) Long.numberOfTrailingZeros(value);
+    }
+    
+    public static final long lowestBit(final long value) {
+        return 1 << lowestBitIndex(value);
     }
 
     /**
@@ -39,8 +43,12 @@ public final class Bitwise {
      * @param value
      * @return
      */
-    public static final byte highestBit(final long value) {
+    public static final byte highestBitIndex(final long value) {
         return (byte) (63 - Long.numberOfLeadingZeros(value));
+    }
+    
+    public static final long highestBit(final long value) {
+        return 1 << highestBitIndex(value);
     }
     
     public static final byte count(final long value) {
@@ -48,7 +56,7 @@ public final class Bitwise {
     }
 
     public static long popLowestBit(long value) {
-        return xor(value, 1L << Bitwise.lowestBit(value));
+        return xor(value, 1L << Bitwise.lowestBitIndex(value));
     }
 
 }

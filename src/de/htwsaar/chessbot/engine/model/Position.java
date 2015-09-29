@@ -60,13 +60,15 @@ public final class Position
     public static Position P(final byte index) {
         if (index < 0 || index > 63)
             return INVALID;
-        return P(index / 8 + 1, index % 8 + 1);
+        byte file = (byte) ((index % MAX_RANK) + 1);
+        byte rank = (byte) ((index / MAX_RANK) + 1);
+        return P(file,rank);
     }
     
     public static Position P(final long bitboard) {
         if (Bitwise.count(bitboard) != 1)
             return INVALID;
-        return P(Bitwise.lowestBit(bitboard));
+        return P(Bitwise.lowestBitIndex(bitboard));
     }
 
     /**
@@ -211,11 +213,7 @@ public final class Position
     */
     public int compareTo(final Position other) {
         if (isValid()) {
-            int result = Byte.compare(mRank, other.rank());
-            if (result == 0) {
-                result = Byte.compare(mFile, other.file());
-            }
-            return result;
+            return Integer.compare(index(), other.index());
         } else {
             return (other.isValid() ? -1 : 0);
         }
@@ -255,10 +253,14 @@ public final class Position
     }
     
     private static long toLong(final byte file, final byte rank) {
+        if (!isValid(file,rank)) 
+            return 0L;
         return 1L << makeIndex(file,rank);
     }
     
     private static byte makeIndex(final byte file, final byte rank) {
+        if (!isValid(file,rank))
+            return -1;
         return (byte) ((rank-1) * MAX_RANK + (file-1));
     }
 }

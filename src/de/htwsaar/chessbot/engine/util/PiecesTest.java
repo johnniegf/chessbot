@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.util;
 
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
 import de.htwsaar.chessbot.engine.model.*;
 
 public class PiecesTest {
