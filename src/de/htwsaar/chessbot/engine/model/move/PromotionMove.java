@@ -7,6 +7,7 @@ import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Knight;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
 import de.htwsaar.chessbot.engine.model.piece.Queen;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
@@ -34,7 +35,8 @@ public class PromotionMove extends Move {
         "kann nicht zu Bauer oder Koenig umgewandelt werden";
 
 
-	private byte mPromotionType;
+	private final byte mPromotionType;
+    private final Move mMove;
 
 	public PromotionMove(final Position start, 
                          final Position target, 
@@ -45,6 +47,7 @@ public class PromotionMove extends Move {
 		setStart(start);
         setTarget(target);
 		this.mPromotionType = promotionType;
+        mMove = Move.MV(getStart(), getTarget());
 
 	}
     
@@ -71,14 +74,27 @@ public class PromotionMove extends Move {
 	
     @Override
 	public Board tryExecute(Board onBoard) {
-        return onBoard;
+        Piece pawn = onBoard.getPieceAt(getStart());
+        if (pawn == null || pawn.id() != Pawn.ID)
+            return null;
         
+        Board result = mMove.tryExecute(onBoard);
+        if (result != null) {
+            result.removePieceAt(getTarget());
+            Piece converted = Pieces.PC(getPieceType(mPromotionType), 
+                                        pawn.isWhite(),
+                                        getTarget());
+            result.putPiece(converted);
+        }
+        return result;
     }
     
+    @Override
     public byte type() {
         return mPromotionType;
     }
     
+    @Override
     public String toString() {
     	return super.toString() + getFenCharacter(mPromotionType);
     }
@@ -87,7 +103,7 @@ public class PromotionMove extends Move {
         return (value < 0 ? -value : value);
     }
 
-    private char getFenCharacter(final int promotedType) {
+    private static char getFenCharacter(final int promotedType) {
         switch (promotedType) {
             case TO_BISHOP:
                 return 'b';
@@ -102,7 +118,7 @@ public class PromotionMove extends Move {
         }
     }
     
-    private byte getPieceType(final byte promotionType) {
+    private static byte getPieceType(final byte promotionType) {
         switch (promotionType) {
             case TO_BISHOP:
                 return Bishop.ID;

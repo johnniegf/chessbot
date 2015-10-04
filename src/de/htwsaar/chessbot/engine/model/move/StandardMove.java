@@ -31,11 +31,10 @@ public class StandardMove extends Move {
     
     public Board tryExecute(final Board context) {
         checkNull(context, "context");
-
         Piece pc = context.getPieceAt(getStart());
         if (!checkMove(context, pc)) return null;
-
-
+        //System.out.println(this);
+        //System.out.println(context);
         Board result = context.clone();
         if ( !doCapture(result, pc) ) return null;
         if ( !movePiece(result, pc) ) return null;

@@ -1,10 +1,24 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.BoardException;
+import de.htwsaar.chessbot.engine.model.BoardUtils;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.East;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.West;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.move.Move.MV;
 import static de.htwsaar.chessbot.engine.model.Position.P;
+import de.htwsaar.chessbot.engine.model.move.CastlingMove;
+import static de.htwsaar.chessbot.engine.model.move.Move.MV;
+import de.htwsaar.chessbot.util.Bitwise;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -37,28 +51,148 @@ public class King
 {
     public static final int ID = 0;
     
+    private final long mAttackMask;
+    
     public King(final Position position, final boolean isWhite) {
         super(position,isWhite);
+        mAttackMask = calculateAttackMask();
+    }
+    
+    private long calculateAttackMask() {
+        long position = getPosition().toBitBoard();
+        long attacks = shift(East, position) | shift(West, position);
+        long row = attacks | position;
+        attacks |= shift(North, row) | shift(South, row);
+        return attacks;
     }
 
-    public int id() {
+    @Override
+    public final int id() {
         return ID;
     }
 
-    public long getAttackBits(final Board context) {
-        return 0L;
+    @Override
+    public final long getAttackBits(final Board context) {
+        return mAttackMask;
     }
     
-    public long getMoveBits(final Board context) {
-        return 0L;
+    public final long getNormalMoveBits(final Board context) {
+        if (context.isWhiteAtMove() != isWhite())
+            return 0L;
+        long moveBits = getAttackBits(context);
+        return moveBits ^ context.getAttacked(moveBits, !isWhite());
+    }
+    
+    @Override
+    public final long getMoveBits(final Board context) {
+        return getNormalMoveBits(context) | getCastlingBits(context);
+    }
+    
+    private boolean canCastle() {
+        return (getPosition().toBitBoard() & CASTLING_START_MASK) != 0L;
+    } 
+    
+    @Override
+    public final Collection<Move> getMoves(final Board context) {
+        Collection<Move> moves = new ArrayList<Move>();
+        Position from, to;
+        from = getPosition();
+        long moveBits = getNormalMoveBits(context);
+        long current;
+        while (moveBits != 0L) {
+            current = Bitwise.lowestBit(moveBits);
+            to = Position.BB(current);
+            moves.add( MV(from,to) );
+            moveBits ^= current;
+        }
+        moves.addAll(getCastlingMoves(context));
+        return moves;
+    }
+    
+    private long getCastlingBits(final Board context) {
+        if (!canCastle())
+            return 0;
+        long result = 0L;
+        int color = toColor(isWhite());
+        byte castlings = context.getCastlings();
+        long occupation = context.occupied();
+        for (int side = QUEENSIDE; side <= KINGSIDE; side++) {
+            if ((castlings & MOVE_FLAGS[color][side]) == 0L)
+                continue;
+            long obstructed = occupation & CASTLING_MASKS[color][side];
+            if (obstructed != 0L)
+                continue;
+            long attacked = ATTACK_MASK & CASTLING_MASKS[color][side];
+            attacked |= getPosition().toBitBoard();
+            if (context.getAttacked(attacked, !isWhite()) != 0L ) {
+                continue;
+            }
+
+            result |= CASTLING_TARGETS[color][side];
+        }
+        return result;
+    }
+    
+    private Collection<Move> getCastlingMoves(final Board context) {
+        Collection<Move> castlings = new ArrayList<Move>();
+        int c = toColor(isWhite());
+        long bits = getCastlingBits(context);
+        for (int side = QUEENSIDE; side <= KINGSIDE; side++) {
+            if ((bits & CASTLING_TARGETS[c][side]) != 0L) {
+                castlings.add( Move.MV(Position.INVALID, 
+                                       Position.INVALID, 
+                                       MOVE_IDS[c][side]));
+            }
+        }
+        return castlings;
     }
 
-    public Collection<Move> getMoves(final Board context) {
-        return new ArrayList<Move>();
-    }
-
-    protected char fen() {
+    @Override
+    protected final char fen() {
         return 'K';
+    }
+    
+    private static byte getFlag(final int color, final int side) {
+        return MOVE_IDS[color][side];
+    }
+    
+    
+    private static final int QUEENSIDE = 0;
+    private static final int KINGSIDE = 1;
+    
+    private static final byte[][] MOVE_IDS = new byte[2][2];
+    private static final byte[][] MOVE_FLAGS = new byte[2][2];
+    private static final long[][] CASTLING_MASKS = new long[2][2];
+    private static final long[][] CASTLING_ROOKS = new long[2][2];
+    private static final long[][] CASTLING_TARGETS = new long[2][2];
+    private static final long CASTLING_START_MASK = 0x1000_0000_0000_0010L;
+    private static final long ATTACK_MASK = 0x6c00_0000_0000_006cL;
+    
+    static {
+        MOVE_IDS[WHITE][QUEENSIDE] = CastlingMove.W_QUEENSIDE;
+        MOVE_IDS[WHITE][KINGSIDE]  = CastlingMove.W_KINGSIDE;
+        MOVE_IDS[BLACK][QUEENSIDE] = CastlingMove.B_QUEENSIDE;
+        MOVE_IDS[BLACK][KINGSIDE]  = CastlingMove.B_KINGSIDE;
+        
+        MOVE_FLAGS[WHITE][QUEENSIDE] = Board.CASTLING_W_QUEEN;
+        MOVE_FLAGS[WHITE][KINGSIDE] = Board.CASTLING_W_KING;
+        MOVE_FLAGS[BLACK][QUEENSIDE] = Board.CASTLING_B_QUEEN;
+        MOVE_FLAGS[BLACK][KINGSIDE] = Board.CASTLING_B_KING;
+        
+        CASTLING_MASKS[WHITE][QUEENSIDE] = 0x0000_0000_0000_000eL;
+        CASTLING_MASKS[WHITE][KINGSIDE]  = 0x0000_0000_0000_0060L;
+        CASTLING_MASKS[BLACK][QUEENSIDE] = 0x0e00_0000_0000_0000L;
+        CASTLING_MASKS[BLACK][KINGSIDE]  = 0x6000_0000_0000_0000L;
+        
+        CASTLING_ROOKS[WHITE][QUEENSIDE] = 0x0000_0000_0000_0001L;
+        CASTLING_ROOKS[WHITE][KINGSIDE]  = 0x0000_0000_0000_0080L;
+        CASTLING_ROOKS[BLACK][QUEENSIDE] = 0x0100_0000_0000_0000L;
+        CASTLING_ROOKS[BLACK][KINGSIDE]  = 0x8000_0000_0000_0000L;
+        
+        CASTLING_TARGETS[WHITE][QUEENSIDE] = 0x0000_0000_0000_0004L;
+        CASTLING_TARGETS[WHITE][KINGSIDE]  = 0x0000_0000_0000_0040L;
+        CASTLING_TARGETS[BLACK][QUEENSIDE] = 0x0400_0000_0000_0000L;
+        CASTLING_TARGETS[BLACK][KINGSIDE]  = 0x4000_0000_0000_0000L;
     }
 
 }

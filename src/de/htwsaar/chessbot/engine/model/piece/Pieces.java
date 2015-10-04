@@ -40,7 +40,7 @@ public final class Pieces {
     }
 
 
-    private static Pieces sInstance;
+    private static volatile Pieces sInstance;
 
     public static Pieces getInstance() {
         initInstance();
@@ -86,13 +86,12 @@ public final class Pieces {
             return null;
 
         int index = index(pieceId, isWhite, position);
-        checkInBounds(index, "index" +pieceId + " " + (isWhite ? "w" : "b") + " " + position.toString(), 0, 767);
-        System.out.println(
-            pieceId + " " + (isWhite ? "w" : "b") + " " + position.toString()
-        );
+        checkInBounds(index, "index", 0, 767);
+        
         Piece result = mCache[index];
+
         if ( result == null ) {
-            synchronized(this) {
+            synchronized(mCache) {
                 result = AbstractPiece.create(pieceId, position, isWhite);
                 mCache[index] = result;
                 mCacheSize++;
@@ -138,13 +137,13 @@ public final class Pieces {
         }
     }
 
-    private int index(final int pieceId,
-                      final boolean isWhite,
-                      final Position position)
+    private static int index(final int pieceId,
+                             final boolean isWhite,
+                             final Position position)
     {
         return (pieceId << 7)
-            |  ((isWhite ? 1 : 0) << 6)
-            |  position.index();
+            +  ((isWhite ? 1 : 0) << 6)
+            +  position.index();
     }
 
 }

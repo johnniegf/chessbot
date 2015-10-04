@@ -1,6 +1,8 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 // Interne Referenzen
+import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.Position;
 import static de.htwsaar.chessbot.engine.model.Position.P;
 
 // Java-API
@@ -24,10 +26,10 @@ public class PieceTest {
 
     
     // Testvariablen
-    private Piece currentPrototype;
-    private char fen;
-    private boolean isWhite;
-    private int pieceId;
+    private Piece    currentPiece;
+    private char     fen;
+    private boolean  isWhite;
+    private int      pieceId;
     private Position position;
     
     // Kontrollwerte
@@ -35,16 +37,34 @@ public class PieceTest {
     private static final Position[] TEST_POSITIONS = {
         P("c3"), P("a1"), P("i2"), P("h12")
     };
+    
+    private static Piece createPiece(final int pieceId,
+                                     final boolean isWhite,
+                                     final Position position) 
+    {
+        switch(pieceId) {
+            case King.ID:   return new King(position, isWhite);
+            case Queen.ID:  return new Queen(position, isWhite);
+            case Rook.ID:   return new Rook(position, isWhite);
+            case Knight.ID: return new Knight(position, isWhite);
+            case Bishop.ID: return new Bishop(position, isWhite);
+            case Pawn.ID:   return new Pawn(position, isWhite);
+            
+            default: 
+                return null;
+        }
+    }
+    
     @Parameters
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] { 
             // piece, fen, isWhite, hasMoved, position
-            { new Pawn(),   Pawn.ID,   'P', true,  P("h2") },
-            { new Knight(), Knight.ID, 'n', false, P("c3") },
-            { new Rook(),   Rook.ID,   'R', true,  P("e8") },
-            { new Queen(),  Queen.ID,  'q', false, P("f1") },
-            { new Bishop(), Bishop.ID, 'B', true,  P("a6") },
-            { new King(),   King.ID,   'k', false, P("e8") }
+            { Pawn.ID,   'P', true,  P("h2") },
+            { Knight.ID, 'n', false, P("c3") },
+            { Rook.ID,   'R', true,  P("e8") },
+            { Queen.ID,  'q', false, P("f1") },
+            { Bishop.ID, 'B', true,  P("a6") },
+            { King.ID,   'k', false, P("e8") }
         });
     }
     
@@ -53,13 +73,12 @@ public class PieceTest {
     *
     * Allokiert und initialisiert Ressourcen und Testvariablen.
     */
-    public PieceTest(final Piece prototype,
+    public PieceTest(final int pieceId,
                      final char fen,
-                     final int pieceId,
                      final boolean isWhite,
                      final Position position) 
     {
-        this.currentPrototype = prototype;
+        this.currentPiece = createPiece(pieceId, isWhite, position);
         this.pieceId = pieceId;
         this.fen = fen;
         this.isWhite = isWhite;
@@ -83,11 +102,11 @@ public class PieceTest {
 
     @Test(expected = NullPointerException.class)
     public void testSetNullPosition() {
-        currentPrototype.setPosition(null);
+        currentPiece.setPosition(null);
     }
     @Test(expected = NullPointerException.class)
     public void testMoveToNullPosition() {
-        currentPrototype.move(null);
+        currentPiece.move(null);
     }
 
     // ====================================================
@@ -95,7 +114,7 @@ public class PieceTest {
     // ====================================================
 
     @Test public void testPosition() {
-        Piece p = currentPrototype.clone();
+        Piece p = currentPiece.clone();
         p.setPosition(position);
         assertEquals("",
                      p.getPosition(),
@@ -103,7 +122,7 @@ public class PieceTest {
     }
 
     @Test public void testIsWhite() {
-        Piece p = currentPrototype.clone();
+        Piece p = currentPiece.clone();
         p.setIsWhite(isWhite);
         assertEquals("",
                      p.isWhite(),
@@ -111,7 +130,7 @@ public class PieceTest {
     }
 
     @Test public void testFen() {
-        Piece p = currentPrototype.clone();
+        Piece p = currentPiece.clone();
         p.setIsWhite(isWhite);
         assertEquals("",
                      p.fenShort(),
@@ -119,10 +138,7 @@ public class PieceTest {
     }
 
     @Test public void testEquality() {
-        Piece a = currentPrototype.clone();
-        a.setPosition(position);
-        a.setIsWhite(isWhite);
-        a.setHasMoved(hasMoved);
+        Piece a = currentPiece.clone();
         
         Piece b = Pieces.PC(pieceId, isWhite, position);
         b.setPosition(position);
@@ -140,14 +156,14 @@ public class PieceTest {
     }
 
     @Test public void testCloning() {
-        Piece cloned = currentPrototype.clone();
-        assertEquals(currentPrototype, cloned);
-        assertFalse(currentPrototype == cloned);
+        Piece cloned = currentPiece.clone();
+        assertEquals(currentPiece, cloned);
+        assertFalse(currentPiece == cloned);
     }
 
     @Test public void testMove() {
         Position pos = P("g6");
-        Piece p = currentPrototype.clone();
+        Piece p = currentPiece.clone();
         Piece pm = p.move(pos);
         assertNotEquals("",
                         p,
@@ -158,8 +174,6 @@ public class PieceTest {
         assertEquals("",
                      pm.getPosition(),
                      pos);
-        assertTrue("",
-                   pm.hasMoved());
     }
 
 }

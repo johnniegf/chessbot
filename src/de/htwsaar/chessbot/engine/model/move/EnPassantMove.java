@@ -2,6 +2,7 @@ package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.Position;
+import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
@@ -22,6 +23,8 @@ public class EnPassantMove extends Move {
     private static final String EXN_INVALID_TARGET =
         "Ungültiges Zielfeld für en passant Zug %s";
 
+    private final Move mMove;
+    
     public byte type() {
         return TYPE;
     }
@@ -30,8 +33,7 @@ public class EnPassantMove extends Move {
                          final Position targetPosition) 
     {
         super(startPosition, targetPosition);
-        
-        
+        mMove = Move.MV(getStart(), getTarget());
 	}
 
     public void setStart(final Position start) {
@@ -76,22 +78,20 @@ public class EnPassantMove extends Move {
 	@Override
 	public Board tryExecute(final Board onBoard) {
         checkNull(onBoard);
-        
-        Board result = onBoard.clone();
+        if (getTarget() != onBoard.getEnPassant()) 
+            return null;
+        int direction = getTarget().rank() - getStart().rank() < 0L ? 1 : -1;
+        boolean isWhite = onBoard.getPieceAt(getStart()).isWhite();
+        if(direction > 0 == isWhite ) 
+            return null;
+        //TODO neu implementieren
+        Board result = mMove.tryExecute(onBoard);
         if (result != null) {
-            int direction = getStart().compareTo(getTarget()) < 0 ? -1 : 1;
-            if (getTarget() != onBoard.getEnPassant()) 
-                return null;
-            boolean isWhite = result.getPieceAt(getTarget()).isWhite();
-            if(direction > 0 == isWhite ) 
-                return null;
-         
             Position tp = getTarget().transpose(0, direction);
             Piece attackedPiece = result.getPieceAt(tp);
-            if(attackedPiece == null) {
-            	throw new MoveException();
+            if(attackedPiece == null || attackedPiece.id() != Pawn.ID) {
+            	return null;
             }
-        
             result.removePieceAt(tp);
         }
         return result;

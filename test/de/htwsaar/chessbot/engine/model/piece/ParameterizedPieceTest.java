@@ -1,15 +1,17 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
+import de.htwsaar.chessbot.engine.model.Board;
 import static de.htwsaar.chessbot.engine.model.Position.*;
-import static de.htwsaar.chessbot.engine.model.Pieces.PC;
-//import static de.htwsaar.chessbot.engine.model.Move.MV;
+import static de.htwsaar.chessbot.engine.model.piece.Pieces.PC;
 import static de.htwsaar.chessbot.engine.model.Board.B;
+import de.htwsaar.chessbot.engine.model.Position;
+import de.htwsaar.chessbot.engine.model.move.Move;
 
 import java.util.*;
 import static java.util.Arrays.asList;
 
 // JUnit-Pakete
-//import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import org.junit.*;
@@ -35,6 +37,10 @@ public class ParameterizedPieceTest {
 
     // Kontrollwerte
     private static final Board EMPTY_BOARD = new Board();
+    
+    static {
+        EMPTY_BOARD.setCastlings((byte) 0);
+    }
     @Parameters
     public static Collection<Object[]> getTestData() {
         return Arrays.asList(new Object[][] {
@@ -69,19 +75,19 @@ public class ParameterizedPieceTest {
                 null
             },
             {
-                PC('K', P("e1"), false),
+                PC('K', P("e1")),
                 PList("d1", "d2", "e2","f2","f1"),
                 PList("c1", "c2", "h1", "e3", "f3"),
                 PList("d1", "d2", "e2","f2","f1"),
             },
             {
-                PC('K', P("b5"), true),
+                PC('K', P("b5")),
                 PList("a4","a5", "a6", "b4","b6","c4","c5","c6"),
                 PList("b7", "d5", "d4", "b8"),
                 null
             },
             {
-                PC('k', P("h8"), true),
+                PC('k', P("h8")),
                 PList("g7","g8", "h7"),
                 PList("h9", "g9", "i8", "i9"),
                 null
@@ -111,69 +117,69 @@ public class ParameterizedPieceTest {
                 null
             },
             {
-                PC('P', P("a2"), false),
+                PC('P', P("a2")),
                 PList("a3","a4"),
                 PList("b2","a1","b1"),
                 PList("b3")
             }, 
             {
-                PC('P', P("e5"), true),
+                PC('P', P("e5")),
                 PList("e6"),
                 PList("e7","e4","d5"),
                 PList("d6", "f6")
             }, 
             {
-                PC('P', P("f2"), false),
+                PC('P', P("f2")),
                 PList("f3","f4"),
                 PList("e2","e4","f1"),
                 PList("e3","g3"),
             },
             {
-                PC('p', P("f2"), true),
+                PC('p', P("f2")),
                 PList("f1"),
                 PList("e1","g1"),
                 PList("e1","g1")
             },
             {
-                PC('p', P("d7"), false),
+                PC('p', P("d7")),
                 PList("d6","d5"),
                 PList("d8","c7","e5"),
                 PList("e6","c6")
             }, 
             {
-                PC('p', P("h7"), false),
+                PC('p', P("h7")),
                 PList("h6","h5"),
                 PList("h8","g6","g7"),
                 PList("g6")
             }, 
             {
-                PC('p', P("c5"), true),
+                PC('p', P("c5")),
                 PList("c4"),
                 PList("b4","c5","c6"),
                 PList("b4", "d4")
             },
             {
-                PC('p', P("a4"), true),
+                PC('p', P("a4")),
                 PList("a3"),
                 PList("a2","b3"),
                 PList("b3")
             },
             {
-                PC('R', P("a1"), false),
+                PC('R', P("a1")),
                 PList("a2","a3","a4","a5","a6","a7","a8",
                       "b1","c1","d1","e1","f1","g1","h1"),
                 PList("b2","a9","i1"),
                 null
             },
             {
-                PC('R', P("g3"), true),
+                PC('R', P("g3")),
                 PList("g1","g2","g4","g5","g6","g7","g8",
                       "a3","b3","c3","d3","e3","f3","h3"),
                 PList("f2","h4","i3","g9"),
                 null
             },
             {
-                PC('r', P("e8"), true),
+                PC('r', P("e8")),
                 PList("e1","e2","e3","e4","e5","e6","e7",
                       "a8","b8","c8","d8","f8","g8","h8"),
                 PList("f7","e9","i8"),

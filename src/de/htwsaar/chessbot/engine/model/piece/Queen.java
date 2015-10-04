@@ -1,12 +1,15 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.East;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthEast;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthWest;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthEast;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthWest;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.West;
 import de.htwsaar.chessbot.engine.model.Position;
-import static de.htwsaar.chessbot.engine.model.move.Move.MV;
-import de.htwsaar.chessbot.util.Bitwise;
-
-import java.util.Collection;
-import java.util.ArrayList;
 /**
 * Die Dame.
 *
@@ -25,37 +28,30 @@ public class Queen
 {
     public static final int ID = 1;
 
+    private static final int[] directions = new int[] {
+        North, NorthEast,
+        East, SouthEast,
+        South, SouthWest,
+        West, NorthWest
+    };
+    
     public Queen(final Position position, final boolean isWhite) {
         super(position,isWhite);
     }
     
+    @Override
     public int id() {
         return ID;
     }
     
+    @Override
     public long getAttackBits(final Board context) {
-        long attacks = 0L;
-        Piece rook = Pieces.PC(Rook.ID, isWhite(), getPosition());
-        Piece bishop = Pieces.PC(Bishop.ID, isWhite(), getPosition());
-        return bishop.getAttackBits(context) | rook.getAttackBits(context);
+        return getRayAttacks(context, directions);
     }
 
-
-    
+    @Override
     protected char fen() {
         return 'Q';
-    }
-
-    /**
-    * Gib den Hashwert dieses Objekts aus.
-    *
-    * @return Hashwert dieses Objekts.
-    */
-    public int hashCode() {
-        int hash = 0;
-        // Berechnungen
-
-        return hash;
     }
 
 }

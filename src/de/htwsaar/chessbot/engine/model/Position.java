@@ -18,7 +18,7 @@ public final class Position
     /** Maximale Anzahl Reihen */
     public static final byte MAX_RANK = 8;
 
-    private static PositionCache sCache = new PositionCache(); 
+    private static final PositionCache sCache = new PositionCache(); 
 
     /**
     * Gib das Feld mit der übergebenen algebraischen Notation zurück.
@@ -57,15 +57,16 @@ public final class Position
         return sCache.get(file,rank);
     }
     
-    public static Position P(final byte index) {
+    public static Position P(final int index) {
         if (index < 0 || index > 63)
             return INVALID;
-        byte file = (byte) ((index % MAX_RANK) + 1);
-        byte rank = (byte) ((index / MAX_RANK) + 1);
+        final int file = (index % MAX_RANK) + 1;
+        final int rank = (index / MAX_RANK) + 1;
         return P(file,rank);
     }
     
-    public static Position P(final long bitboard) {
+    public static Position BB(final long bitboard) {
+        //BoardUtils.checkBitBoardPosition(bitboard);
         if (Bitwise.count(bitboard) != 1)
             return INVALID;
         return P(Bitwise.lowestBitIndex(bitboard));
@@ -186,7 +187,7 @@ public final class Position
         return (file() + rank()) % 2 != 0; 
     }
 
-    public long toLong() {
+    public long toBitBoard() {
         return mLong;
     }
     

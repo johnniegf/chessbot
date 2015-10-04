@@ -1,6 +1,8 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.isNegativeRay;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.ZobristHasher;
@@ -58,7 +60,7 @@ public abstract class AbstractPiece
         return mPosition;
     }
 
-    public void setPosition(final Position position) {
+    public final void setPosition(final Position position) {
         checkNull(position, "position");
         mPosition = position;
     }
@@ -67,7 +69,7 @@ public abstract class AbstractPiece
         return mIsWhite;
     }
 
-    public void setIsWhite(final boolean isWhite) {
+    public final void setIsWhite(final boolean isWhite) {
         mIsWhite = isWhite;   
     }
     
@@ -91,11 +93,13 @@ public abstract class AbstractPiece
         checkNull(context, "context");
         checkNull(targetSquare, "targetSquare");
         
-        return (getAttackBits(context) & targetSquare.toLong()) != 0L;
+        return (getAttackBits(context) & targetSquare.toBitBoard()) != 0L;
     }
     
     public long getMoveBits(final Board context) {
-        return getAttackBits(context) ^ context.getPieceBitsForColor(isWhite());
+        if (context.isWhiteAtMove() != isWhite())
+            return 0L;
+        return getAttackBits(context) & ~context.getPieceBitsForColor(isWhite());
         
     }
 
@@ -117,7 +121,7 @@ public abstract class AbstractPiece
     public boolean canMoveTo(final Board context, 
                              final Position targetSquare) 
     {
-        return (getMoveBits(context) & targetSquare.toLong()) != 0L;
+        return (getMoveBits(context) & targetSquare.toBitBoard()) != 0L;
     }
 
     public long hash() {
@@ -168,15 +172,15 @@ public abstract class AbstractPiece
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getName());
+        sb.append(getClass().getSimpleName());
         sb.append(isWhite() ? " w " : " b ");
         sb.append(getPosition());
         return sb.toString();
     }
 
-    static Piece create(final int pieceType,
-                        final Position position,
-                        final boolean isWhite) 
+    public static Piece create(final int pieceType,
+                               final Position position,
+                               final boolean isWhite) 
     {
         checkInBounds(pieceType, "pieceType", 0, 5);
         switch (pieceType) {
@@ -197,47 +201,55 @@ public abstract class AbstractPiece
         }
     }
     
-    private static long[][] rayAttacks = new long[8][64];
-    private static long[] fileMasks    = new long[8];
-    private static long[] rankMasks    = new long[8];
+    public static long[][] rayAttacks = new long[8][64];
+
     
-    private static final void initRayAttacks() {
+    private static void initRayAttacks() {
         rayAttacks = new long[8][64];
-        for (int i = Direction.North; i <= Direction.NorthWest; i++) {
+        for (int i = 0; i < 8; i++) {
             for (int sq = 0; sq < 64; sq++) {
                 rayAttacks[i][sq] = generateRayAttack(i, sq);
             }
         }
-        
     }
     
-    private static final long generateRayAttack(int direction, int sq) {
-        return 0L;
-    }
-    
-    public static final class Direction {
-        public static final int North = 0;
-        public static final int NorthEast = 1;
-        public static final int East = 2;
-        public static final int SouthEast = 3;
-        public static final int South = 4;
-        public static final int SouthWest = 5;
-        public static final int West = 6;
-        public static final int NorthWest = 7;
-    }
-    
-
-    private static void initMasks() {
-        long fileMask = 0x0101_0101_0101_0101L;
-        long rankMask = 0x0000_0000_0000_00ffL;
-        for (int i = 0; i < 8; i++, 
-                               fileMask <<= 1,
-                               rankMask <<= 8) 
-        {
-            fileMasks[i] = fileMask;
-            rankMasks[i] = rankMask;
+    protected long getRayAttacks(final Board context, int[] directions) {
+        int curpos = getPosition().index();
+        long occupation = context.occupied();
+        long attackRay, blocker;
+        int behind;
+        long attacks = 0L;
+        for (int dir : directions) {
+            attackRay = rayAttacks[dir][curpos];
+            blocker = attackRay & occupation;
+            if (blocker != 0L) {
+                if (isNegativeRay(dir)) {
+                    behind = Bitwise.highestBitIndex(blocker);
+                } else {
+                    behind = Bitwise.lowestBitIndex(blocker);
+                }
+                attacks |= attackRay ^ rayAttacks[dir][behind];
+            } else {
+                attacks |= attackRay;
+            }
         }
-
+        return attacks;
     }
     
+    private static long generateRayAttack(int direction, int sq) {
+        long pos0 = 1L << sq;
+        long pt = shift(direction, pos0);
+        long ray = 0L;
+        while (pt != 0L) {
+            ray |= pt;
+            pt = shift(direction,pt);
+        }
+        return ray;
+    }
+    
+    static {
+        initRayAttacks();
+    }
+    
+
 }

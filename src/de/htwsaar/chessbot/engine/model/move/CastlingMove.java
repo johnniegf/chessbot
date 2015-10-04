@@ -1,6 +1,10 @@
 package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.BoardUtils.Color;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
@@ -19,8 +23,10 @@ public class CastlingMove extends Move {
     public static final byte B_KINGSIDE  = 2;
     public static final byte B_QUEENSIDE = 3;
 
+    private static final String line = "---------------------------------------";
 
     private final byte mCastlingType;
+    private Move mMove;
 
     public CastlingMove(final byte castlingType) {
         super(Position.INVALID, Position.INVALID);
@@ -28,6 +34,7 @@ public class CastlingMove extends Move {
         mCastlingType = castlingType;
         super.setStart(POSITIONS[mCastlingType][0]);
         super.setTarget(POSITIONS[mCastlingType][1]);
+        mMove = Move.MV(getStart(), getTarget());
     }
 
     public void setStart(final Position start) {    }
@@ -41,50 +48,76 @@ public class CastlingMove extends Move {
     @Override
     public Board tryExecute(final Board onBoard) {
 
-        if (!onBoard.canCastle(mCastlingType)) {
+        if (!onBoard.canCastle(FLAGS[mCastlingType])) {
             return null;
         }
-        boolean isWhite = (mCastlingType / 2) % 2 == 0;
-        long freeSquares = POSITIONS[mCastlingType][1].toLong() 
-                         | POSITIONS[mCastlingType][3].toLong(); 
-        freeSquares = ~freeSquares & (isWhite ? WHITE_MASK : BLACK_MASK);
-        long possibleAttacks = freeSquares & ATTACK_MASK << (isWhite ? 0 : 56);
+//        System.out.println(line);
+//        System.out.println("CastlingMove.tryExecute():");
+//        System.out.println(this);
+//        System.out.println(onBoard);
+        int color = (mCastlingType / 2) % 2;
+        long freeSquares = PATH_MASKS[mCastlingType];
+        long possibleAttacks = freeSquares & ATTACK_MASK;
+//        System.out.println(String.format("f=0x%016x a=0x%016x", freeSquares, possibleAttacks) );
+        
         if ((freeSquares & onBoard.occupied()) != 0L) return null;
-        if ( onBoard.isAttacked(possibleAttacks, (isWhite ? Board.BLACK : Board.WHITE)) )
-            return null;
+//        System.out.println("Path not obstructed");
+        if ( onBoard.getAttacked(possibleAttacks, !toBool(color)) != 0L ) return null;
+//        System.out.println("Path not attacked");
         
-        Board result = onBoard.clone();
-        Piece pc = onBoard.getPieceAt(getStart());
-        
-        movePiece(result, pc);
-        moveRook(result, pc.isWhite());
+        Board result = mMove.tryExecute(onBoard);
+        if (result != null) {
+            moveRook(result, toBool(color));
+        }
+//        System.out.println("Result");;
+//        System.out.println(result);
+//        System.out.println(line);
         return result;
     }
     
     private boolean moveRook(final Board result, final boolean isWhite) {
-        result.removePieceAt(POSITIONS[mCastlingType][2].toLong());
+        result.removePieceAt(ROOKS[mCastlingType]);
         result.putPiece(Rook.ID, 
-                        (isWhite ? Board.WHITE : Board.BLACK), 
-                        POSITIONS[mCastlingType][3].toLong());
+                        Color.toColor(isWhite), 
+                        ROOK_TARGETS[mCastlingType]);
         return true;
     }
     
-    private static Position[][] POSITIONS = new Position[4][4];
-    private static byte[] FLAGS = new byte[4];
+    private static final Position[][] POSITIONS = new Position[4][4];
+    private static final byte[] FLAGS = new byte[4];
     
-    private static final long WHITE_MASK = 0x0000_0000_0000_00ffL;
-    private static final long BLACK_MASK = 0xff00_0000_0000_0000L;
-    private static final long ATTACK_MASK = 0x6cL;
+    private static final long ATTACK_MASK = 0x6c00_0000_0000_006cL;
+    private static final long[] PATH_MASKS = new long[4];
+    private static final long[] ROOKS  = new long[4];
+    private static final long[] ROOK_TARGETS = new long[4];
     static {
-        POSITIONS[W_KINGSIDE]  = new Position[] { P("e1"), P("g1"), P("h1"), P("f1") };
-        POSITIONS[W_QUEENSIDE] = new Position[] { P("e1"), P("c1"), P("a1"), P("d1") };
-        POSITIONS[B_KINGSIDE]  = new Position[] { P("e8"), P("g8"), P("h8"), P("f8") };
-        POSITIONS[B_QUEENSIDE] = new Position[] { P("e8"), P("c8"), P("a8"), P("d8") };
+        
+        PATH_MASKS[W_KINGSIDE] = 0x0000_0000_0000_0060L;
+        PATH_MASKS[W_QUEENSIDE] = 0x0000_0000_0000_000eL;
+        PATH_MASKS[B_KINGSIDE] = 0x6000_0000_0000_0000L;
+        PATH_MASKS[B_QUEENSIDE] = 0x0e00_0000_0000_0000L;
+        
+        ROOKS[W_KINGSIDE]  = 0x0000_0000_0000_0080L;
+        ROOKS[W_QUEENSIDE] = 0x0000_0000_0000_0001L;
+        ROOKS[B_KINGSIDE]  = 0x8000_0000_0000_0000L;
+        ROOKS[B_QUEENSIDE] = 0x0100_0000_0000_0000L;
+        
+        ROOK_TARGETS[W_KINGSIDE] = 0x0000_0000_0000_0020L;
+        ROOK_TARGETS[W_QUEENSIDE] = 0x0000_0000_0000_0008L;
+        ROOK_TARGETS[B_KINGSIDE] = 0x2000_0000_0000_0000L;
+        ROOK_TARGETS[B_QUEENSIDE] = 0x0800_0000_0000_0000L;
+        
+        POSITIONS[W_KINGSIDE]  = new Position[] { P("e1"), P("g1") };
+        POSITIONS[W_QUEENSIDE] = new Position[] { P("e1"), P("c1") };
+        POSITIONS[B_KINGSIDE]  = new Position[] { P("e8"), P("g8") };
+        POSITIONS[B_QUEENSIDE] = new Position[] { P("e8"), P("c8") };
         
         FLAGS[W_KINGSIDE] = Board.CASTLING_W_KING;
         FLAGS[W_QUEENSIDE] = Board.CASTLING_W_QUEEN;
         FLAGS[B_KINGSIDE] = Board.CASTLING_B_KING;
         FLAGS[B_QUEENSIDE] = Board.CASTLING_B_QUEEN;
+        
+        
     }
     
     

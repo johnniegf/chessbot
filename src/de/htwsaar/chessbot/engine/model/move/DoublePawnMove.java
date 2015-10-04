@@ -1,9 +1,13 @@
 package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import de.htwsaar.chessbot.util.Unused;
 /**
 * Doppelzug eines Bauern von seinem Startfeld.
@@ -13,26 +17,27 @@ import de.htwsaar.chessbot.util.Unused;
 public class DoublePawnMove extends Move {
     
     public static final byte TYPE = 9;
+    
+    private final Move mMove;
 
     public byte type() {
         return TYPE;
     }
     
     public DoublePawnMove(final Position startingSquare) {
-        super(Position.INVALID, Position.INVALID);
-        setStart(startingSquare);
+        super(startingSquare, Position.INVALID);
+        mMove = Move.MV(getStart(), getTarget());
     }
 
     public void setStart(final Position start) {
-        if (start == null)
-            throw new NullPointerException("start");
+        checkNull(start, "start");
         int d;
         if (start.rank() == 2) {
         	d = 1;
         } else if (start.rank() == 7) {
             d = -1;
         } else {
-            throw new MoveException("Invalid move!");
+            throw new MoveException("Invalid move!" + start);
         }
         super.setStart(start);
         super.setTarget(start.transpose(0,d*2));
@@ -43,23 +48,14 @@ public class DoublePawnMove extends Move {
     }
 
     public Board tryExecute(final Board onBoard) {
-        if (!onBoard.isFree(getTarget()) )
-            return null;
-        
         Piece pc = onBoard.getPieceAt(getStart());
-        if (pc == null)
-            return null;
-        if ( pc.id() != Pawn.ID ) 
+        if ( pc == null || pc.id() != Pawn.ID ) 
             return null;
 
-        Board result = onBoard.clone();
-        movePiece(result, pc);
-        long epSquare = getTarget().toLong();
-        if (pc.isWhite())
-            epSquare >>= 8;
-        else
-            epSquare <<= 8;
-        result.setEnPassant(epSquare);
+        Board result = mMove.tryExecute(onBoard);
+        if (result != null) {
+            result.setEnPassant(getTarget().transpose(0, pc.isWhite() ? -1 : 1));
+        }
         return result;
     }
 

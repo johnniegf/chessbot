@@ -35,7 +35,9 @@ public final class Bitwise {
     }
     
     public static final long lowestBit(final long value) {
-        return 1 << lowestBitIndex(value);
+        if (value == 0L)
+            return value;       
+        return ONE << lowestBitIndex(value);
     }
 
     /**
@@ -44,19 +46,28 @@ public final class Bitwise {
      * @return
      */
     public static final byte highestBitIndex(final long value) {
+        if (value == 0L)
+            return (byte) -1;
         return (byte) (63 - Long.numberOfLeadingZeros(value));
     }
     
     public static final long highestBit(final long value) {
-        return 1 << highestBitIndex(value);
+        if (value == 0L)
+            return value;
+        return ONE << highestBitIndex(value);
     }
+    private static final long ONE = 1L;
     
     public static final byte count(final long value) {
         return (byte) Long.bitCount(value);
     }
 
-    public static long popLowestBit(long value) {
-        return xor(value, 1L << Bitwise.lowestBitIndex(value));
+    public static final long popLowestBit(long value) {
+        return xor(value, Bitwise.lowestBit(value));
+    }
+
+    public static final long popHighestBit(final long value) {
+        return xor(value, Bitwise.highestBit(value));
     }
 
 }

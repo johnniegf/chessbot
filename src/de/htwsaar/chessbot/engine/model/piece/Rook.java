@@ -1,11 +1,11 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.East;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.West;
 import de.htwsaar.chessbot.engine.model.Position;
-import static de.htwsaar.chessbot.engine.model.move.Move.MV;
-
-import java.util.Collection;
-import java.util.ArrayList;
 /**
 * Der Turm.
 *
@@ -24,34 +24,26 @@ public class Rook
      extends AbstractPiece
 {
     public static final int ID = 2;
-
+    
+    private static final int[] directions = new int[] {
+        North, West, South, East
+    };
+    
     public Rook(final Position position, final boolean isWhite) {
-        super(position,isWhite);
+        super(position,isWhite);  
     }
     
+    @Override
     public int id() {
         return ID;
     }
-
+    
+    @Override
     public long getAttackBits(final Board context) {
-        // TODO: IMPLEMENT!
-        return 0L;
+        return getRayAttacks(context, directions);
     }
 
     protected char fen() {
         return 'R';
     }
-
-    /**
-    * Gib den Hashwert dieses Objekts aus.
-    *
-    * @return Hashwert dieses Objekts.
-    */
-    public int hashCode() {
-        int hash = 0;
-        // Berechnungen
-
-        return hash;
-    }
-
 }

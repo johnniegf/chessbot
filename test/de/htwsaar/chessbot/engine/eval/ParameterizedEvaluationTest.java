@@ -1,5 +1,8 @@
-package de.htwsaar.chessbot.engine.model;
+package de.htwsaar.chessbot.engine.eval;
 
+import de.htwsaar.chessbot.engine.eval.PawnEvaluator;
+import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.BoardBuilder;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;

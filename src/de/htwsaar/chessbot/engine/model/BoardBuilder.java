@@ -18,8 +18,12 @@ import java.util.Collection;
 */
 public class BoardBuilder {
 
+    private Board mDefaultBoard = null;
+    
     public Board getBoard() {
-        return fromFenString(DEFAULT_FEN);
+        if (mDefaultBoard == null)
+            mDefaultBoard = fromFenString(DEFAULT_FEN);
+        return mDefaultBoard.clone();
     }
 
     public Board fromFenString(final String fenString) {
@@ -124,7 +128,7 @@ public class BoardBuilder {
     }
     
     private static void setCastlings(final String castlings, Board context) {
-        int castlingBits = 0;
+        byte castlingBits = 0;
         for (int i = 0; i < castlings.length(); i++) {
             switch (castlings.charAt(i)) {
                 case 'K':
@@ -139,12 +143,17 @@ public class BoardBuilder {
                 case 'q':
                     castlingBits |= Board.CASTLING_B_QUEEN;
                     break;
+                case '-':
+                    context.setCastlings((byte) 0);
+                    return;
+                                        
                 default:
-                    throw new FenStringParseException(EXN_ILLEGAL_CHARACTER);
+                    throw new FenStringParseException(
+                        msg(EXN_ILLEGAL_CHARACTER,castlings.charAt(i))
+                    );
             }
         }
-        
-        context.setCastlings((byte) castlingBits);
+        context.setCastlings(castlingBits);
     }
 
     private static final String REGEX_FEN_STRING = 
@@ -153,7 +162,6 @@ public class BoardBuilder {
 
     private static final String DEFAULT_FEN = 
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
     private static final String EXN_ILLEGAL_COL_COUNT =
         "Ungültige Spaltenanzahl! Gefunden %d, erwarte 8.";
     private static final String EXN_ILLEGAL_ROW_COUNT =
@@ -171,5 +179,9 @@ public class BoardBuilder {
     private static final String EXN_INVALID_COLOR =
         "Unbekannte Spielfarbe '%s'";
 
+    static {
+        
+    }
+    
 }
 

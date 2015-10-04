@@ -3,6 +3,8 @@ package de.htwsaar.chessbot.engine.model;
 // Interne Referenzen
 
 // Java-API
+import de.htwsaar.chessbot.engine.model.piece.Piece;
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
 import java.util.*;
 
 // JUnit-API
@@ -49,7 +51,7 @@ public class BoardTest {
     // = Ausnahmetests
     // ====================================================
 
-    @Ignore @Test(expected = MyException.class)
+    @Ignore @Test(expected = BoardException.class)
     public void testFuckIt() {
         // Fehlerhafte Anweisung, die MyException auslöst
     }
@@ -66,7 +68,7 @@ public class BoardTest {
 
         assertEquals("Anzahl der Figuren ist falsch!",
                      1,
-                     mTestBoard.pieceCount() );
+                     mTestBoard.getPieceCount() );
         assertFalse("Feld " + piecePos + "sollte besetzt sein",
                     mTestBoard.isFree(piecePos) );
         assertTrue("Figur " + whiteKing + " sollte auf dem Brett existieren!",

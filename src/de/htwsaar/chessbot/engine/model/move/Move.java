@@ -1,6 +1,9 @@
 package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.Bishop;
 import de.htwsaar.chessbot.engine.model.piece.King;
@@ -15,8 +18,11 @@ import java.util.Map;
 import java.util.HashMap;
 import static de.htwsaar.chessbot.engine.model.Position.*;
 import de.htwsaar.chessbot.util.Bitwise;
+import de.htwsaar.chessbot.util.Exceptions;
+import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
+import static de.htwsaar.chessbot.util.Exceptions.msg;
 import java.util.Objects;
 /**
 * Schachzug.
@@ -75,19 +81,24 @@ public abstract class Move {
     
     public void setTarget(final Position targetSquare) {
         checkNull(targetSquare, "targetSquare");
+        checkCondition(targetSquare != getStart(), EXN_ILLEGAL_MOVE);
         mTarget = targetSquare;
     }
     
     public boolean isPossible(final Board onBoard) {
-        return tryExecute(onBoard) != null;
+        Board r = tryExecute(onBoard);
+        return r != null && r.isValid();
+            
     }
     
     public final Board execute(final Board onBoard) {
         Board result = tryExecute(onBoard);
         if (result == null)
-            throw new MoveException(EXN_ILLEGAL_MOVE);
+            throw new MoveException(
+                msg(EXN_ILLEGAL_MOVE, this, onBoard) );
         else if (!result.isValid())
-            throw new MoveException(EXN_ILLEGAL_MOVE);
+            throw new MoveException(
+                msg(EXN_ILLEGAL_MOVE, this, onBoard) );
         else
             return result;
     }
@@ -117,21 +128,27 @@ public abstract class Move {
     
     public abstract byte type();
     
+    public String toString() {
+        return getStart().toString() + getTarget();
+    }
+    
     protected boolean checkMove(final Board board, final Piece movingPiece) {
         if ( movingPiece == null ) return false;
-        return movingPiece.isWhite() == board.isWhiteAtMove()
-            && movingPiece.canMoveTo(board, getTarget());
+        return movingPiece.canMoveTo(board, getTarget());
     }
     
     protected boolean doCapture(Board board, final Piece movingPiece) {
         // Ist das Zielfeld besetzt...
         if ( !board.isFree(getTarget()) ) {
+            Piece capturedPiece = board.getPieceAt(getTarget());
             // ... und die Figur darauf von der selben Farbe wie die gezogene?
-            if ( board.getPieceAt(getTarget()).isWhite() == movingPiece.isWhite() )
+            if ( capturedPiece.isWhite() == movingPiece.isWhite() )
                 return false;
             // Wenn nein, dann schlage die Figur auf dem Zielfeld
             else {
-                board.removePieceAt(getTarget());
+                if (capturedPiece.id() == Rook.ID)
+                    disableCastlingsForRookCapture(capturedPiece, board);
+                board.removePiece(capturedPiece);
                 board.setHalfMoves(0);
             }
         } else {
@@ -182,6 +199,37 @@ public abstract class Move {
         return true;           
     }
     
+    private static final long[] ROOKS = new long[2];
+    private static final long[] SIDES = new long[2];
+    private static final byte[][] FLAGS = new byte[2][2];
+    private static final int KINGSIDE = 0;
+    private static final int QUEENSIDE = 1;
+    
+        
+    static {
+        ROOKS[WHITE] = 0x0000_0000_0000_00a1L;
+        ROOKS[BLACK] = 0xa100_0000_0000_0000L;
+        SIDES[QUEENSIDE] = 0x0100_0000_0000_0001L;
+        SIDES[KINGSIDE] = 0x8000_0000_0000_0080L;
+        
+        FLAGS[WHITE][QUEENSIDE] = Board.CASTLING_W_QUEEN;
+        FLAGS[WHITE][KINGSIDE] = Board.CASTLING_W_KING;
+        FLAGS[BLACK][QUEENSIDE] = Board.CASTLING_B_QUEEN;
+        FLAGS[BLACK][KINGSIDE] = Board.CASTLING_B_KING;
+        
+    }    
+    protected boolean disableCastlingsForRookCapture(final Piece captured, Board context) {
+        int color = toColor(captured.isWhite());
+        long pos = captured.getPosition().toBitBoard();
+        for (int side = 0; side < 2; side++) {
+            if (pos == (ROOKS[color] & SIDES[side])) {
+                context.unsetCastlings(FLAGS[color][side]);
+                return true;
+            }
+        }
+        return false;
+    }
+    
     
     public static boolean isPawnPush(final Move m) {
         return m.type() == DoublePawnMove.TYPE;
@@ -213,7 +261,7 @@ public abstract class Move {
     }
     
     private static final String EXN_ILLEGAL_MOVE =
-        "Der Zug ist regelwidrig und kann nicht ausgeführt werden.";
+        "Der Zug ist regelwidrig und kann nicht ausgeführt werden: %s \n%s";
     
     private static final MoveCache sCache = new MoveCache();
 }
@@ -267,7 +315,7 @@ class MoveCache {
                 return new DoublePawnMove(from);
                 
             case EnPassantMove.TYPE:
-                return new EnPassantMove(from, to);
+                return new EnPassantMove(from,to);
                 
             default:
                 throw new MoveException();
@@ -276,8 +324,8 @@ class MoveCache {
     
     private static short makeIndex(final Position from, final Position to, final byte type) {
         int index = type << 12;
-        index |= to.index() << 6;
-        index |= from.index();
+        index |= (to.isValid() ? to.index() : 0) << 6;
+        index |= (from.isValid() ? from.index() : 0);
         return (short) index;
     }
 }

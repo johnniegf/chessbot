@@ -22,17 +22,28 @@ public class Knight
      extends AbstractPiece
 {
     public static final int ID = 3;
+    
+    private final long mAttackMask;
 
     public Knight(final Position position, final boolean isWhite) {
         super(position,isWhite);
+        mAttackMask = calculateAttackMask();
+    }
+    
+    private long calculateAttackMask() {
+        return ATTACK_MASKS[getPosition().index()];
     }
     
     public int id() {
         return ID;
     }
+    
+    private long getAttackMask() {
+        return mAttackMask;
+    }
 
     public long getAttackBits(final Board context) {
-        return 0L;
+        return getAttackMask();
     }
 
     protected char fen() {
@@ -51,4 +62,27 @@ public class Knight
         return hash;
     }
 
+    private static long[] ATTACK_MASKS = new long[64];
+    
+    static {
+        Position p0,pt;
+        long currentAttacks;
+        for (int i = 0; i < 64; i++) {
+            currentAttacks = 0L;
+            p0 = Position.P(i);
+            for (int a = -1; a <= 1; a += 2) {
+                for (int b = -2; b <= 2; b += 4) {
+                    pt = p0.transpose(a, b);
+                    if (pt.isValid())
+                        currentAttacks |= pt.toBitBoard();
+                    
+                    pt = p0.transpose(b, a);
+                    if (pt.isValid())
+                        currentAttacks |= pt.toBitBoard();
+                }
+            }
+            ATTACK_MASKS[i] = currentAttacks;
+        }
+    }
+    
 }

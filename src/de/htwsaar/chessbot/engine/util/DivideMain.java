@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.util;
 
+import de.htwsaar.chessbot.engine.model.Board;
 import static de.htwsaar.chessbot.engine.util.Perft.*;
 /**
 * Perft-Hauptprogramm zum Ausführen in der Java VM.
@@ -20,11 +21,17 @@ public class DivideMain {
                 fen = args[0];
                 depth = Integer.valueOf(args[1]);
                 break;
+            case 0:
+                fen = "7R/8/8/8/8/8/6k1/4K3 b - - 0 1";
+                depth = 5;
+                numWorkers = 1;
+                break;
                 
             default:
                 System.out.println(USAGE_STRING);
                 return;
         }
+        System.out.println(Board.B(fen));
         Result r = Perft.run(RunType.DIVIDE,fen,depth,numWorkers);
         System.out.println(r);
     }
