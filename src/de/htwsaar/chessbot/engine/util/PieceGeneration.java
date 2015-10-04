@@ -3,7 +3,7 @@ package de.htwsaar.chessbot.engine.util;
 import de.htwsaar.chessbot.engine.model.piece.Pieces;
 import de.htwsaar.chessbot.engine.model.*;
 
-public class PiecesTest {
+public class PieceGeneration {
     
     public static void main(String[] args) {
         char[] pcs = new char[] { 

@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BOTH;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
@@ -14,7 +13,6 @@ import de.htwsaar.chessbot.engine.model.piece.Pieces;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.util.Bitwise;
-import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
@@ -70,7 +68,7 @@ public final class Board {
         
         if (other instanceof Board) {
             Board bb = (Board) other;
-            if (bb.hash() != hash()) return false;
+            //if (bb.hash() != hash()) return false;
             for (int c : COLORS) {
                 if (bb.mColors[c] != mColors[c]) return false;
             }

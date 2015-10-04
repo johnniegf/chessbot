@@ -30,7 +30,7 @@ public class UCISender {
 	}
 	
 	public void sendError(String msg) {
-		Logger.getInstance().log(msg, Logger.ERROR);
+//		Logger.getInstance().log(msg, Logger.ERROR);
 		
 		if(!this.showError) return;
 		System.out.println("[ERROR]" + msg);

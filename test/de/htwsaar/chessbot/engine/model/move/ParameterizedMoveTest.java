@@ -410,7 +410,7 @@ public class ParameterizedMoveTest {
             	"8/8/8/8/8/3q4/8/5B2 w - - 0 1", 
                 new StandardMove(P("f1"), P("d3")), 
                 true, 
-                "8/8/8/8/8/3R4/8/8 b - - 0 1"
+                "8/8/8/8/8/3B4/8/8 b - - 0 1"
             },
             {
             	"8/8/8/8/8/8/8/B7 w - - 0 1", 
