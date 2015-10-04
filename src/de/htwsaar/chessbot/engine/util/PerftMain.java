@@ -21,6 +21,11 @@ public class PerftMain {
                 fen = args[0];
                 depth = Integer.valueOf(args[1]);
                 break;
+            case 0:
+                fen = "7R/8/8/8/8/8/6k1/4K3 b - - 0 1";
+                depth = 5;
+                numWorkers = 1;
+                break;
                 
             default:
                 System.out.println(USAGE_STRING);

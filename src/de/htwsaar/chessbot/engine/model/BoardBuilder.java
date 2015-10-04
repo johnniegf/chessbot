@@ -1,5 +1,7 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
+import de.htwsaar.chessbot.engine.model.piece.Piece;
 import static de.htwsaar.chessbot.engine.model.Position.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
@@ -16,12 +18,12 @@ import java.util.Collection;
 */
 public class BoardBuilder {
 
-    private static final Pieces FACTORY = Pieces.getInstance();
-
-    private Collection<Piece> pieces;
-
+    private Board mDefaultBoard = null;
+    
     public Board getBoard() {
-        return fromFenString(DEFAULT_FEN);
+        if (mDefaultBoard == null)
+            mDefaultBoard = fromFenString(DEFAULT_FEN);
+        return mDefaultBoard.clone();
     }
 
     public Board fromFenString(final String fenString) {
@@ -30,7 +32,7 @@ public class BoardBuilder {
                 msg(EXN_BAD_FORMAT, fenString)
             );
 
-        Board    result = new Board() ;
+        Board    result = new Board();
         String[] fields = fenString.split(" ");
         String[] rows   = fields[0].split("/");
         
@@ -65,8 +67,7 @@ public class BoardBuilder {
         for (int x = 0; x < row.length(); x++) {
             char current = row.charAt(x);
             if (Character.isLetter(current)) {
-                Piece p = FACTORY.get(current, currentPosition, true);
-                checkForStartingPos(p);
+                Piece p = Pieces.PC(current, currentPosition);
                 if (p == null)
                     throw new FenStringParseException(
                         msg(EXN_UNKOWN_PIECE, current)
@@ -107,64 +108,6 @@ public class BoardBuilder {
         return true;
     }
 
-    private static boolean setCastlings(final String castleString, final Board context) {
-        String castlings = castleString.trim();
-        if (castlings == "-") {
-            for (Piece p : context.getPiecesByType(new King().id())) {
-                p.setHasMoved(false);
-            }
-            return true;
-        }
-        
-        Position kingPos, rookPos;
-        for (int i = 0; i < castlings.length(); i++) {
-            char c = castlings.charAt(i);
-            switch(c) {
-                case 'Q':
-                    kingPos = P("e1");
-                    rookPos = P("a1");
-                    break;
-                case 'K':
-                    kingPos = P("e1");
-                    rookPos = P("h1");
-                    break;
-                case 'q':
-                    kingPos = P("e8");
-                    rookPos = P("a8");
-                    break;
-                case 'k':
-                    kingPos = P("e8");
-                    rookPos = P("h8");
-                    break;
-                default:
-                    rookPos = Position.INVALID;
-                    kingPos = Position.INVALID;
-            }
-            if (rookPos.isValid()) {
-                Piece p = context.getPieceAt(rookPos);
-                if (p instanceof Rook) {
-                    p.setHasMoved(false);
-                }
-                p = context.getPieceAt(kingPos);
-                if (p instanceof King) {
-                    p.setHasMoved(false);
-                } 
-            }
-
-        }
-        return true;
-    }
-
-    private static void checkForStartingPos(Piece p) {
-        if (p instanceof Pawn) {
-            if (p.isWhite()) {
-                p.setHasMoved( p.getPosition().rank() != 2 );
-            } else {
-                p.setHasMoved( p.getPosition().rank() != 7 );
-            }
-        }
-    }
-
     private static void setEnPassant(final String enPassant, Board context) {
         if (enPassant.trim().equals("-")) {
             context.setEnPassant(Position.INVALID);
@@ -183,6 +126,35 @@ public class BoardBuilder {
         int full = Integer.valueOf(fullMoves);
         context.setFullMoves(full);
     }
+    
+    private static void setCastlings(final String castlings, Board context) {
+        byte castlingBits = 0;
+        for (int i = 0; i < castlings.length(); i++) {
+            switch (castlings.charAt(i)) {
+                case 'K':
+                    castlingBits |= Board.CASTLING_W_KING;
+                    break;
+                case 'Q':
+                    castlingBits |= Board.CASTLING_W_QUEEN;
+                    break;
+                case 'k':
+                    castlingBits |= Board.CASTLING_B_KING;
+                    break;
+                case 'q':
+                    castlingBits |= Board.CASTLING_B_QUEEN;
+                    break;
+                case '-':
+                    context.setCastlings((byte) 0);
+                    return;
+                                        
+                default:
+                    throw new FenStringParseException(
+                        msg(EXN_ILLEGAL_CHARACTER,castlings.charAt(i))
+                    );
+            }
+        }
+        context.setCastlings(castlingBits);
+    }
 
     private static final String REGEX_FEN_STRING = 
         "[BbKkNnPpQqRr1-8]+(/[BbKkNnPpQqRr1-8]+){7} " +
@@ -190,7 +162,6 @@ public class BoardBuilder {
 
     private static final String DEFAULT_FEN = 
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
     private static final String EXN_ILLEGAL_COL_COUNT =
         "Ungültige Spaltenanzahl! Gefunden %d, erwarte 8.";
     private static final String EXN_ILLEGAL_ROW_COUNT =
@@ -208,5 +179,9 @@ public class BoardBuilder {
     private static final String EXN_INVALID_COLOR =
         "Unbekannte Spielfarbe '%s'";
 
+    static {
+        
+    }
+    
 }
 

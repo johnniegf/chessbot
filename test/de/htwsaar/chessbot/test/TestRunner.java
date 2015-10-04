@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.test;
 
 import java.util.Vector;
-import java.util.List;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;

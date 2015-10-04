@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.util;
 
+import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.Board.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.engine.model.*;

@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.model;
 
+import de.htwsaar.chessbot.util.Bitwise;
 import java.util.*;
 /**
 * Feld auf dem Schachbrett.
@@ -12,12 +13,12 @@ public final class Position
         implements Comparable<Position> 
 {
     /** Maximale Anzahl Spalten */
-    public static final byte MAX_FILE = Board.WIDTH;
+    public static final byte MAX_FILE = 8;
 
     /** Maximale Anzahl Reihen */
-    public static final byte MAX_RANK = Board.HEIGHT;
+    public static final byte MAX_RANK = 8;
 
-    private static PositionCache sCache = new PositionCache(); 
+    private static final PositionCache sCache = new PositionCache(); 
 
     /**
     * Gib das Feld mit der übergebenen algebraischen Notation zurück.
@@ -55,6 +56,21 @@ public final class Position
             return INVALID;
         return sCache.get(file,rank);
     }
+    
+    public static Position P(final int index) {
+        if (index < 0 || index > 63)
+            return INVALID;
+        final int file = (index % MAX_RANK) + 1;
+        final int rank = (index / MAX_RANK) + 1;
+        return P(file,rank);
+    }
+    
+    public static Position BB(final long bitboard) {
+        //BoardUtils.checkBitBoardPosition(bitboard);
+        if (Bitwise.count(bitboard) != 1)
+            return INVALID;
+        return P(Bitwise.lowestBitIndex(bitboard));
+    }
 
     /**
     *
@@ -86,6 +102,8 @@ public final class Position
 
     private final byte mFile;
     private final byte mRank;
+    private final long mLong;
+    private final byte mIndex;
 
     /**
     * Erzeuge ein Positionsobjekt aus den übergebenen Koordinaten.
@@ -97,6 +115,8 @@ public final class Position
     protected Position(final byte file, final byte rank) {
         mFile = file;
         mRank = rank;
+        mLong = toLong(file,rank);
+        mIndex = makeIndex(file,rank);
     }
 
     /**
@@ -121,9 +141,7 @@ public final class Position
     *         Dimensionen des Bretts liegt, sonst <code>false</code>
     */
     public boolean existsOn(final Board board) {
-        return isValid()
-            && mFile <= board.width()
-            && mRank <= board.height();
+        return isValid();
     }
 
     /**
@@ -169,8 +187,16 @@ public final class Position
         return (file() + rank()) % 2 != 0; 
     }
 
+    public long toBitBoard() {
+        return mLong;
+    }
+    
+    public byte index() {
+        return mIndex;
+    }
+
     public int hashCode() {
-        return (MAX_FILE * (mRank-1)) + mFile;
+        return index();
     }
 
     /**
@@ -188,11 +214,7 @@ public final class Position
     */
     public int compareTo(final Position other) {
         if (isValid()) {
-            int result = Byte.compare(mRank, other.rank());
-            if (result == 0) {
-                result = Byte.compare(mFile, other.file());
-            }
-            return result;
+            return Integer.compare(index(), other.index());
         } else {
             return (other.isValid() ? -1 : 0);
         }
@@ -229,6 +251,18 @@ public final class Position
         if ( file < 1 || file > MAX_FILE )
             throw new IllegalArgumentException("file");
         return (char) ('a' + (file-1));
+    }
+    
+    private static long toLong(final byte file, final byte rank) {
+        if (!isValid(file,rank)) 
+            return 0L;
+        return 1L << makeIndex(file,rank);
+    }
+    
+    private static byte makeIndex(final byte file, final byte rank) {
+        if (!isValid(file,rank))
+            return -1;
+        return (byte) ((rank-1) * MAX_RANK + (file-1));
     }
 }
 

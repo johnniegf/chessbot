@@ -35,13 +35,20 @@
         </classpath>
     </taskdef>
 
+    <!-- Build classes and tests -->
+    <target name="build"
+            description="Build everything!"
+            depends="buildClasses,buildTests">
+    </target>
+
 
     <!-- Alternate build target, uses the system default java compiler -->
-    <target name="build"
+    <target name="buildClasses"
             description="Builds all Java classes using the default Java compiler">
         <mkdir dir="${buildDir}" />
         <javac classpath="${classpath}"
-               destdir="${buildDir}" >
+               destdir="${buildDir}" 
+               debug="true" >
             <src path="${srcDir}"  />
             <include name="**/*.java" />
             <compilerarg value="-g" />
@@ -52,7 +59,7 @@
 
 
     <!-- Builds all JUnit test using the system default Java compiler -->
-    <target name="buildTests" depends="build">
+    <target name="buildTests" depends="buildClasses">
         <mkdir dir="${buildDir}" />
         <javac classpath="${classpath}:${cpJUNIT}"
                destdir="${buildDir}">

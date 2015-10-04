@@ -1,528 +1,568 @@
 package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.Position.P;
-import static de.htwsaar.chessbot.engine.model.Position.PList;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.checkBitBoardPosition;
+import de.htwsaar.chessbot.engine.model.move.Move;
+import de.htwsaar.chessbot.engine.model.piece.King;
+import de.htwsaar.chessbot.engine.model.piece.Pieces;
+import de.htwsaar.chessbot.engine.model.piece.Piece;
+import de.htwsaar.chessbot.engine.model.piece.Pawn;
+import de.htwsaar.chessbot.util.Bitwise;
+import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+
 /**
-* Das Schachbrett.
-*
-* Das Schachbrett, bzw. eine mögliche Stellung auf dem Schachbrett, hält
-* Referenzen auf alle Figuren, die derzeit auf dem Brett stehen. Figuren
-* werden nicht vom Schachbrett erzeugt, sondern bei der Figurfabrik
-* <code>Pieces</code> angefordert.
-*
-* Um regelwidrige Züge zu vermeiden, kann eine Stellung prüfen, ob sie
-* regelkonform ist.
+* Beschreibung.
 *
 * @author Johannes Haupt
-* @author Timo Klein
-* @author Henning Walte
 */
-public class Board {
-
+public final class Board {
+    
     public static final BoardBuilder BUILDER = new BoardBuilder();
-
+    
     public static Board B() {
         return BUILDER.getBoard();
     }
-
+    
     public static Board B(final String fenString) {
+        checkNull(fenString);
         return BUILDER.fromFenString(fenString);
     }
 
-    /** Maximale Breite des Schachbretts. */
-    public static final byte WIDTH  = 8;
-
-    /** Maximale Höhe des Schachbretts. */
-    public static final byte HEIGHT = 8;
-
-//---------------------------------------------------------
-
-    private Map<Position,Piece> mPieces;
-    private short mPieceCount;
+    // bitboards for pieces
+    protected long[] mColors;
+    protected long[] mPieces;
+    protected Position mEnPassant;
+    
+    private long    mZobristHash;
     private boolean mWhiteAtMove;
-    private Position mEnPassant;
-    private int mHalfMoves;
-    private int mFullMoves;
-    private long mZobristHash;
-    private transient Collection<Move> tMoveList = null;
-    private transient boolean needsUpdate = true;
-    /**
-    * Erzeuge ein leeres Schachbrett. 
-    */
-    public Board() {
-        mWhiteAtMove = true;
-        mEnPassant = Position.INVALID;
-        mHalfMoves = 0;
-        mFullMoves = 1;
-        mPieces = new HashMap<Position,Piece>();
-        mPieceCount = 0;
-        mZobristHash = 0L;
-    }
-
-    /**
-    * Gib die Breite dieses Schachbretts zurück.
-    *
-    * @return die Breite des Schachfelds.
-    */
-    public byte width() {
-        return WIDTH;
-    }
-
-    /**
-    * Gib die Höhe dieses Schachbretts zurück.
-    *
-    * @return die Höhe des Schachfelds.
-    */
-    public byte height() {
-        return HEIGHT;
-    }
-
-    /* ================================
-    *  == FIGURVERWALTUNG
-    *  ================================ */
+    private short   mHalfMoves;
+    private short   mMoveNumber;
+    private byte    mCastlings;
     
-    /**
-    * Stelle die übergebene Figur auf das Schachbrett.
-    *
-    * @param piece die aufzustellende Figur
-    * @return <code>true</code> falls die Figur aufgestellt wurde,
-    *         sonst <code>false</code>
-    */
-    public boolean putPiece(final Piece piece) {
-        if ( piece == null )
-            return false;
-        Position p = piece.getPosition();
-        if ( !p.isValid() )
-            return false;
-        if ( !isFree(p) )
-            return false;
-
-        mPieces.put(p, piece);
-        applyHash(piece.hash());
-        mPieceCount += 1;
-        needsUpdate = true;
-        return true;
+    @Override
+    public final Board clone() {
+        Board copy = new Board();
+        System.arraycopy(mPieces, 0, copy.mPieces, 0, 6);
+        System.arraycopy(mColors, 0, copy.mColors, 0, 2);
+        copy.setEnPassant(mEnPassant);
+        copy.setHash(hash());
+        copy.setWhiteAtMove(isWhiteAtMove());
+        copy.setHalfMoves(getHalfMoves());
+        copy.setFullMoves(getFullMoves());
+        copy.setCastlings(getCastlings());
+        return copy;
     }
-
-    /**
-    * Gib die Figur auf dem überbenenen Feld zurück.
-    *
-    * @param piecePosition Position auf dem Schachbrett
-    * @return die Figur auf der übergebenen <code>Position</code>, oder
-    *         <code>null</code> falls das Feld leer ist.
-    */
-    public Piece getPieceAt(final Position piecePosition) {
-        return mPieces.get(piecePosition);
-    }
-
-    /**
-    * Gib alle Figuren mit der übergebenen Id zurück.
-    *
-    * @param pieceId ID der gesuchten Figurart
-    * @return alle Figuren der gesuchten Figurart, die auf dem 
-    *         Schachbrett stehen.
-    */
-    public Collection<Piece> getPiecesByType(long pieceId) {
-        Collection<Piece> pieces = new ArrayList<Piece>();
-        for (Piece pc : getPieces()) {
-            if (pieceId == pc.id())
-                pieces.add(pc);
+    
+    @Override
+    public final boolean equals(final Object other) {
+        if (other == this) return true;
+        if (other == null) return false;
+        
+        if (other instanceof Board) {
+            Board bb = (Board) other;
+            //if (bb.hash() != hash()) return false;
+            for (int c : COLORS) {
+                if (bb.mColors[c] != mColors[c]) return false;
+            }
+            for (int t = 0; t < 6; t++) {
+                if (bb.mPieces[t] != mPieces[t]) return false;
+            }
+            if (bb.mEnPassant != mEnPassant) return false;
+            if (bb.isWhiteAtMove() != isWhiteAtMove()) return false;
+            if (bb.getHalfMoves() != getHalfMoves()) return false;
+            if (bb.getFullMoves() != getFullMoves()) return false;
+            if (bb.getCastlings() != getCastlings()) return false;
+            return true;
         }
-        return pieces;
-    }
-
-    /**
-    * Gib alle Figuren auf dem Schachbrett zurück.
-    * 
-    * @return eine <code>Collection</code> aller Figuren, die sich
-    *         derzeit auf dem Schachbrett befinden.
-    */
-    public Collection<Piece> getPieces() {
-        return mPieces.values();
-    }
-
-    /**
-    * Entferne die Figur auf dem übergebenen Feld.
-    *
-    * @param piecePosition
-    * @return <code>true</code> falls eine Figur vom Schachbrett
-    *         entfernt wurde, sonst <code>false</code>
-    */
-    public boolean removePieceAt(final Position piecePosition) {
-        Piece p = mPieces.remove(piecePosition);
-        if (p != null) {
-            applyHash(p.hash());
-            mPieceCount -= 1;
-            needsUpdate = true;
-            return true;        
-        } else
-            return false;
-    }
-
-    /**
-    * Gib zurück, ob das übergebene Feld frei ist.
-    * 
-    * @return <code>true</code> falls das übergebene Feld frei ist,
-    *         sonst <code>false</code>
-    */
-    public boolean isFree(final Position position) {
-        return getPieceAt(position) == null;
+        return false;
     }
     
-    /**
-    * Gib die Anzahl der Figuren, die auf dem Schachbrett stehen zurück.
-    *
-    * @return Anzahl der Figuren auf dem Brett
-    */
-    public short getPieceCount() {
-        return mPieceCount;
+    public Board() {
+        mColors = new long[2];
+        mPieces = new long[6];
+        
+        setHash(0L);
+        mWhiteAtMove = true;
+        applyHash(WHITE_HASH);
+        
+        mEnPassant = Position.INVALID;
+        setHalfMoves(0);
+        setFullMoves(1);
+        setCastlings((byte) 0);
     }
-
-    /**
-    * Gib zurück, ob das übergebene Feld von einer Figur der übergebenen
-    * Farbe angegriffen wird.
-    *
-    * @param byWhitePieces Farbe der angreifenden Figuren, <code>true
-    *                      </code> für weiß.
-    * @param targetSquare  zu prüfendes Feld
-    * @return Anzahl der Angriffe auf das übergebene Feld
-    */
-    public int isAttacked(final boolean byWhitePieces, 
-                          final Position targetSquare)
+    
+    public boolean isAttacked(final Position pos, final boolean byWhite) {
+        return isAttacked(pos.toBitBoard(), toColor(byWhite));
+    }
+    
+    public boolean isAttacked(final long position, final int color) {
+        return attackCount(position,color,false) > 0;
+    }
+    
+    public int attackCount(final long position, final int color) {
+        return attackCount(position,color,true);
+    }
+    
+    private int attackCount(final long position,
+                            final int color,
+                            final boolean countAllAttacks) 
     {
-        if (targetSquare == null)
-            throw new NullPointerException("targetSquare");
+        //checkBitBoardPosition(position);
+        //checkInBounds(color, "color", 0, 1);
+        final long colorMask = mColors[color];
+        int attacks = 0;
+        long attackers, reverseAttacks;
+        Piece pc;
+        for (int i = 0; i < 6; i++) {
+            attackers = mPieces[i] & colorMask;
+            if (attackers == 0L)
+                continue;
+            pc = Pieces.PC(i, 
+                           (i == Pawn.ID ? !toBool(color) : toBool(color)), 
+                           Position.BB(position));
+            reverseAttacks = pc.getAttackBits(this);
 
-        int attackCount = 0;
-        for (Piece pc : getPieces()) {
-            if (pc.isWhite() == byWhitePieces) {
-                if (pc.attacks(this,targetSquare))
-                    attackCount++;
+            attackers &= reverseAttacks;
+            if (countAllAttacks) {
+                attacks += Bitwise.count(attackers);
+            } else if (attackers != 0L) {
+                return 1;
             }
         }
-        return attackCount;
+        return attacks;
     }
-
-    /* ================================
-    *  == SPIELERVERWALTUNG
-    *  ================================ */
-
-    /**
-    * Gib zurück, ob weiß am Zug ist.
-    * 
-    * @return <code>true</code> falls Weiß am Zug ist, sonst <code>
-    *         false</code>
-    */
+    
+    public boolean isValid() {
+        return !isKingInCheck(this) 
+            && arePawnsValid(this);
+        
+    }
+    
+    public Position getEnPassant() {
+        return mEnPassant;
+    }
+    
+    public boolean setEnPassant(final Position pos) {
+        checkNull(pos, "position");
+        applyHash( HASHER.getEnPassantHash(getEnPassant()) );
+        mEnPassant = pos;
+        applyHash( HASHER.getEnPassantHash(getEnPassant()) );
+        return true;
+    }
+    
     public boolean isWhiteAtMove() {
         return mWhiteAtMove;
     }
-
-    /**
-    * Lege fest, ob weiß am Zug ist.
-    *
-    * @param whiteAtMove ist weiß am Zug?
-    */
+    
     public void setWhiteAtMove(final boolean whiteAtMove) {
         if (whiteAtMove != isWhiteAtMove())
             togglePlayer();
     }
-
-    /**
-    * Wechsele den Spieler, der am Zug ist.
-    */
+    
     public void togglePlayer() {
-        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
         mWhiteAtMove = !mWhiteAtMove;
-        applyHash( ZobristHasher.getInstance().getColourHash(isWhiteAtMove()) );
+        applyHash(TOGGLE_HASH);  
     }
-
-    /* ================================
-    *  == ZUGVERWALTUNG
-    *  ================================ */
-
-    /**
-    * Erzeuge die Zugliste für diese Stellung.
-    *
-    * @return ein <code>Collection</code> aller möglichen Züge
-    *         in dieser Stellung.
-    */
-    public Collection<Move> getMoveList() {
-        if (needsUpdate) {
-            tMoveList = new ArrayList<Move>();
-            Board b;
-            Collection<Move> pieceMoves;
-            for (Piece pc : getPieces()) {
-                pieceMoves = pc.getMoves(this);
-                for (Move m : pieceMoves) {
-                    if (!m.isPossible(this))
-                        continue;
-                    b = m.execute(this);
-                    if (isValid())
-                        tMoveList.add(m);
-                }
-            }
-            needsUpdate = false;
-        }
-        return tMoveList;
-    }
-
-    /**
-    * Anzahl der Halbzüge seitdem eine Figur geschlagen oder ein
-    * Bauer gezogen wurde.
-    *
-    * @return Anzahl der Halbzüge, nach 50-Zugregel
-    */
-    public int getHalfMoves() {
-        return mHalfMoves;
-    }
-
-    /**
-    * Lege die Anzahl der Halbzüge, seitdem eine Figur geschlagen oder 
-    * ein Bauer gezogen wurde, fest.
-    *
-    * @param halfMoves Anzahl der Halbzüge, nach 50-Zugregel
-    */
-    public void setHalfMoves(final int halfMoves) {
-        mHalfMoves = halfMoves;
-    }
-
-    /**
-    * Gib die Anzahl der Spielzüge aus.
-    *
-    * @return Anzahl der Züge
-    */
-    public int getFullMoves() {
-        return mFullMoves;
-    }
-
-    /**
-    * Lege die Anzahl der gespielten Züge fest.
-    *
-    * @param fullMoves Anzahl der Spielzüge
-    */
-    public void setFullMoves(final int fullMoves) {
-        mFullMoves = fullMoves;
-    }
-
-    /**
-    * Gib das Feld zurück, auf dem Schlagen per en-passant möglich ist.
-    *
-    * @return die <code>Position</code>, auf der en passant möglich ist,
-    *         oder eine ungültige Position, falls nicht.
-    */
-    public Position getEnPassant() {
-        return mEnPassant;
-    }
-
-    /**
-    * Lege das Feld fest, auf dem Schlagen per en passant möglich ist.
-    *
-    * @param enPassant die <code>Position</code>, auf der en passant
-    *                  möglich ist.
-    */
-    public void setEnPassant(final Position enPassant) {
-        checkNull(enPassant, "enPassant");
-        mEnPassant = enPassant;
-    }
-
-    /* ================================
-    *  == HASHMANIPULATION
-    *  ================================ */
-    public int hashCode() {
-        return (int) (hash() % Integer.MAX_VALUE);
-    }
-
-    /**
-    * Gib den Zobrist-Hashwert dieser Stellung zurück.
-    *
-    * @return Hashwert der Stellung
-    */
+    
     public long hash() {
         return mZobristHash;
     }
-
-    /**
-    * Lege den Zobrist-Hashwert dieser Stellung fest.
-    *
-    * @param hash Hashwert der Stellung
-    */
+    
     public void setHash(final long hash) {
         mZobristHash = hash;
     }
-
-    /**
-    * Wende einen Hashwert auf den Hashwert dieser Stellung an.
-    *
-    * XOR
-    *
-    * @param hash Hashwert, der auf den Hashwert der Stellung 
-    *             angewendet wird
-    */
+    
     public void applyHash(final long hash) {
         mZobristHash ^= hash;
     }
-
-    /**
-    * Berechne den Zobrist-Hashwert dieser Stellung.
-    */
+    
     public void calculateHash() {
         long hash = 0L;
-        ZobristHasher hasher = ZobristHasher.getInstance();
-        String castlings = getCastlings();
-        if ( !castlings.equals("-") ) {
-            for (int i = 0; i < castlings.length(); i++) {
-                hash ^= hasher.getCastlingHash(castlings.charAt(i));
-            }
-        }
-        hash ^= hasher.getColourHash(isWhiteAtMove());
-        for (Piece pc : getPieces()) {
-            hash ^= pc.hash();
-        }
         setHash(hash);
     }
-
-    /**
-    * Kopiere diese Stellung.
-    *
-    * @return eine Kopie dieser Stellung
-    */
-    public Board clone() {
-        Board copy = new Board();
-        copy.setHalfMoves(getHalfMoves());
-        copy.setFullMoves(getFullMoves());
-        copy.setWhiteAtMove(isWhiteAtMove());
-        copy.setEnPassant(getEnPassant());
-        copy.needsUpdate = false;
-        for (Piece pc : getPieces()) {
-            copy.putPiece(pc);
+    
+    public short getHalfMoves() {
+        return mHalfMoves;
+    }
+    
+    public void setHalfMoves(final int halfMoves) {
+        checkInBounds(halfMoves, "halfMoves", 0, Short.MAX_VALUE);
+        mHalfMoves = (short) halfMoves;
+    }
+    
+    public short getFullMoves() {
+        return mMoveNumber;
+    }
+    
+    public void setFullMoves(final int fullMoves) {
+        checkInBounds(fullMoves, "fullMoves", 0, Short.MAX_VALUE);
+        mMoveNumber = (short) fullMoves;
+        
+    }
+    
+    public Move[] getMoveList() {
+        Collection<Move> moveList = new ArrayList<Move>();
+        Board b;
+        int count = 0;
+        for (Piece p : getPiecesForColor(toColor(isWhiteAtMove()))) {
+            for (Move m : p.getMoves(this)) {
+                if (m.isPossible(this)) {
+                    moveList.add(m);
+                    count++;
+                }
+            }
         }
-        return copy;
+        return moveList.toArray(new Move[count]);
+    }
+    
+        
+    public byte getCastlings() {
+        return mCastlings;
+    }
+    
+    public boolean canCastle(final byte castlingType) {
+        checkInBounds(castlingType, "castlingType", 0, 15);
+        return (getCastlings() & castlingType) != 0;
+    }
+    
+    public void setCastlings(final byte castlings) {
+        checkInBounds(castlings, "castlings", 0, 15);
+        applyHash( HASHER.getCastlingHash(mCastlings) );
+        mCastlings = castlings;
+        applyHash( HASHER.getCastlingHash(mCastlings));
+    }
+    
+    public void unsetCastlings(final byte castlings) {
+        checkInBounds(castlings, "castlings", 0, 15);
+        applyHash( HASHER.getCastlingHash(mCastlings));
+        mCastlings &= ~castlings;
+        applyHash( HASHER.getCastlingHash(mCastlings));
+    }
+    
+    //--------------------------------------------------------------------------
+    // --- Figurverwaltung -----------------------------------------------------
+    //--------------------------------------------------------------------------
+    
+    /**
+     * Prüfe, ob die übergebene Figur auf dem Schachbrett steht.
+     * @param piece die zu suchende Figur
+     * @return <code>true</code> genau dann, wenn die Figur auf dem Brett steht.
+     */
+    public boolean pieceExists(final Piece piece) {
+        if (piece == null)
+            return false;
+
+        int c = toColor(piece.isWhite());
+        int i = piece.id();
+        long pos = piece.getPosition().toBitBoard();
+        long bitboard = mColors[c] & mPieces[i];
+        return (bitboard & pos) > 0;
     }
 
     /**
-    * Prüfe das Objekt auf Gleichheit mit einem anderen Objekt.
-    *
-    * @param other das zu prüfende Objekt.
-    * @return <code>true</code> genau dann, wenn die Objekte gleich sind,
-    *         sonst <code>false</code>
-    */
-    public boolean equals(final Object other) {
-        // Triviale Fälle
-        if (other == null) return false;
-        if (other == this) return true;
+     * Gib zurück, ob die übergebene Position frei ist.
+     * @param pos das Feld auf dem Schachbrett
+     * @return <code>true</code> genau dann, wenn pos nicht besetzt ist.
+     */
+    public boolean isFree(final Position pos) {
+        checkNull(pos, "position");
+        long p = pos.toBitBoard();
+        return isFree(p);
+    }
+    
+    public boolean isFree(final long position) {
+        checkBitBoardPosition(position);
+        return (occupied() & position) == 0L;
+    }
+    
+    public boolean putPiece(final Piece piece) {
 
-        if (other instanceof Board) {
-            final Board b = (Board) other;
-            if ( b.hash() != hash() ) return false;
-            if ( b.getHalfMoves() != getHalfMoves() ) return false;
-            if ( b.getFullMoves() != getFullMoves() ) return false;
-            if ( b.isWhiteAtMove() != isWhiteAtMove() ) return false;
-            if ( b.getEnPassant() != getEnPassant() ) return false;
-            if ( b.getPieceCount() != getPieceCount() ) return false;
-            return true;   
-        } else {
+        final long p = piece.getPosition().toBitBoard();
+        final int c = (piece.isWhite() ? WHITE : BLACK);
+        
+        return putPiece(piece.id(), c, p);
+    }
+    
+    public boolean putPiece(final int pieceId, final int color, final long position) {
+        checkInBounds(pieceId, "pieceId", 0, 5);
+        checkInBounds(color, "color", 0, 1);
+        if (!isFree(position)) {
             return false;
         }
+        mPieces[pieceId] |= position;
+        mColors[color] |= position;
+        applyHash( HASHER.hashPiece(pieceId, toBool(color), Bitwise.lowestBitIndex(position)));
+        return true;
+    }
+    
+    public boolean movePieceTo(final Position from, final Position to) {
+        return movePieceTo(from.toBitBoard(), to.toBitBoard());
+    }
+    
+    public boolean movePieceTo(final long from, final long to) {
+        checkBitBoardPosition(from);
+        checkBitBoardPosition(to);
+        if (isFree(from))
+            return false;
+        if (!isFree(to))
+            return false;
+        
+        int type;
+        for (type = 0; type < 6; type++) {
+            if ((mPieces[type] & from) != 0L) {
+                break;
+            }
+        }
+        int color;
+        for (color = 0; color < 2; color++) {
+            if ((mColors[color] & from) == 0L)
+                break;
+        }
+        removePiece(type,color,from);
+        putPiece(type,color,to);
+        return true;
     }
 
-    /**
-    * Stringkonversion.
-    *
-    * @return Stringdarstellung dieses Objekts.
-    */
+    
+    public byte getPieceCount() {
+        return Bitwise.count(occupied());
+    }
+    
+    public Piece[] getPieces() {
+        Piece[] pieceList = new Piece[getPieceCount()];
+        int offset = 0;
+        for (int type = 0; type < 6; type++) {
+            Piece[] pieces = getPieces(type);
+            System.arraycopy(pieces, 0, pieceList, offset, pieces.length);
+            offset += pieces.length;
+        }
+        return pieceList;
+    }
+    
+    private Piece[] getPiecesForColor(final int color) {
+        checkInBounds(color,0,1);
+        int count = Bitwise.count(mColors[color]);
+        Piece[] pieceList = new Piece[count];
+        int offset = 0;
+        for (int type = 0; type < 6; type++) {
+            for (Piece piece : getPieces(type,color)) {
+                pieceList[offset] = piece;
+                offset += 1;
+            }
+        }
+        return pieceList;
+    }
+    
+    private Piece getPiece(final int pieceId, final long atPosition, final int color) {
+        checkBitBoardPosition(atPosition);
+        checkInBounds(color, 0, 1);
+        checkInBounds(pieceId, 0, 5);
+        long search = mPieces[pieceId] & mColors[color] & atPosition;
+        if (search != 0L) {
+            return Pieces.PC(pieceId, toBool(color), Position.BB(atPosition) );
+        }
+        return null;
+    }
+    
+    public Piece[] getPieces(final int pieceType) {
+        final int count = Bitwise.count(mPieces[pieceType]);
+        Piece[] pieces = new Piece[count];
+        int ofs = 0;
+        for (int c : COLORS) {
+            Piece[] tmp = getPieces(pieceType, c);
+            System.arraycopy(tmp, 0, pieces, ofs, tmp.length);
+            ofs += tmp.length;
+        }
+        return pieces;
+    }
+    
+    public Piece[] getPieces(final int pieceType, final int color) {
+        //checkInBounds(pieceType, 0, 5);
+        //checkInBounds(color, "color", 0, 1);
+        long colorMask = mColors[color];
+        long pieces = mPieces[pieceType] & colorMask;
+
+        int count = Bitwise.count(pieces);
+        Piece[] pieceList = new Piece[count];
+        //System.out.println(this);
+        int offset = 0;
+        long position;
+        while (pieces != 0L) {
+            position = Bitwise.lowestBit(pieces);
+            pieceList[offset] = getPiece(pieceType, position, color);
+            pieces = Bitwise.popLowestBit(pieces);
+            offset += 1;
+        }
+        return pieceList;
+    }
+
+    public boolean removePieceAt(final Position pos) {
+        checkNull(pos, "position");
+        return removePieceAt(pos.toBitBoard());
+    }
+    
+    public boolean removePieceAt(final long position) {
+        //checkBitBoardPosition(position);
+        if (isFree(position)) return false;
+        
+        Piece rem = getPieceAt(position);
+        return removePiece(rem);
+        /*
+        for (int i = 0; i < 6; i++) {
+            mPieces[i] &= ~position;
+            if (i < 2)
+                mColors[i] &= ~position;
+        }
+        return true;
+            */
+    }
+    
+    public long occupied() {
+        return mColors[WHITE] ^ mColors[BLACK];
+    }
+    
+    public boolean removePiece(final Piece piece) {
+        return removePiece(piece.id(),
+                           toColor(piece.isWhite()), 
+                           piece.getPosition().toBitBoard());
+    }
+    
+    public boolean removePiece(final int pieceId,
+                               final int color,
+                               final long position)
+    {
+        checkInBounds(pieceId, "pieceId", 0, 5);
+        checkInBounds(color, "color", 0, 1);
+        checkBitBoardPosition(position);
+        mPieces[pieceId] &= ~position;
+        mColors[color] &= ~position;
+        applyHash( HASHER.hashPiece(pieceId, toBool(color), Bitwise.lowestBitIndex(position)));
+        return true;
+    }
+    
+    public long getAttacked(final long squares, final boolean byWhite) {
+        long mSquares = squares;
+        long attacked  = 0L;
+        long pos;
+        while(mSquares != 0L) {
+            pos = Bitwise.lowestBit(mSquares);
+            if (isAttacked(pos, toColor(byWhite))) {
+                attacked |= pos;
+            }
+            mSquares = Bitwise.popLowestBit(mSquares);
+        }
+        return attacked;
+    }
+    
+    public Piece getPieceAt(final Position pos) {
+        checkNull(pos);
+        return getPieceAt(pos.toBitBoard());
+    }
+
+    public Piece getPieceAt(final long p) {
+        checkBitBoardPosition(p);
+        if (isFree(p))
+            return null;
+        int i;
+        for (i = 0; i < 6; i++) {
+            if ((mPieces[i] & p) != 0)
+                break;
+        }
+        int c;
+        for (c = 0; c < 2; c++) {
+            if ((mColors[c] & p) != 0)
+                break;
+        }
+        return Pieces.PC(i,toBool(c),Position.BB(p));
+    }
+    
+    public long getPieceBitsForColor(final boolean white) {
+        return mColors[toColor(white)];
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        final String blank = " ";
-        final String slash = "/";
-        Position p;
-        for (byte y = 8; y >= 1; y--) {
-            byte freeCount = 0;
-            for (byte x = 1; x <= 8; x++) {
-                p = P(x,y);
-                if ( isFree(p) )
-                    freeCount++;
-                else {
-                    if (freeCount > 0)
-                        sb.append(freeCount);
-                    sb.append( getPieceAt(p).fenShort() );
-                    freeCount = 0;
-                }
+        char[][] squares = new char[8][8];
+        for (int x = 0; x < 8; x++)
+            for (int y = 0; y < 8; y++) {
+                Piece p = getPieceAt(Position.P(x+1,y+1));
+                squares[x][y] = (p == null ? '.' : p.fenShort());
             }
-            if (freeCount > 0)
-                sb.append(freeCount);
-            if (y != 1)
-                sb.append(slash);
+
+        for (int y = 7; y >= 0; y--) {
+            for (int x = 0; x < 8; x++) {
+                sb.append(squares[x][y]);
+            }
+            sb.append("\n");
         }
-        sb.append(blank);
         sb.append(isWhiteAtMove() ? "w" : "b");
-        sb.append(blank);
-        sb.append(getCastlings());
-        sb.append(blank);
+        sb.append(space);
+        sb.append(sCastlings[getCastlings()]);
+        sb.append(space);
         sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
-        sb.append(blank);
+        sb.append(space);
         sb.append(getHalfMoves());
-        sb.append(blank);
+        sb.append(space);
         sb.append(getFullMoves());
+        sb.append(newline);
+        sb.append(String.format("hash(0x%016x)",hash()));
         return sb.toString();
     }
+    
 
-    private String getCastlings() {
-        StringBuilder castlings = new StringBuilder();
-        for ( Position p : PList("e1","e8") ) {
-            Piece king = getPieceAt(p);
-            if (king == null || king.hasMoved())
-                continue;
-            
-            Piece rook = getPieceAt( P(8, p.rank()) );
-            if (rook instanceof Rook) {
-                if (!rook.hasMoved())
-                    castlings.append(
-                        (rook.isWhite() ? "K" : "k")
-                    );
-            }
-            
-            rook = getPieceAt( P(1, p.rank()) );
-            if (rook instanceof Rook) {
-                if (!rook.hasMoved())
-                    castlings.append(
-                        (rook.isWhite() ? "Q" : "q")
-                    );
-            }
-        }
-        if (castlings.toString().isEmpty())
-            return "-";
-        else
-            return castlings.toString();
+    
+    private static long getColorHash(final int color) {
+        return ZobristHasher.getInstance().getColourHash(color == WHITE);
     }
-
-    public boolean isValid() {
-        return !kingInCheck(this);
-
+    
+    private static boolean isKingInCheck(final Board bb) {
+        //checkInBounds(color, "color", 0, 1);
+        int color = toColor(!bb.isWhiteAtMove());
+        long king = bb.mColors[color] & bb.mPieces[King.ID];
+        return king != 0L && bb.isAttacked(king, invert(color));
     }
-
-    private static boolean kingInCheck(final Board context) {
-        boolean w = !context.isWhiteAtMove();
-
-        Piece king = null;
-
-        for (Piece pc : context.getPieces()) {
-            if (pc instanceof King) {
-                if (pc.isWhite() == w) {
-                    king = pc;
-                    break;
-                }
-            }
-        }
-        if (king == null)
+    
+    private static boolean arePawnsValid(final Board bb) {
+        long whitePawns = bb.mPieces[Pawn.ID] & bb.mColors[WHITE];
+        if ((whitePawns & sIllegalWhitePawns) != 0L)
             return false;
-
-        return 0 < context.isAttacked(!w, king.getPosition());
+        long blackPawns = bb.mPieces[Pawn.ID] & bb.mColors[BLACK];
+        return (blackPawns & sIllegalBlackPawns) == 0L;
     }
+    
+    private static final String newline = System.getProperty("line.separator");
+    private static final String space = " ";
+    
+    private static final long sEnPassantMask = 0x0000_ff00_00ff_0000L;
+    private static final long sIllegalWhitePawns = 0x0000_0000_0000_00ffL;
+    private static final long sIllegalBlackPawns = 0xff00_0000_0000_0000L;
+    
+    public static final byte CASTLING_W_KING  = 1 << 3;
+    public static final byte CASTLING_W_QUEEN = 1 << 2;
+    public static final byte CASTLING_B_KING  = 1 << 1;
+    public static final byte CASTLING_B_QUEEN = 1;
+    
+    private static final String[] sCastlings = new String[] {
+        "-",    "q",   "k",   "kq",
+        "Q", "  Qq",  "Qk",  "Qkq",
+        "K",   "Kq",  "Kk",  "Kkq",
+        "KQ", "KQq", "KQk", "KQkq"
+    };
+    
+    private static final ZobristHasher HASHER = ZobristHasher.getInstance();
+    private static final long TOGGLE_HASH = HASHER.getColourHash(true)
+                                          ^ HASHER.getColourHash(false);
+    private static final long WHITE_HASH = HASHER.getColourHash(true);
+    
+
 
 }
