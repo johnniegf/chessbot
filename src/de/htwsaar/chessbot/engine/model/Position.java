@@ -60,9 +60,7 @@ public final class Position
     public static Position P(final int index) {
         if (index < 0 || index > 63)
             return INVALID;
-        final int file = (index % MAX_RANK) + 1;
-        final int rank = (index / MAX_RANK) + 1;
-        return P(file,rank);
+       return sCache.get(index);
     }
     
     public static Position BB(final long bitboard) {
@@ -130,7 +128,8 @@ public final class Position
     *         sonst <code>false</code>
     */
     public boolean isValid() {
-        return isValid(mFile,mRank);
+        return this != INVALID;
+        //return isValid(mFile,mRank);
     }
 
     /**
@@ -267,19 +266,23 @@ public final class Position
 }
 
 class PositionCache {
-    private Map<String,Position> mCache;
+    private Map<String,Position> mFenCache;
+    private Position[] mArrayCache;
 
     public PositionCache() {
-        mCache = new HashMap<String,Position>();
+        mFenCache = new HashMap<String,Position>();
+        mArrayCache = new Position[64];
         for (byte f = 1; f <= Position.MAX_FILE; f++) {
             for (byte r = 1; r <= Position.MAX_RANK; r++) {
-                mCache.put(makeIndex(f,r), new Position(f,r));
+                Position p = new Position(f,r);
+                mFenCache.put(makeIndex(f,r), p);
+                mArrayCache[index(f,r)] = p;
             }
         }
     }
 
     public Position get(final String san) {
-        Position p = mCache.get(san.trim());
+        Position p = mFenCache.get(san.trim());
         if (p == null) {
             p = Position.INVALID;
         }
@@ -287,11 +290,25 @@ class PositionCache {
     }
 
     public Position get(final byte file, final byte rank) {
-        return get(makeIndex(file,rank));       
+        int index = index(file,rank);
+        return (index < 0 ? Position.INVALID : mArrayCache[index]);
+    }
+    
+    public Position get(final int index) {
+        if (index < 0 || index > 63)
+            return Position.INVALID;
+        return mArrayCache[index];
     }
 
     private static final char A = 'a';
     private static String makeIndex(final byte file, final byte rank) {
         return (char) (A + (file-1)) + "" + rank;
+    }
+    
+    private static int index(final byte file, final byte rank) {
+        int index = (rank-1) * Position.MAX_RANK + (file-1);
+        if (index < 0 || index > 63)
+            return -1;
+        return index;
     }
 }

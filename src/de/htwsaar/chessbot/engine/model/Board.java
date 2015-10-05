@@ -7,6 +7,7 @@ import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.checkBitBoardPosition;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.toIndex;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Pieces;
@@ -279,7 +280,7 @@ public final class Board {
     }
     
     public boolean isFree(final long position) {
-        checkBitBoardPosition(position);
+        //checkBitBoardPosition(position);
         return (occupied() & position) == 0L;
     }
     
@@ -367,7 +368,7 @@ public final class Board {
         checkInBounds(pieceId, 0, 5);
         long search = mPieces[pieceId] & mColors[color] & atPosition;
         if (search != 0L) {
-            return Pieces.PC(pieceId, toBool(color), Position.BB(atPosition) );
+            return Pieces.PC(pieceId, toBool(color), toIndex(atPosition) );
         }
         return null;
     }
@@ -385,14 +386,12 @@ public final class Board {
     }
     
     public Piece[] getPieces(final int pieceType, final int color) {
-        //checkInBounds(pieceType, 0, 5);
-        //checkInBounds(color, "color", 0, 1);
-        long colorMask = mColors[color];
-        long pieces = mPieces[pieceType] & colorMask;
+        checkInBounds(pieceType, 0, 5);
+        checkInBounds(color, "color", 0, 1);
+        long pieces = mPieces[pieceType] & mColors[color];
 
         int count = Bitwise.count(pieces);
         Piece[] pieceList = new Piece[count];
-        //System.out.println(this);
         int offset = 0;
         long position;
         while (pieces != 0L) {
@@ -481,7 +480,7 @@ public final class Board {
             if ((mColors[c] & p) != 0)
                 break;
         }
-        return Pieces.PC(i,toBool(c),Position.BB(p));
+        return Pieces.PC(i,toBool(c),toIndex(p));
     }
     
     public long getPieceBitsForColor(final boolean white) {

@@ -38,6 +38,13 @@ public final class Pieces {
     {
         return getInstance().get(pieceId, isWhite, position);
     }
+    
+    public static Piece PC(final int pieceId,
+                           final boolean isWhite,
+                           final int positionIndex)
+    {
+        return getInstance().get(pieceId, isWhite, positionIndex);
+    }
 
 
     private static volatile Pieces sInstance;
@@ -54,7 +61,7 @@ public final class Pieces {
     }
 
 //---------------------------------------------------------
-    private Piece[] mCache;
+    private final Piece[] mCache;
     private int mCacheSize;
 
     private Pieces() {
@@ -85,20 +92,27 @@ public final class Pieces {
         if (!position.isValid())
             return null;
 
-        int index = index(pieceId, isWhite, position);
+        return get(pieceId, isWhite, position.index());
+    }
+    
+    public Piece get(final int pieceId,
+                     final boolean isWhite,
+                     final int positionIndex)
+    {
+        int index = index(pieceId, isWhite, positionIndex);
         checkInBounds(index, "index", 0, 767);
         
         Piece result = mCache[index];
 
         if ( result == null ) {
             synchronized(mCache) {
-                result = AbstractPiece.create(pieceId, position, isWhite);
+                result = AbstractPiece.create(pieceId, Position.P(positionIndex), isWhite);
                 mCache[index] = result;
                 mCacheSize++;
             }
             
         }
-        return result;       
+        return result; 
     }
     
     public int size() {
@@ -139,11 +153,11 @@ public final class Pieces {
 
     private static int index(final int pieceId,
                              final boolean isWhite,
-                             final Position position)
+                             final int positionIndex)
     {
         return (pieceId << 7)
             +  ((isWhite ? 1 : 0) << 6)
-            +  position.index();
+            +  positionIndex;
     }
 
 }

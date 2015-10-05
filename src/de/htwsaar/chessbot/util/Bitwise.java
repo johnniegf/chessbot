@@ -31,6 +31,8 @@ public final class Bitwise {
     }
 
     public static final byte lowestBitIndex(final long value) {
+        if (value == 0L)
+            return -1;
         return (byte) Long.numberOfTrailingZeros(value);
     }
     

@@ -17,9 +17,18 @@ import static de.htwsaar.chessbot.util.Exceptions.msg;
 public class BoardUtils {
     
     public static void checkBitBoardPosition(final long bb) {
-        checkCondition(Bitwise.count(bb) <= 1,
-                       EXN_ILLEGAL_BITBOARD_POS);
+        if (Bitwise.lowestBitIndex(bb) > 63)
+            throw new BoardException(EXN_ILLEGAL_BITBOARD_POS);
                        
+    }
+    
+    public static int toIndex(final long bb) {
+        return Bitwise.lowestBitIndex(bb);
+    }
+    
+    public static long toBitBoard(final int index) {
+        checkInBounds(index, 0, 63);
+        return 1L << index;
     }
     
     private static final String EXN_ILLEGAL_BITBOARD_POS = "Position darf nur ein 1-bit enthalten";
