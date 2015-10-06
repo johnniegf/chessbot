@@ -7,6 +7,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 /**
 * Das Schachbrett.
@@ -52,6 +53,9 @@ public class Board {
     private long mZobristHash;
     private transient Collection<Move> tMoveList = null;
     private transient boolean needsUpdate = true;
+    
+    private Move move;
+    
     /**
     * Erzeuge ein leeres Schachbrett. 
     */
@@ -81,6 +85,14 @@ public class Board {
     */
     public byte height() {
         return HEIGHT;
+    }
+    
+    public void setMove(Move move) {
+    	this.move = move;
+    }
+    
+    public Move getMove() {
+    	return this.move;
     }
 
     /* ================================
@@ -270,6 +282,17 @@ public class Board {
             needsUpdate = false;
         }
         return tMoveList;
+    }
+    
+    public Collection<Board> getBoardList() {
+    	Collection<Move> moveList = getMoveList();
+    	Collection<Board> boardList = new LinkedList<Board>();
+    	for(Move m : moveList) {
+    		Board newBoard = m.execute(this);
+    		newBoard.setMove(m);
+    		boardList.add(newBoard);
+    	}
+    	return boardList;
     }
 
     /**
