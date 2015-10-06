@@ -35,21 +35,21 @@ public class PromotionMove extends Move {
         "kann nicht zu Bauer oder Koenig umgewandelt werden";
 
 
-	private final byte mPromotionType;
+    private final byte mPromotionType;
     private final Move mMove;
 
-	public PromotionMove(final Position start, 
-                         final Position target, 
-                         final byte promotionType){
+    public PromotionMove(final Position start, 
+                     final Position target, 
+                     final byte promotionType){
         super(start,target);
         checkInBounds(promotionType, "promotedType", TO_BISHOP, TO_QUEEN);
 
-		setStart(start);
+        setStart(start);
         setTarget(target);
-		this.mPromotionType = promotionType;
+        this.mPromotionType = promotionType;
         mMove = Move.MV(getStart(), getTarget());
 
-	}
+    }
     
     public void setStart(final Position pos) {
         checkNull(pos, "startingSquare");
@@ -85,6 +85,7 @@ public class PromotionMove extends Move {
                                         pawn.isWhite(),
                                         getTarget());
             result.putPiece(converted);
+            if ( !updateLastMove(this, result)) return null;
         }
         return result;
     }

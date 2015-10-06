@@ -93,6 +93,7 @@ public class EnPassantMove extends Move {
             	return null;
             }
             result.removePieceAt(tp);
+            if ( !updateLastMove(this, result)) return null;
         }
         return result;
 	}

@@ -18,7 +18,6 @@ import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
 import java.util.Collection;
-
 /**
 * Beschreibung.
 *
@@ -106,7 +105,7 @@ public final class Board {
     public boolean isAttacked(final Position pos, final boolean byWhite) {
         return isAttacked(pos.toBitBoard(), toColor(byWhite));
     }
-    
+
     public boolean isAttacked(final long position, final int color) {
         return attackCount(position,color,false) > 0;
     }

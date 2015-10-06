@@ -55,6 +55,7 @@ public class DoublePawnMove extends Move {
         Board result = mMove.tryExecute(onBoard);
         if (result != null) {
             result.setEnPassant(getTarget().transpose(0, pc.isWhite() ? -1 : 1));
+            if ( !updateLastMove(this, result)) return null;
         }
         return result;
     }

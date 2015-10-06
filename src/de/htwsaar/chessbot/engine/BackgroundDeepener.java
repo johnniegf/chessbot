@@ -12,15 +12,15 @@ public class BackgroundDeepener extends Thread implements DeepeningInterrupter {
 	public BackgroundDeepener(AlphaBetaSearch searcher) {
 		this.searcher = searcher;
 	}
-	
+	/*
 	private GameTree getTree() {
 		return this.searcher.getGameTree();
-	}
+	}*/
 	
 	@Override
 	public synchronized void run() {
 		while(true) {
-			while(!isActive || getTree() == null) {
+			while(!isActive) {// || getTree() == null) {
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
@@ -28,7 +28,7 @@ public class BackgroundDeepener extends Thread implements DeepeningInterrupter {
 				}
 			}
 			
-			doDeepening();
+			//doDeepening();
 		}
 	}
 	
@@ -44,6 +44,7 @@ public class BackgroundDeepener extends Thread implements DeepeningInterrupter {
 		this.maxDepth = maxDepth;
 	}
 	
+	/*
 	private void doDeepening() {
 		GameTree tree = getTree();
 		
@@ -64,7 +65,7 @@ public class BackgroundDeepener extends Thread implements DeepeningInterrupter {
 				e.printStackTrace();
 			}
 		}
-	}
+	}*/
 
 	@Override
 	public boolean stopDeepening() {

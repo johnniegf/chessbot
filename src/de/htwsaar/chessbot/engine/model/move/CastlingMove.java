@@ -51,27 +51,18 @@ public class CastlingMove extends Move {
         if (!onBoard.canCastle(FLAGS[mCastlingType])) {
             return null;
         }
-//        System.out.println(line);
-//        System.out.println("CastlingMove.tryExecute():");
-//        System.out.println(this);
-//        System.out.println(onBoard);
         int color = (mCastlingType / 2) % 2;
         long freeSquares = PATH_MASKS[mCastlingType];
         long possibleAttacks = freeSquares & ATTACK_MASK;
-//        System.out.println(String.format("f=0x%016x a=0x%016x", freeSquares, possibleAttacks) );
         
         if ((freeSquares & onBoard.occupied()) != 0L) return null;
-//        System.out.println("Path not obstructed");
         if ( onBoard.getAttacked(possibleAttacks, !toBool(color)) != 0L ) return null;
-//        System.out.println("Path not attacked");
         
         Board result = mMove.tryExecute(onBoard);
         if (result != null) {
             moveRook(result, toBool(color));
+            if ( !updateLastMove(this, result)) return null;
         }
-//        System.out.println("Result");;
-//        System.out.println(result);
-//        System.out.println(line);
         return result;
     }
     

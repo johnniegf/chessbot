@@ -5,6 +5,7 @@ import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import de.htwsaar.chessbot.engine.GameTree.Node;
 import de.htwsaar.chessbot.engine.config.Config;
@@ -34,8 +35,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	}
 
 	private Game game;
-	private GameTree gameTree;
-	private final BackgroundDeepener bgDeepener;
+	//private GameTree gameTree;
+	//private BackgroundDeepener bgDeepener;
 	private final EvaluationFunction evalFunc = new Evaluator();
 
 	private int maxSearchDepth;
@@ -65,15 +66,17 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public AlphaBetaSearch(Game game) {
 		this.game = game;
 		this.exitSearch = true;
+		/*
 		this.bgDeepener = new BackgroundDeepener(this);
 		this.bgDeepener.setMaxDepth(15);
 		this.bgDeepener.setPriority(Thread.MIN_PRIORITY);
 		this.bgDeepener.start();
+		*/
 	}
 
 	public void setGame(Game game) {
 		this.game = game;
-		this.gameTree = null;
+		//this.gameTree = null;
 		this.ponderHit = false;
 	}
 
@@ -85,16 +88,18 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public void run() {
 		while(true) {
 			while(exitSearch) {
+				/*
 				if((boolean)Config.getInstance().getOption("Ponder").getValue()) {
 					this.bgDeepener.beginDeepening();
 				}
+				*/
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-			this.bgDeepener.endDeepening();
+			//this.bgDeepener.endDeepening();
 			this.startTime = System.currentTimeMillis();
 			startAlphaBeta(this.ponderHit);
 		}
@@ -112,10 +117,6 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		return this.exitSearch;
 	}
 
-	public GameTree getGameTree() {
-		return this.gameTree;
-	}
-	
 	/**
 	 * Setzt die maximale Suchtiefe für den Baum.
 	 * 
@@ -173,12 +174,6 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		return this.currentBestMove;
 	}
 
-	//Setzt den bisher besten Zug
-	private void bestMove(Move move, int score) {
-		this.currentBestMove = move;
-		this.currentBestScore = score;
-	}
-	
 	private void ponderMove(Move move, int score, Node ponderNode) {
 		this.currentPonderMove = move;
 		this.currentPonderScore = score;
@@ -210,26 +205,14 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	private void startAlphaBeta(boolean ponderHit) {
 		this.currentBestMove = null;
 		this.exitSearch = false;
-		if(!ponderHit || this.gameTree == null) {
-			this.gameTree = new GameTree(this.evalFunc, this.game.getCurrentBoard());
-		}
-		else {
-			this.ponderHit = false;
-			this.gameTree.replaceRoot(this.ponderNode);
-		}
 		this.nodesSearched = 0;
-		boolean startMax = this.gameTree.getRoot().getBoard().isWhiteAtMove();
+		boolean startMax = this.game.getCurrentBoard().isWhiteAtMove();
 
 		for(int i = 1; i <= maxSearchDepth && !getSearchStopped(); i++) { 
 			this.currentSearchDepth = i;
 			this.currentMoveNumber = 0;
-			boolean max = (i % 2 != 0) ? !startMax : startMax;
-			UCISender.getInstance().sendToGUI("info string Deepening to depth " + i + "...");
-			this.gameTree.deepen(i, max, this, false);
-			UCISender.getInstance().sendToGUI("info string Done. " + this.gameTree.getLastDeepeningStats());
-			UCISender.getInstance().sendToGUI("info string Tree: " + this.gameTree.getTreeSize());
-			alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
-			this.gameTree.reduceLayer(i, 15, max, this);
+			//alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
+			alphaBeta(this.game.getCurrentBoard(), Integer.MIN_VALUE, Integer.MAX_VALUE, startMax, 0);
 
 			this.nodesPerSecond = 
 					(1000d * this.nodesSearched) / getPassedTime();
@@ -240,8 +223,93 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 				+ "to depth " + this.currentSearchDepth + ")");
 		this.exitSearch = true;
 	}
+	
+	private int alphaBeta(Board currentBoard, int alpha, int beta, boolean max, int depth) {
+	    
+	    if(depth >= currentSearchDepth || getSearchStopped()) {
+	        return evaluate(currentBoard);
+	    }
+	    
+	    long boardHash = currentBoard.hash();
+	    TranspositionTable tTable = TranspositionTable.getInstance();
+	    if(tTable.hasBetterResults(boardHash, depth)) {
+	        return tTable.getScore(boardHash);
+	    }
+	    
+	    Board[] boardList = currentBoard.getResultingPositions();
+	    
+	    if(depth == 0) {
+	        bestMove(boardList[0]);
+	        if(boardList.length == 1) {
+	            return 0;
+	        }
+	    }
+	    
+	    
+	    if(max) {
+	        for(Board board : boardList) {
+	        	if(getSearchStopped()) {
+	        		break;
+	        	}
+	        	
+	        	if(depth == 0) {
+	        		currentMoveNumber++;
+	        	}
+	        	
+	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            tTable.put(board.hash(), depth, result);
+	            if(result > alpha) {
+	                alpha = result;
+	                if(depth == 0) {
+	                    bestMove(board);
+	                }
+	            }
+	            if(alpha >= beta) {
+	                return alpha;
+	            }
+	            
+	            sendInfo(board.getLastMove());
+	        }
+	        return alpha;
+	    }
+	    else {
+	        for(Board board : boardList) {
+	        	if(getSearchStopped()) {
+	        		break;
+	        	}
+	        	
+	        	if(depth == 0) {
+	        		currentMoveNumber++;
+	        	}
+	        	
+	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            tTable.put(board.hash(), depth, result);
+	            if(result < beta) {
+	                beta = result;
+	                if(depth == 0) {
+	                    bestMove(board);
+	                }
+	            }
+	            if(beta <= alpha) {
+	                return beta;
+	            }
+	            
+	    	    sendInfo(board.getLastMove());
+	        }
+	        return beta;
+	    }
+	      
+	}
 
+	private void bestMove(Board board) {
+	    currentBestMove = board.getLastMove();
+	}
 
+	private int evaluate(Board board) {
+	    return evalFunc.evaluate(board);
+	}
+
+	/*
 	private void alphaBeta(Node n, int alpha, int beta, int depth, boolean max) {
 
 		if(getSearchStopped()) {
@@ -333,6 +401,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		}
 		
 	}
+	*/
 
 	@Override
 	public boolean stopDeepening() {

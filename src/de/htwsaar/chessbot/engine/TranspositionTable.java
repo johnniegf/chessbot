@@ -26,8 +26,7 @@ public class TranspositionTable {
 		this.accessTable = new HashMap<Long, Integer>();
 	}
 	
-	
-	public void put(long hash, int depth, int nodeScore, boolean max) {
+	public void put(long hash, int depth, int nodeScore) {
 		/**
 		String s = "hash: %d depth: %d score %d %s";
 		System.out.println(String.format(s, hash, depth, nodeScore, max ? "max" : "min"));
@@ -52,6 +51,13 @@ public class TranspositionTable {
 		UCISender.getInstance().sendDebug("Added hash entry, now " + getTableSize() + " entries total");
 	}
 	
+	public boolean hasBetterResults(long hash, int depth) {
+		if(!contains(hash)) {
+			return false;
+		}
+		return depthTable.get(hash) > depth;
+	}
+	
 	private void checkFreeMemory() {
 		if(hashFull()) {
 			long minKey = 0;
@@ -71,18 +77,18 @@ public class TranspositionTable {
 	}
 
 
-	public int getScore(long hash, boolean max) {
+	public int getScore(long hash) {
 		int newAccess = accessTable.get(hash) + 1;
 		accessTable.remove(hash);
 		accessTable.put(hash, newAccess);
 		return this.scoreTable.get(hash);
 	}
 	
-	public int getDepth(long hash, boolean max) {
+	public int getDepth(long hash) {
 		return this.depthTable.get(hash);
 	}
 	
-	public boolean contains(long hash, boolean max) {
+	public boolean contains(long hash) {
 		return this.scoreTable.containsKey(hash);
 	}
 	public int getTableSize() {
