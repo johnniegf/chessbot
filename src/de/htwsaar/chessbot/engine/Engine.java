@@ -2,8 +2,11 @@ package de.htwsaar.chessbot.engine;
 
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.io.UCI;
+import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.io.Logger;
 import de.htwsaar.chessbot.engine.model.move.Move;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -17,13 +20,33 @@ public class Engine {
 
 	private Game game;
 	private final AlphaBetaSearch moveSearcher;
+	private UCI uci;
 	
 	public Engine() {
+		//Initialize Engine
+		Thread.currentThread().setName("Engine");
+		
+		//Initialize Game
 		this.game = new Game();
+		
+		//Initialize Config
 		Config.getInstance().init();
+		
+		//Initialize UCISender
+		UCISender.getInstance().sendDebug("Initialized UCISender");
+		
+		//Initialize AlphaBeta
 		moveSearcher = new AlphaBetaSearch(game);
 		moveSearcher.start();
-		new UCI(this);
+		
+		//Initialize UCI-Protocoll
+		this.uci = new UCI(this);
+		this.uci.initialize();
+		try {
+			this.uci.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	//======================================
@@ -53,7 +76,7 @@ public class Engine {
 	}
 	
 	//======================================
-	//= newucigame
+	//= ucinewgame
 	//======================================
 	/*
 	 * erstellt ein neues Spiel.

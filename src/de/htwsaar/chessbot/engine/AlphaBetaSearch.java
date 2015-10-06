@@ -21,6 +21,8 @@ import de.htwsaar.chessbot.engine.model.move.Move;
 
 public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 
+	private static int INSTANCE_COUNT = 0;
+	
 	public static void main(String[] args) throws IOException {
 		Game game = new Game(
 				//"8/2p1pp2/8/4k3/8/1Q6/PPP4P/RN5K b - - 0 1"
@@ -66,7 +68,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public AlphaBetaSearch(Game game) {
 		this.game = game;
 		this.exitSearch = true;
-		this.setName("alphabeta");
+		this.setName("AlphaBeta" + ++INSTANCE_COUNT);
 		/*
 		this.bgDeepener = new BackgroundDeepener(this);
 		this.bgDeepener.setMaxDepth(15);
@@ -87,6 +89,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 
 	@Override
 	public void run() {
+		super.run();
+		
 		while(true) {
 			while(exitSearch) {
 				/*
@@ -253,6 +257,9 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	    
 	    if(max) {
 	        for(Board board : boardList) {
+	        	if (!Move.isValidResult(board))
+	                continue;
+	        	
 	        	if(getSearchStopped()) {
 	        		break;
 	        	}
@@ -279,6 +286,9 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	    }
 	    else {
 	        for(Board board : boardList) {
+	        	if (!Move.isValidResult(board))
+	                continue;
+	        	
 	        	if(getSearchStopped()) {
 	        		break;
 	        	}
