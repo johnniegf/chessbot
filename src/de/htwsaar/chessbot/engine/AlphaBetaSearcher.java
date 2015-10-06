@@ -21,7 +21,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 public class AlphaBetaSearcher 
 //implements MoveSearcher 
 {
-    
+    private static final int INFINITE = 1_000_000;
     private static final String EXN_INVALID_BOARD =
         "Ungültige Ausgangsstellung!";
     
@@ -30,6 +30,8 @@ public class AlphaBetaSearcher
     private final EvaluationFunction mEvaluator;
     private int mDepth;
     private Move mBestMove;
+    
+    private boolean stopSearching = true;
     
     
     public AlphaBetaSearcher(final Board fromPosition,
@@ -52,8 +54,21 @@ public class AlphaBetaSearcher
         mDepth = depth;
     }
     
+    public final void stop() {
+        stopSearching = true;
+    }
+    
     public final void go() {
-        
+        deepeningSearch(20);
+    }
+    
+    private void deepeningSearch(int maxDepth) {
+        int depth = 1;
+        while (maxDepth > 0 && depth <= maxDepth
+           &&  !stopSearching) 
+        {
+            search(mInitial, depth, -INFINITE, INFINITE);
+        }
     }
     
     private int search(final Board board,
@@ -61,6 +76,8 @@ public class AlphaBetaSearcher
                        int alpha,
                        int beta) 
     {
+        if (stopSearching)
+            return 0;
         int score = 0;
         
         // HashTable lookup
@@ -86,6 +103,7 @@ public class AlphaBetaSearcher
             }
             if (score > alpha) {
                 flag = FLAG_PV;
+                setBestMove(childPosition.getLastMove());
                 alpha = score;
             }
         }
