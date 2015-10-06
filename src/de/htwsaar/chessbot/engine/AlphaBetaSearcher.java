@@ -10,7 +10,6 @@ import static de.htwsaar.chessbot.engine.HashTable.FLAG_PV;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
-import de.htwsaar.chessbot.util.Exceptions;
 import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
@@ -30,6 +29,7 @@ public class AlphaBetaSearcher
     private final Board     mInitial;
     private final EvaluationFunction mEvaluator;
     private int mDepth;
+    private Move mBestMove;
     
     
     public AlphaBetaSearcher(final Board fromPosition,
@@ -64,7 +64,7 @@ public class AlphaBetaSearcher
         int score = 0;
         
         // HashTable lookup
-        score = getHashTable().get(board.hash(), depth, alpha, beta);
+        score = getHashTable().get(board, depth, alpha, beta);
         int flag = HashTable.FLAG_ALPHA;
         if (HashTable.isDefined(score))
             return score;
@@ -92,5 +92,10 @@ public class AlphaBetaSearcher
 
         getHashTable().put(board, depth, alpha, flag);
         return alpha;
+    }
+    
+    private void setBestMove(final Move bestMove) {
+        checkNull(bestMove);
+        mBestMove = bestMove;
     }
 }

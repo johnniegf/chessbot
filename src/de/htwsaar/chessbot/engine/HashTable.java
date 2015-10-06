@@ -34,12 +34,13 @@ public final class HashTable {
         mEntries = new Entry[maxCapacity];
     }
     
-    public int get(final long zobristHash,
+    public int get(final Board board,
                    final int depth,
                    final int alpha,
                    final int beta) 
     {
-        Entry entry = mEntries[(int) (zobristHash % capacity())];
+        long zobristHash = board.hash();
+        Entry entry = mEntries[makeIndex(zobristHash)];
         if (entry == null)
             return UNDEFINED;
         
@@ -59,16 +60,32 @@ public final class HashTable {
         return UNDEFINED;
     }
     
-    public void put(final Board b, 
+    public void put(final Board board,
                     final int depth, 
                     final int score, 
                     final int flags)
     {
+        long zobristHash = board.hash();
+        Entry entry = mEntries[makeIndex(zobristHash)];
+        if (entry == null) {
+            entry = new Entry(board, depth, score, flags);
+            mEntries[makeIndex(zobristHash)] = entry;
+        } 
         
+        if (entry.zobristHash == zobristHash
+         && entry.depth < depth)
+        {
+            entry.score = score;
+            entry.flags = flags;
+        }
     }
     
     public int capacity() {
         return mEntries.length;
+    }
+    
+    private int makeIndex(final long zobristHash) {
+        return (int) ((zobristHash >>> 1) % capacity());
     }
     
     public static final boolean isDefined(final int result) {
@@ -83,16 +100,16 @@ public final class HashTable {
         public int score;
         public int flags;
         
-        public Entry(final long zobristHash,
+        public Entry(final Board board,
                      final int depth,
                      final int score,
                      final int flags) 
         {
-            this.zobristHash = zobristHash;
+            this.zobristHash = board.hash();
+            this.bestMove = board.getLastMove();
             this.depth = depth;
             this.score = score;
             this.flags = flags;
-            this.bestMove = null;
             
             
         }
