@@ -226,7 +226,11 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	
 	private int alphaBeta(Board currentBoard, int alpha, int beta, boolean max, int depth) {
 	    
-	    if(depth >= currentSearchDepth || getSearchStopped()) {
+		if(getSearchStopped()) {
+			return 0;
+		}
+		
+	    if(depth >= currentSearchDepth) {
 	        return evaluate(currentBoard);
 	    }
 	    
