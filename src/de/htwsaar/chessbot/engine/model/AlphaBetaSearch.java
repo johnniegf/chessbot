@@ -1,8 +1,8 @@
 package de.htwsaar.chessbot.engine.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import de.htwsaar.chessbot.engine.model.GameTree.Node;
 
@@ -223,7 +223,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 			this.gameTree.deepen(i, max, this, false);
 			UCISender.getInstance().sendToGUI("info string Done. " + this.gameTree.getLastDeepeningStats());
 			UCISender.getInstance().sendToGUI("info string Tree: " + this.gameTree.getTreeSize());
-			alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
+			//alphaBeta(this.gameTree.getRoot(), Integer.MIN_VALUE, Integer.MAX_VALUE, i, startMax);
+			alphaBeta(this.game.getCurrentBoard(), Integer.MIN_VALUE, Integer.MAX_VALUE, startMax, 0);
 			this.gameTree.reduceLayer(i, 15, max, this);
 
 			this.nodesPerSecond = 
@@ -235,8 +236,73 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 				+ "to depth " + this.currentSearchDepth + ")");
 		this.exitSearch = true;
 	}
+	
+	private int alphaBeta(Board currentBoard, int alpha, int beta, boolean max, int depth) {
+	    
+	    if(depth >= currentSearchDepth) {
+	        return evaluate(currentBoard);
+	    }
+	    
+	    long boardHash = currentBoard.hash();
+	    TranspositionTable tTable = TranspositionTable.getInstance();
+	    if(tTable.hasBetterResults(boardHash, depth) {
+	        return tTable.getScore(boardHash);
+	    }
+	    
+	    List<Board> boardList = currentBoard.getBoardList();
+	    
+	    if(depth == 0) {
+	        bestMove(boardList.get(0));
+	        if(boardList.size() == 1) {
+	            return 0;
+	        }
+	    }
+	    
+	    
+	    if(max) {
+	        for(Board board : boardList) {
+	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            tTable.put(board.hash(), depth, result);
+	            if(result > alpha) {
+	                alpha = result;
+	                if(depth == 0) {
+	                    bestMove(board);
+	                }
+	            }
+	            if(alpha >= beta) {
+	                return alpha;
+	            }
+	        }
+	        return alpha;
+	    }
+	    else {
+	        for(Board board : boardList) {
+	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            tTable.put(board.hash(), depth, result);
+	            if(result < beta) {
+	                beta = result;
+	                if(depth == 0) {
+	                    bestMove(board);
+	                }
+	            }
+	            if(beta <= alpha) {
+	                return beta;
+	            }
+	        }
+	        return beta;
+	    }
+	      
+	}
 
+	private void bestMove(Board board) {
+	    currentBestMove = board.getMove();
+	}
 
+	private int evaluate(Board board) {
+	    return evalFunc.evaluate(board);
+	}
+
+	/*
 	private void alphaBeta(Node n, int alpha, int beta, int depth, boolean max) {
 
 		if(getSearchStopped()) {
@@ -328,6 +394,7 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		}
 		
 	}
+	*/
 
 	@Override
 	public boolean stopDeepening() {
