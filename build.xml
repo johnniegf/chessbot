@@ -87,6 +87,12 @@
         </java>
     </target>
 
+    <target name="run" depends="buildClasses">
+        <java classname="de.htwsaar.chessbot.engine.Engine"
+              classpath="${classpath}" >
+        </java>
+    </target>
+
     <!-- Packs all classes into a redistributable JAR archive -->
     <target name="packClasses" depends="build"
             description="Produces a redistributable archive of all classes">

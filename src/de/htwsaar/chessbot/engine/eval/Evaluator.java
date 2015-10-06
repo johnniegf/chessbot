@@ -29,6 +29,8 @@ public class Evaluator extends EvaluationFunction {
 	 * wertet das Board aus.
 	 */
 	public int evaluate(Board b) {
-		return pEval.evaluate(b) + rEval.evaluate(b) + bEval.evaluate(b);
+		return pEval.evaluate(b) 
+                     //+ rEval.evaluate(b) 
+                     + bEval.evaluate(b);
 	}
 }
