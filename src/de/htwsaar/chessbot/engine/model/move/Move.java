@@ -193,6 +193,7 @@ public abstract class Move {
     }
     
     protected boolean updateLastMove(final Move lastMove, Board context) {
+    	checkNull(lastMove);
         context.setLastMove(lastMove);
         return true;
     }

@@ -1,0 +1,11 @@
+Tasks:
+o Eigener Thread für UCISender/Logger
+o Integration BitBoards in neues AlphaBeta
+o Revision der Bewertungsfunktion(en)
+o Suche nach Memory/CPU-Leaks
+o TranspositionTable mit Arrays neuschreiben
+
+Sonstiges:
+o Javadoc-Kommentare
+o Dokumentation
+o Abschlusspräsentationen
