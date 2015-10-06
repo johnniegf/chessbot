@@ -16,6 +16,7 @@ import java.util.*;
 */
 public class DivideWorker extends Perft.Worker {
 
+    private static int ID = 1;
 
     private int mDepth;
     private Board mInitial;
@@ -29,10 +30,12 @@ public class DivideWorker extends Perft.Worker {
                         final Collection<Move> movesToSearch, 
                         final int depth) 
     {
+        super("DivideWorker#" + ID);
         mDepth = depth;
         mMoves = movesToSearch;
         mInitial = initial;
         mDivided = makeTable(movesToSearch, depth);
+        ID += 1;
     }
 
     private Table<String,Integer,Long> makeTable(final Collection<Move> m,
@@ -76,14 +79,12 @@ public class DivideWorker extends Perft.Worker {
             throw new NullPointerException("board");
         long result = 0;
         if ( depth > 0 ) {
-            Board b;
-            Move[] moveList = board.getMoveList();
+            Board[] results = board.getResultingPositions();
             int index = mDepth-depth+1;
             mDivided.put(move, 
                          index, 
-                         mDivided.get(move,index) + moveList.length);
-            for ( Move m : moveList ) {
-                b = m.execute(board);
+                         mDivided.get(move,index) + results.length);
+            for ( Board b : results ) {
                 result += calculate(b, depth-1, move);
             }
         } else {

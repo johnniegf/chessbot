@@ -24,8 +24,6 @@ public abstract class AbstractPiece
 {
     private Position mPosition;
     private boolean  mIsWhite;
-    private long     mZobristHash;
-    private boolean  mHashIsSet;
 
     /**
     * Erzeuge eine neue uninitialisierte Figur.
@@ -42,8 +40,6 @@ public abstract class AbstractPiece
     {
         setPosition(position);
         setIsWhite(isWhite);
-        mZobristHash = -1L;
-        mHashIsSet = false;
         init();
     }
 
@@ -118,20 +114,14 @@ public abstract class AbstractPiece
         return moves;
     }
     
+    @Override
     public boolean canMoveTo(final Board context, 
                              final Position targetSquare) 
     {
         return (getMoveBits(context) & targetSquare.toBitBoard()) != 0L;
     }
 
-    public long hash() {
-        if (!mHashIsSet) {
-            mZobristHash = ZobristHasher.getInstance().hashPiece(this);
-            mHashIsSet = true;
-        }
-        return mZobristHash;
-    }
-
+    @Override
     public boolean equals(final Object other) {
         // Trivialfälle
         if (other == null) return false;
@@ -147,6 +137,7 @@ public abstract class AbstractPiece
         }
     }
 
+    @Override
     public char fenShort() {
         return (isWhite() ? Character.toUpperCase(fen())
                           : Character.toLowerCase(fen()));

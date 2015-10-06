@@ -58,6 +58,8 @@ public interface Piece {
     * Gib zurück, ob in der übergebenen Stellung diese Figur auf
     * das übergebene Feld ziehen kann
     *
+     * @param context
+     * @param targetSquare
     * @return <code>true</code>, falls die Figur auf das Feld ziehen
     *         kann, sonst false
     */ 
@@ -126,11 +128,9 @@ public interface Piece {
     Piece move(final Position targetSquare);
 
     /**
-    * Gib den Zobrist-Hash dieser Figur zurück.
-    *
-    * @return Hashwert der Figur
-    */
-    long hash();
-
+     *
+     * @return
+     */
+    @Override
     String toString();
 }

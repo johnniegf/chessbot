@@ -4,6 +4,7 @@ import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.Board.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 import de.htwsaar.chessbot.engine.model.*;
+import static de.htwsaar.chessbot.engine.util.PerftHashTable.UNDEFINED;
 
 import java.util.*;
 /**
@@ -17,20 +18,25 @@ import java.util.*;
 public class PerftWorker 
      extends Perft.Worker 
 {
-
-    private int mDepth;
-    private Board mInitial;
-    private Collection<Move> mMoves;
+    private static int ID = 1;
+    
+    private final int mDepth;
+    private final Board mInitial;
+    private final Collection<Move> mMoves;
     private boolean done = false;
     private Result mResult = null;
-
+    private volatile Perft mParent;
+    private PerftHashTable mHashTable;
 
     public PerftWorker(final Board initial, 
                        final Collection<Move> movesToSearch, 
-                       int depth) {
+                       final int depth) {
+        super("PerftWorker#" + ID);
         mDepth = depth;
         mMoves = movesToSearch;
         mInitial = initial;
+        mHashTable = new PerftHashTable(mDepth);
+        ID += 1;
     }
 
     public boolean isDone() {
@@ -39,11 +45,9 @@ public class PerftWorker
 
     public void run() {
         if (!done) {
-            long result = 0;
-            Board b;
+            long result = 0L;
             for (Move m : mMoves) {
-                b = m.execute(mInitial);
-                result += calculate(b, mDepth-1);
+                result += calculate(m.execute(mInitial), mDepth-1);
             }
             mResult = new Result(result, -1);
             done = true;
@@ -51,17 +55,30 @@ public class PerftWorker
     }
 
     private long calculate(final Board board, final int depth) {
-        long result = 0;
-        if ( depth > 0 ) {
-            Board b;
-            for ( Move m : board.getMoveList() ) {
-                b = m.execute(board);
-                result += calculate(b, depth-1);
+        long result = 0L;
+        long posPerMove = 0L;
+        long entry = 0L;
+        if ( depth == 0 ) {
+            return 1;
+        } else if ( depth == 1 ) {
+            int moveCount = board.getResultingPositions().length;
+                mHashTable.put(board, depth, moveCount);
+            return moveCount;
+        }
+        
+        for ( Board b : board.getResultingPositions() ) {
+            entry = mHashTable.get(b.hash(), depth);
+            if (entry == UNDEFINED) {
+                posPerMove = calculate(b, depth-1);
+                mHashTable.put(b, depth, posPerMove);
+                result += posPerMove;
+            } else {
+                result += entry;
             }
-        } else return 1;
+        }
         return result;
     }
-
+    
     public Result result() {
         return mResult;
     }

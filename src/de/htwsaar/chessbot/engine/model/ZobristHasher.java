@@ -5,7 +5,7 @@ import java.util.*;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
 /**
-* Beschreibung.
+* Erzeugt und vergibt Zobrist-Hashkonstanten.
 *
 * @author Johannes Haupt
 */
@@ -14,6 +14,11 @@ public class ZobristHasher {
     private static ZobristHasher sInstance;
     private static boolean initialized = false;
 
+    /**
+     * Gib die globale Instanz des Hashers zurück.
+     * Falls die Instanz nicht existiert, wird sie zunächst erzeugt.
+     * @return globale Instanz des ZobristHasher
+     */
     public static ZobristHasher getInstance() {
         if (!isInitialized())
             initialize();
@@ -29,7 +34,13 @@ public class ZobristHasher {
         initialized = true;
     }
 
-    private static final long RNG_SEED       = 0x2660cddb1c76d1a4L;
+    /**
+     * Initialisierungswert für den Zufallszahlengenerator.
+     * Ein guter Seed erzeugt eine vorhersagbare, aber trotzdem gleichmäßige
+     * Verteilung.
+     */
+//    public static final long RNG_SEED       = 0x2660cddb1c76d1a4L;
+    public static final long RNG_SEED       = 0x354bb49ee49d0095L;
     private static final int  PIECE_COUNT    = 6 * 2 * 64;
     private static final int  CASTLING_COUNT = 16;
 
@@ -38,6 +49,7 @@ public class ZobristHasher {
     private final long[] mCastlingHashes;
     private final long[] mColourHashes;
     private final long[] mEnPassantHashes;
+    private final long   mEnPassantInvalid;
 
     /**
     * Standardkonstruktor.
@@ -64,13 +76,31 @@ public class ZobristHasher {
         for (int i = 0; i < Position.MAX_FILE; i++) {
             mEnPassantHashes[i] = rng.nextLong();
         }
+        mEnPassantInvalid = rng.nextLong();
     }
 
+    /**
+     * Gib den Hashwert der übergebenen Figur zurück.
+     * @param pieceToHash zu hashende Figur
+     * @return Hash der Figur
+     * @throws NullPointerException
+     *      falls <code>pieceToHash == null</code>
+     */
     public long hashPiece(final Piece pieceToHash) {
         checkNull(pieceToHash, "pieceToHash");
         return hashPiece(pieceToHash.id(), pieceToHash.isWhite(), pieceToHash.getPosition().index());
     }
     
+    /**
+     * Gib den Hashwert der Figur mit den übergebenen Attributen zurück.
+     * @param pieceType Art der Figur
+     * @param isWhite   Farbe der Figur
+     * @param positionIndex Index der Figurenposition.
+     * @return Hashwert der Figur
+     * @throws IndexOutOfBoundsException
+     *      falls <code>pieceType</code> kein Figurtyp ist
+     * @see Piece#id
+     */
     public long hashPiece(final int pieceType,
                           final boolean isWhite,
                           final int positionIndex)
@@ -87,16 +117,16 @@ public class ZobristHasher {
     }
     
     public long getEnPassantHash(final Position p) {
-        checkNull(p, "enPassant");
+        checkNull(p);
         if (!p.isValid())
-            return 0L;
+            return mEnPassantInvalid;
         return getEnPassantHash(p.file());
     }
     
     public long getEnPassantHash(final byte file) {
         if (file > 0 && file <= 8)
             return mEnPassantHashes[file-1];
-        else return 0L;
+        else return mEnPassantInvalid;
     }
 
     public long getColourHash(final boolean forWhite) {

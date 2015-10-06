@@ -47,18 +47,20 @@ public final class Board {
     private short   mHalfMoves;
     private short   mMoveNumber;
     private byte    mCastlings;
+    private Move    mLastMove;
+    private String  mFenString;
     
     @Override
     public final Board clone() {
         Board copy = new Board();
         System.arraycopy(mPieces, 0, copy.mPieces, 0, 6);
         System.arraycopy(mColors, 0, copy.mColors, 0, 2);
-        copy.setEnPassant(mEnPassant);
+        copy.mEnPassant = mEnPassant;
+        copy.mWhiteAtMove = mWhiteAtMove;
+        copy.mHalfMoves = mHalfMoves;
+        copy.mMoveNumber = mMoveNumber;
+        copy.mCastlings = mCastlings;
         copy.setHash(hash());
-        copy.setWhiteAtMove(isWhiteAtMove());
-        copy.setHalfMoves(getHalfMoves());
-        copy.setFullMoves(getFullMoves());
-        copy.setCastlings(getCastlings());
         return copy;
     }
     
@@ -69,7 +71,7 @@ public final class Board {
         
         if (other instanceof Board) {
             Board bb = (Board) other;
-            //if (bb.hash() != hash()) return false;
+            if (bb.hash() != hash()) return false;
             for (int c : COLORS) {
                 if (bb.mColors[c] != mColors[c]) return false;
             }
@@ -98,6 +100,7 @@ public final class Board {
         setHalfMoves(0);
         setFullMoves(1);
         setCastlings((byte) 0);
+        mLastMove = null;
     }
     
     public boolean isAttacked(final Position pos, final boolean byWhite) {
@@ -116,8 +119,6 @@ public final class Board {
                             final int color,
                             final boolean countAllAttacks) 
     {
-        //checkBitBoardPosition(position);
-        //checkInBounds(color, "color", 0, 1);
         final long colorMask = mColors[color];
         int attacks = 0;
         long attackers, reverseAttacks;
@@ -145,6 +146,15 @@ public final class Board {
         return !isKingInCheck(this) 
             && arePawnsValid(this);
         
+    }
+    
+    public Move getLastMove() { 
+        return mLastMove;
+    }
+    
+    public void setLastMove(final Move move) {
+        checkNull(move);
+        mLastMove = move;
     }
     
     public Position getEnPassant() {
@@ -209,6 +219,19 @@ public final class Board {
         
     }
     
+    public Board[] getResultingPositions() {
+        Collection<Board> resultingPositions = new ArrayList<Board>();
+        Board b;
+        for (Piece p : getPiecesForColor(toColor(isWhiteAtMove()))) {
+            for (Move m : p.getMoves(this)) {
+                b = m.tryExecute(this);
+                if (b != null && b.isValid()) 
+                    resultingPositions.add(b);
+            }
+        }
+        return resultingPositions.toArray(new Board[0]);
+    }
+    
     public Move[] getMoveList() {
         Collection<Move> moveList = new ArrayList<Move>();
         Board b;
@@ -242,10 +265,7 @@ public final class Board {
     }
     
     public void unsetCastlings(final byte castlings) {
-        checkInBounds(castlings, "castlings", 0, 15);
-        applyHash( HASHER.getCastlingHash(mCastlings));
-        mCastlings &= ~castlings;
-        applyHash( HASHER.getCastlingHash(mCastlings));
+        setCastlings((byte) (mCastlings & ~castlings));
     }
     
     //--------------------------------------------------------------------------
@@ -300,7 +320,7 @@ public final class Board {
         }
         mPieces[pieceId] |= position;
         mColors[color] |= position;
-        applyHash( HASHER.hashPiece(pieceId, toBool(color), Bitwise.lowestBitIndex(position)));
+        applyHash( HASHER.hashPiece(pieceId, toBool(color), toIndex(position)));
         return true;
     }
     
@@ -443,7 +463,7 @@ public final class Board {
         checkBitBoardPosition(position);
         mPieces[pieceId] &= ~position;
         mColors[color] &= ~position;
-        applyHash( HASHER.hashPiece(pieceId, toBool(color), Bitwise.lowestBitIndex(position)));
+        applyHash( HASHER.hashPiece(pieceId, toBool(color), toIndex(position)) );
         return true;
     }
     
@@ -517,6 +537,46 @@ public final class Board {
         return sb.toString();
     }
     
+    public String toFenString() {
+        if (mFenString == null) {
+            StringBuilder sb = new StringBuilder();
+            int emptyCount = 0;
+            Piece current;
+            for (byte rank = 8; rank > 0; rank--) {
+                for (byte file = 1; file <= 8; file++) {
+                    current = getPieceAt(Position.P(file,rank));
+                    if (current == null) {
+                        emptyCount++;
+                    } else {
+                        if (emptyCount > 0) {
+                            sb.append(emptyCount);
+                            emptyCount = 0;
+                        }
+                        sb.append(current.fenShort());
+                    }
+                }
+                if (emptyCount > 0) {
+                    sb.append(emptyCount);
+                    emptyCount = 0;
+                }
+                if (rank > 1)
+                    sb.append(slash);
+            }
+            sb.append(space);
+            sb.append(isWhiteAtMove() ? "w" : "b");
+            sb.append(space);
+            sb.append(sCastlings[getCastlings()]);
+            sb.append(space);
+            sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
+            sb.append(space);
+            sb.append(getHalfMoves());
+            sb.append(space);
+            sb.append(getFullMoves());
+            mFenString = sb.toString();
+        }
+        return mFenString;
+    }
+    
 
     
     private static long getColorHash(final int color) {
@@ -540,6 +600,7 @@ public final class Board {
     
     private static final String newline = System.getProperty("line.separator");
     private static final String space = " ";
+    private static final String slash = "/";
     
     private static final long sEnPassantMask = 0x0000_ff00_00ff_0000L;
     private static final long sIllegalWhitePawns = 0x0000_0000_0000_00ffL;

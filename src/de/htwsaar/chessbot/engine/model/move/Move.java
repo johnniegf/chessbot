@@ -5,25 +5,16 @@ import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
 import de.htwsaar.chessbot.engine.model.Position;
-import de.htwsaar.chessbot.engine.model.piece.Bishop;
 import de.htwsaar.chessbot.engine.model.piece.King;
-import de.htwsaar.chessbot.engine.model.piece.Queen;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
-import de.htwsaar.chessbot.engine.model.piece.Knight;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
-import java.util.Collection;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
-import static de.htwsaar.chessbot.engine.model.Position.*;
-import de.htwsaar.chessbot.util.Bitwise;
-import de.htwsaar.chessbot.util.Exceptions;
 import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import static de.htwsaar.chessbot.util.Exceptions.msg;
-import java.util.Objects;
 /**
 * Schachzug.
 *
@@ -118,6 +109,7 @@ public abstract class Move {
             return false;
     }
     
+    @Override
     public int hashCode() {
         return type() << 12
              | getTarget().index() << 6
@@ -128,6 +120,7 @@ public abstract class Move {
     
     public abstract byte type();
     
+    @Override
     public String toString() {
         return getStart().toString() + getTarget();
     }
@@ -199,6 +192,11 @@ public abstract class Move {
         return true;           
     }
     
+    protected boolean updateLastMove(final Move lastMove, Board context) {
+        context.setLastMove(lastMove);
+        return true;
+    }
+    
     private static final long[] ROOKS = new long[2];
     private static final long[] SIDES = new long[2];
     private static final byte[][] FLAGS = new byte[2][2];
@@ -260,8 +258,12 @@ public abstract class Move {
             || t == PromotionMove.TO_QUEEN;
     }
     
+    public static boolean isValidResult(final Board resultingBoard) {
+        return resultingBoard != null && resultingBoard.isValid();
+    }
+    
     private static final String EXN_ILLEGAL_MOVE =
-        "Der Zug ist regelwidrig und kann nicht ausgeführt werden: %s \n%s";
+        "Der Zug ist regelwidrig und kann nicht ausgeführt werden: %s";
     
     private static final MoveCache sCache = new MoveCache();
 }

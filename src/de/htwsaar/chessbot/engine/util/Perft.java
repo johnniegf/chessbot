@@ -63,13 +63,14 @@ public class Perft {
 // ==========================================================================
 
     private Worker[] mWorkers;
-    private int mNumWorkers;
+    private final int mNumWorkers;
+    private volatile PerftHashTable mHashTable;
     
-    private Board mInitial;
-    private int mDepth;
+    private final Board mInitial;
+    private final int mDepth;
     
     private Result mResult;
-    private RunType mRunType;
+    private final RunType mRunType;
     private boolean mDone;
 
     public Perft(final RunType runType,
@@ -83,13 +84,18 @@ public class Perft {
         mDepth = searchDepth;
         mNumWorkers = numWorkers;
         mResult = null;
+        mHashTable = new PerftHashTable(mDepth);
         setUpWorkers();
+    }
+    
+    public synchronized PerftHashTable getHashTable() {
+        return mHashTable;
     }
 
     public Perft.Result result() {
         return mResult;
     }
-
+    
     public void run() {
         long time = System.currentTimeMillis();
         mResult = calculate(); 
@@ -128,7 +134,8 @@ public class Perft {
     }
 
     private void setUpWorkers() {
-        Collection<Move> moveList = Arrays.asList(mInitial.getMoveList());
+        List<Move> moveList = Arrays.asList(mInitial.getMoveList());
+        Collections.shuffle( moveList );
         if (moveList.isEmpty()) {
             mWorkers = new Perft.Worker[0];
             return;
@@ -184,6 +191,10 @@ public class Perft {
     }
 
     public static abstract class Worker extends Thread {
+        
+        protected Worker(final String name) {
+            super(name);
+        }
         
         public abstract Perft.Result result();
     }

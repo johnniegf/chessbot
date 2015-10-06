@@ -1,0 +1,2 @@
+#!/bin/bash
+java -cp build de.htwsaar.chessbot.engine.util.PerftMain "$1" $2 $3
