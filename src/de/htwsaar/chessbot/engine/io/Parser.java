@@ -214,5 +214,40 @@ public class Parser {
     }
 
     
-
+    public static void test(String cmd, Engine engine) {
+    	String[] params = cmd.split(" ");
+    	String msg = "TEST_MSG";
+    	if(params.length > 4) {
+    		msg = "";
+    		for(int i = 4; i < params.length; i++) {
+    			msg += params[i] + " ";
+    		}
+    	}
+    	
+    	switch(params[1].toLowerCase()) {
+    	case "queuemsg":
+    		int count = Integer.parseInt(params[3]);
+    		switch(params[2].toLowerCase()) {
+    		case "togui":
+    			for(int i = 0; i < count; i++) {
+    				UCISender.getInstance().sendToGUI(msg);
+    			}
+    			UCISender.getInstance().sendDebug("[TEST]Done.");
+    			break;
+    		case "debug":
+    			for(int i = 0; i < count; i++) {
+    				UCISender.getInstance().sendDebug(msg);
+    			}
+    			UCISender.getInstance().sendDebug("[TEST]Done.");
+    			break;
+    		case "error":
+    			for(int i = 0; i < count; i++) {
+    				UCISender.getInstance().sendError(msg);
+    			}
+    			UCISender.getInstance().sendDebug("[TEST]Done.");
+    		}
+    		break;
+    	}
+    }
+    
 }

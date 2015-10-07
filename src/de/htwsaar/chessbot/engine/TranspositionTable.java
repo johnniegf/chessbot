@@ -19,6 +19,7 @@ public class TranspositionTable {
 	private HashMap<Long, Integer> scoreTable, depthTable,
 		accessTable;
 	private int maxMB = 512;
+	private int infoCounter = 0;
 	
 	private TranspositionTable() {
 		this.scoreTable = new HashMap<Long, Integer>();
@@ -47,7 +48,10 @@ public class TranspositionTable {
 			depthTable.put(hash, depth);
 			accessTable.put(hash, 0);
 		}
-		UCISender.getInstance().sendToGUI("info hashfull " + getMemoryFillingRate());
+		if(++infoCounter >= 100) {
+			UCISender.getInstance().sendToGUI("info hashfull " + getMemoryFillingRate());
+			infoCounter = 0;
+		}
 		UCISender.getInstance().sendDebug("Added hash entry, now " + getTableSize() + " entries total");
 	}
 	
