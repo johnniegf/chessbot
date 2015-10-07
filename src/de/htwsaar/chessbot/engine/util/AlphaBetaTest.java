@@ -17,12 +17,14 @@ import de.htwsaar.chessbot.engine.model.Board;
 public class AlphaBetaTest {
     
     public static void main(String[] args) {
+    	/*
         Board b = Board.B();
         EvaluationFunction ev = new Evaluator();
-        AlphaBetaSearcher abs = new AlphaBetaSearcher(b,ev);
+        AlphaBetaSearcher abs = new AlphaBetaSearcher(b, ev);
         abs.setDepth(4);
         abs.go();
         System.out.println(abs.bestMove());
+        */
     }
     
 }

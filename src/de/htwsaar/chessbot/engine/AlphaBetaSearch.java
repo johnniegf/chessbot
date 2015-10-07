@@ -19,7 +19,7 @@ import de.htwsaar.chessbot.engine.model.move.Move;
  *
  */
 
-public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
+public class AlphaBetaSearch extends Thread {
 
 	private static int INSTANCE_COUNT = 0;
 	
@@ -40,6 +40,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	//private GameTree gameTree;
 	//private BackgroundDeepener bgDeepener;
 	private final EvaluationFunction evalFunc = new Evaluator();
+	
+	private HashTable hashTable;
 
 	private int maxSearchDepth;
 	private int maxTime = 0;
@@ -68,13 +70,8 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	public AlphaBetaSearch(Game game) {
 		this.game = game;
 		this.exitSearch = true;
+		this.hashTable = new HashTable();
 		this.setName("AlphaBeta" + ++INSTANCE_COUNT);
-		/*
-		this.bgDeepener = new BackgroundDeepener(this);
-		this.bgDeepener.setMaxDepth(15);
-		this.bgDeepener.setPriority(Thread.MIN_PRIORITY);
-		this.bgDeepener.start();
-		*/
 	}
 
 	public void setGame(Game game) {
@@ -93,11 +90,6 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		
 		while(true) {
 			while(exitSearch) {
-				/*
-				if((boolean)Config.getInstance().getOption("Ponder").getValue()) {
-					this.bgDeepener.beginDeepening();
-				}
-				*/
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
@@ -234,15 +226,13 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		}
 		
 		this.nodesSearched++;
+		int score = hashTable.get(currentBoard, currentSearchDepth - depth, alpha, beta);
+		if(HashTable.isDefined(score)) {
+			return score;
+		}
 		
 	    if(depth >= currentSearchDepth) {
 	        return evaluate(currentBoard);
-	    }
-	    
-	    long boardHash = currentBoard.hash();
-	    TranspositionTable tTable = TranspositionTable.getInstance();
-	    if(tTable.hasBetterResults(boardHash, currentSearchDepth - depth)) {
-	        return tTable.getScore(boardHash);
 	    }
 	    
 	    Board[] boardList = currentBoard.getResultingPositions();
@@ -268,19 +258,20 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	        		currentMoveNumber++;
 	        	}
 	        	
-	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
-	            tTable.put(board.hash(), currentSearchDepth - depth, result);
-	            if(result > alpha) {
-	                alpha = result;
+	            score = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            if(score > alpha) {
+	                alpha = score;
 	                if(depth == 0) {
 	                    bestMove(board);
 	                }
 	            }
 	            if(alpha >= beta) {
+	            	hashTable.put(currentBoard, currentSearchDepth - depth, score, HashTable.FLAG_ALPHA);
 	                return alpha;
 	            }
 	            
 	        }
+	        hashTable.put(currentBoard, currentSearchDepth - depth, score, HashTable.FLAG_PV);
 	        sendInfo(currentBoard.getLastMove());
 	        return alpha;
 	    }
@@ -297,19 +288,20 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 	        		currentMoveNumber++;
 	        	}
 	        	
-	            int result = alphaBeta(board, alpha, beta, !max, depth + 1);
-	            tTable.put(board.hash(), currentSearchDepth - depth, result);
-	            if(result < beta) {
-	                beta = result;
+	        	score = alphaBeta(board, alpha, beta, !max, depth + 1);
+	            if(score < beta) {
+	                beta = score;
 	                if(depth == 0) {
 	                    bestMove(board);
 	                }
 	            }
 	            if(beta <= alpha) {
+	            	hashTable.put(currentBoard, currentSearchDepth - depth, score, HashTable.FLAG_BETA);
 	                return beta;
 	            }
 	            
 	        }
+	        hashTable.put(currentBoard, currentSearchDepth - depth, score, HashTable.FLAG_PV);
 	        sendInfo(currentBoard.getLastMove());
 	        return beta;
 	    }
@@ -417,10 +409,5 @@ public class AlphaBetaSearch extends Thread implements DeepeningInterrupter {
 		
 	}
 	*/
-
-	@Override
-	public boolean stopDeepening() {
-		return this.getSearchStopped();
-	}
 
 }

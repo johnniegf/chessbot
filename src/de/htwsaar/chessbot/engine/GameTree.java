@@ -75,12 +75,8 @@ public class GameTree {
 		return treeSize;
 	}
 
-	public void deepen(final int toDepth, boolean max, DeepeningInterrupter interrupter, boolean background) {
+	public void deepen(final int toDepth, boolean max, boolean background) {
 		
-		if(interrupter.stopDeepening()) {
-			this.lastDeepeningInterrupted = true;
-			return;
-		}
 		
 		if(toDepth < this.layers.size()) {
 			UCISender.getInstance().sendDebug("Skipped deepening to " + toDepth + 
@@ -92,7 +88,7 @@ public class GameTree {
 		this.deepeningTime = 0;
 		this.deepeningCreatedNodes = 0;
 		if (toDepth >= this.layers.size()) {
-			deepen(toDepth - 1, !max, interrupter, background);
+			deepen(toDepth - 1, !max, background);
 			
 			this.deepeningCurrentLayer = toDepth;
 			this.deepeningParentIndex = 0;
@@ -101,17 +97,10 @@ public class GameTree {
 			Board b;
 			ArrayList<Node> layer = new ArrayList<Node>();
 			for (Node n : getLayer(toDepth-1)) {
-				if(interrupter.stopDeepening()) {
-					break;
-				}
 				
 				this.deepeningChildIndex = 0;
 				
 				for(Move m : n.getBoard().getMoveList()) {
-					if(interrupter.stopDeepening()) {
-						this.lastDeepeningInterrupted = true;
-						return;
-					}
 					/*
 					String p = interrupter instanceof BackgroundDeepener ? "(bg) " : "";
 					UCISender.getInstance().sendDebug(p +
@@ -220,7 +209,7 @@ public class GameTree {
 		}
 	}
 	
-	public void reduceLayer(int depth, int survivors, boolean max, DeepeningInterrupter interrupter) {
+	public void reduceLayer(int depth, int survivors, boolean max) {
 		if(depth < 2 || depth >= this.layers.size()) {
 			return;
 		}
@@ -229,9 +218,6 @@ public class GameTree {
 		ArrayList<Node> toRemove = new ArrayList<Node>();
 		ArrayList<Node> childsToKill = new ArrayList<Node>();
 		for(Node parent : getLayer(depth - 1)) {
-			if(interrupter.stopDeepening()) {
-				return;
-			}
 			
 			childList = (ArrayList<Node>) parent.getChildren();
 			Collections.sort(childList);
@@ -242,9 +228,6 @@ public class GameTree {
 			
 			childsToKill.clear();
 			for(int i = startIndex; i < childList.size(); i++) {
-				if(interrupter.stopDeepening()) {
-					return;
-				}
 				
 				Node child = childList.get(i);
 				toRemove.add(child);

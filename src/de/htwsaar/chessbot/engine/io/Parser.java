@@ -82,10 +82,9 @@ public class Parser {
 	 */
 	public static void go(String line, Engine engine) {
 		List<Move> moves = null;
-		int depth = 0;
+		int depth = Integer.MAX_VALUE;
 		boolean infinite =  false;
-		engine.getSearcher().setTimeLimit(0);
-		engine.getSearcher().setPondering(false);
+		long deadLine = Long.MAX_VALUE;
 		String[] cmds = line.split(" ");
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
@@ -115,18 +114,21 @@ public class Parser {
 				break;
 			case "movetime":
 				String movetime = cmds[i+1];
-				engine.getSearcher().setTimeLimit(Integer.parseInt(movetime));
+				long time = Long.parseLong(movetime);
+				deadLine = System.currentTimeMillis() + time;
 				break;
 			case "infinite":
-				infinite = true;
+				depth = Integer.MAX_VALUE;
+				deadLine = Long.MAX_VALUE;
 				break;
 			case "ponder":
-				engine.getSearcher().setPondering(true);
 				break;
 			}
 		}
 		
+		engine.search(depth, deadLine);
 		
+		/*
 		if(moves != null && depth != 0){
 			engine.searchmoves(moves, depth);
 		}
@@ -134,8 +136,9 @@ public class Parser {
 		else if(depth != 0){engine.search(depth);}
 		else if(infinite)engine.search(Integer.MAX_VALUE);
 		else {
-			engine.search(6);
+			engine.search(Integer.MAX_VALUE);
 		}
+		*/
 	}
 	
 	
@@ -168,7 +171,7 @@ public class Parser {
 	
 	//Ponderhit-Kommando
 	public static void ponderhit(Engine engine) {
-		engine.getSearcher().ponderhit();
+		//engine.getSearcher().ponderhit();
 	}
 		
 	/**

@@ -8,6 +8,7 @@ public class UCISender extends Thread {
 	
 	private boolean showDebug = true;
 	private boolean showError = true;
+	private boolean log = false;
 	
 	private volatile LinkedList<UCIMessage> messageQueue;
 	
@@ -16,6 +17,7 @@ public class UCISender extends Thread {
 		if(INSTANCE == null) {
 			INSTANCE = new UCISender();
 			INSTANCE.setName("UCISender");
+			INSTANCE.setPriority(7);
 			INSTANCE.start();
 		}
 		return INSTANCE;
@@ -27,8 +29,6 @@ public class UCISender extends Thread {
 	
 	@Override
 	public void run() {
-		super.run();
-		
 		while(true) {
 			UCIMessage message = pollMessage();
 			if(message != null) {
@@ -36,7 +36,7 @@ public class UCISender extends Thread {
 			}
 			else {
 				try {
-					Thread.sleep(10);
+					Thread.sleep(5);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -53,20 +53,26 @@ public class UCISender extends Thread {
 	}
 	
 	public void sendToGUI(String command) {
-		Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
+		if(log) {
+			Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
+		}
 		
 		queueMessage(new UCIToGuiMessage(command));
 	}
 	
 	public void sendDebug(String msg) {
-		Logger.getInstance().log(msg, Logger.DEBUG);
+		if(log) {
+			Logger.getInstance().log(msg, Logger.DEBUG);
+		}
 		
 		if(!this.showDebug) return;
 		queueMessage(new UCIDebugMessage(msg));
 	}
 	
 	public void sendError(String msg) {
-//		Logger.getInstance().log(msg, Logger.ERROR);
+		if(log) {
+			//Logger.getInstance().log(msg, Logger.ERROR);
+		}
 		
 		if(!this.showError) return;
 		queueMessage(new UCIErrorMessage(msg));

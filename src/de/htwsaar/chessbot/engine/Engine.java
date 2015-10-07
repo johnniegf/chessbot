@@ -1,13 +1,14 @@
 package de.htwsaar.chessbot.engine;
 
-import de.htwsaar.chessbot.engine.config.Config;
-import de.htwsaar.chessbot.engine.io.UCI;
-import de.htwsaar.chessbot.engine.io.UCISender;
-import de.htwsaar.chessbot.engine.io.Logger;
-import de.htwsaar.chessbot.engine.model.move.Move;
-
 import java.io.IOException;
 import java.util.List;
+
+import de.htwsaar.chessbot.engine.config.Config;
+import de.htwsaar.chessbot.engine.eval.Evaluator;
+import de.htwsaar.chessbot.engine.io.Logger;
+import de.htwsaar.chessbot.engine.io.UCI;
+import de.htwsaar.chessbot.engine.io.UCISender;
+import de.htwsaar.chessbot.engine.model.move.Move;
 
 /**
  * 
@@ -19,7 +20,7 @@ import java.util.List;
 public class Engine {
 
 	private Game game;
-	private final AlphaBetaSearch moveSearcher;
+	private final AlphaBetaSearcher moveSearcher;
 	private UCI uci;
 	
 	public Engine() {
@@ -36,7 +37,8 @@ public class Engine {
 		UCISender.getInstance().sendDebug("Initialized UCISender");
 		
 		//Initialize AlphaBeta
-		moveSearcher = new AlphaBetaSearch(game);
+		moveSearcher = new AlphaBetaSearcher(new Evaluator());
+		moveSearcher.setThreadCount(3);
 		moveSearcher.start();
 		
 		//Initialize UCI-Protocoll
@@ -57,7 +59,7 @@ public class Engine {
 		return this.game;
 	}
 	
-	public AlphaBetaSearch getSearcher() {
+	public AlphaBetaSearcher getSearcher() {
 		return moveSearcher;
 	}
 	
@@ -83,7 +85,6 @@ public class Engine {
 	 */
 	public void newGame() {
 		this.game = new Game();
-		this.moveSearcher.setGame(game);
 	}
 	
 	
@@ -96,7 +97,6 @@ public class Engine {
 	 */
 	public void resetBoard(List<String> moves) {
 		this.game = new Game();
-		this.moveSearcher.setGame(game);
 		executeMoves(moves);
 	}
 	
@@ -106,7 +106,6 @@ public class Engine {
 	 */
 	public void setBoard(String fen, List<String> moves) {
 		this.game = new Game(fen);
-		this.moveSearcher.setGame(game);
 		executeMoves(moves);
 	}
 	
@@ -124,16 +123,14 @@ public class Engine {
 	//= go
 	//========================================
 	
-	public void search(int depth) {
-		moveSearcher.resetLimitMoveList();
-		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.startSearch();
+	public void search(int depth, long deadLine) {
+		moveSearcher.startSearch(game.getCurrentBoard(), deadLine, depth);
+		
+		
 	}
 	
-	public void searchmoves(List<Move> moves, int  depth) {
-		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.setLimitedMoveList(moves);
-		moveSearcher.startSearch();
+	public void searchmoves(List<Move> moves, int  depth, long deadLine) {
+		search(depth, deadLine);
 	}
 	
 	//========================================
