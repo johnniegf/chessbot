@@ -30,6 +30,7 @@ public class AlphaBetaSearcher
     private final EvaluationFunction mEvaluator;
     private int mDepth;
     private Move mBestMove;
+    private int mBestScore;
     
     private boolean stopSearching = true;
     
@@ -50,8 +51,16 @@ public class AlphaBetaSearcher
     }
 
     public final void setDepth(final int depth) {
-        checkInBounds(depth, 1, 100);
+        checkInBounds(depth, 0, 100);
         mDepth = depth;
+    }
+    
+    public boolean hasDepth() {
+        return mDepth > 0;
+    }
+    
+    public int getDepth() {
+        return mDepth;
     }
     
     public final void stop() {
@@ -59,22 +68,29 @@ public class AlphaBetaSearcher
     }
     
     public final void go() {
+        stopSearching = false;
         deepeningSearch(20);
     }
     
     private void deepeningSearch(int maxDepth) {
         int depth = 1;
+        int bound = (mInitial.isWhiteAtMove() ? INFINITE : -INFINITE);
         while (maxDepth > 0 && depth <= maxDepth
            &&  !stopSearching) 
         {
-            search(mInitial, depth, -INFINITE, INFINITE);
+            search(mInitial, null, depth, -bound, bound, true);
+            depth++;
+            if (hasDepth() && depth > mDepth)
+                stop();
         }
     }
     
     private int search(final Board board,
+                       final Move lastMove,
                        final int depth,
                        int alpha,
-                       int beta) 
+                       int beta,
+                       final boolean isRoot) 
     {
         if (stopSearching)
             return 0;
@@ -96,14 +112,19 @@ public class AlphaBetaSearcher
             if (!Move.isValidResult(childPosition))
                 continue;
             
-            score = -search(childPosition, depth-1, -beta, -alpha);
+            score = -search(childPosition, 
+                            (isRoot ? childPosition.getLastMove() : lastMove),
+                            depth-1,
+                            -beta, 
+                            -alpha, 
+                            false);
             if (score >= beta) {
                 getHashTable().put(childPosition, depth, beta, FLAG_BETA);
                 return beta;
             }
             if (score > alpha) {
                 flag = FLAG_PV;
-                setBestMove(childPosition.getLastMove());
+                setBestMove(lastMove, score);
                 alpha = score;
             }
         }
@@ -112,8 +133,13 @@ public class AlphaBetaSearcher
         return alpha;
     }
     
-    private void setBestMove(final Move bestMove) {
+    private void setBestMove(final Move bestMove, int score) {
         checkNull(bestMove);
         mBestMove = bestMove;
+        mBestScore = score;
+    }
+    
+    public Move bestMove() {
+        return mBestMove;
     }
 }

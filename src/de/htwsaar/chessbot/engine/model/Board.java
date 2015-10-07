@@ -47,7 +47,7 @@ public final class Board {
     private short   mMoveNumber;
     private byte    mCastlings;
     private Move    mLastMove;
-    private String  mFenString;
+//    private String  mFenString;
     
     @Override
     public final Board clone() {
@@ -537,43 +537,44 @@ public final class Board {
     }
     
     public String toFenString() {
-        if (mFenString == null) {
-            StringBuilder sb = new StringBuilder();
-            int emptyCount = 0;
-            Piece current;
-            for (byte rank = 8; rank > 0; rank--) {
-                for (byte file = 1; file <= 8; file++) {
-                    current = getPieceAt(Position.P(file,rank));
-                    if (current == null) {
-                        emptyCount++;
-                    } else {
-                        if (emptyCount > 0) {
-                            sb.append(emptyCount);
-                            emptyCount = 0;
-                        }
-                        sb.append(current.fenShort());
+//        if (mFenString == null) {
+        StringBuilder sb = new StringBuilder();
+        int emptyCount = 0;
+        Piece current;
+        for (byte rank = 8; rank > 0; rank--) {
+            for (byte file = 1; file <= 8; file++) {
+                current = getPieceAt(Position.P(file,rank));
+                if (current == null) {
+                    emptyCount++;
+                } else {
+                    if (emptyCount > 0) {
+                        sb.append(emptyCount);
+                        emptyCount = 0;
                     }
+                    sb.append(current.fenShort());
                 }
-                if (emptyCount > 0) {
-                    sb.append(emptyCount);
-                    emptyCount = 0;
-                }
-                if (rank > 1)
-                    sb.append(slash);
             }
-            sb.append(space);
-            sb.append(isWhiteAtMove() ? "w" : "b");
-            sb.append(space);
-            sb.append(sCastlings[getCastlings()]);
-            sb.append(space);
-            sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
-            sb.append(space);
-            sb.append(getHalfMoves());
-            sb.append(space);
-            sb.append(getFullMoves());
-            mFenString = sb.toString();
+            if (emptyCount > 0) {
+                sb.append(emptyCount);
+                emptyCount = 0;
+            }
+            if (rank > 1)
+                sb.append(slash);
         }
-        return mFenString;
+        sb.append(space);
+        sb.append(isWhiteAtMove() ? "w" : "b");
+        sb.append(space);
+        sb.append(sCastlings[getCastlings()]);
+        sb.append(space);
+        sb.append(getEnPassant().isValid() ? getEnPassant() : "-");
+        sb.append(space);
+        sb.append(getHalfMoves());
+        sb.append(space);
+        sb.append(getFullMoves());
+        return sb.toString();
+//            mFenString = sb.toString();
+//        }
+//        return mFenString;
     }
     
 

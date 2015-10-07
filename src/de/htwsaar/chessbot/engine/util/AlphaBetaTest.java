@@ -20,10 +20,9 @@ public class AlphaBetaTest {
         Board b = Board.B();
         EvaluationFunction ev = new Evaluator();
         AlphaBetaSearcher abs = new AlphaBetaSearcher(b,ev);
-        abs.setDepth(5);
-        
-        
-        
+        abs.setDepth(4);
+        abs.go();
+        System.out.println(abs.bestMove());
     }
     
 }

@@ -29,13 +29,20 @@ public class PerftWorker
     private PerftHashTable mHashTable;
 
     public PerftWorker(final Board initial, 
+                       final PerftHashTable hashTable,
                        final Collection<Move> movesToSearch, 
                        final int depth) {
         super("PerftWorker#" + ID);
+        checkNull(initial, "Initial Position");
+        checkCondition(initial.isValid(), "Initial Position is invalid");
+        checkNull(hashTable, "Transposition Table");
+        checkNull(movesToSearch, "Move list");
+        checkInBounds(depth, 0, Perft.DEPTH_LIMIT);
         mDepth = depth;
         mMoves = movesToSearch;
         mInitial = initial;
-        mHashTable = new PerftHashTable(mDepth);
+        mHashTable = hashTable;
+//        mHashTable = new PerftHashTable(mDepth);
         ID += 1;
     }
 

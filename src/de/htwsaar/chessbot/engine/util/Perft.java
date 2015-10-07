@@ -59,12 +59,14 @@ public class Perft {
     protected static final int MAX_WORKERS = 
             Runtime.getRuntime().availableProcessors();
     protected static final int DEF_WORKERS = MAX_WORKERS - 1; 
+    public static final int DEPTH_LIMIT = 100;
 
 // ==========================================================================
 
     private Worker[] mWorkers;
     private final int mNumWorkers;
-    private volatile PerftHashTable mHashTable;
+//    private volatile PerftHashTable mHashTable;
+    private PerftHashTable mHashTable;
     
     private final Board mInitial;
     private final int mDepth;
@@ -175,7 +177,7 @@ public class Perft {
                 return new DivideWorker(initial, moveList, depth);
 
             case PERFT:
-                return new PerftWorker(initial, moveList, depth);
+                return new PerftWorker(initial, mHashTable, moveList, depth);
             
             default:
                 return null;
