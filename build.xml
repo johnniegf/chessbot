@@ -114,6 +114,13 @@
     <target name="dist" depends="packClasses,packDoc" 
             description="Produces all redistributable archives"/>
 
+    <target name="packEngine" depends="buildClasses">
+        <jar basedir="${buildDir}"
+             index="true"
+             manifest="data/engine.manifest" 
+             destfile="${distDir}/chessbot.jar" />
+    </target>
+
     <!-- Cleans up the project directories for temporarily generated files -->
     <target name="clean"
             description="Cleans all generated data">

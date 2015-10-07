@@ -1,0 +1,4 @@
+#!/bin/bash
+chessbot="dist/chessbot.jar"
+test -f "$chessbot" || ant packEngine
+java -jar "$chessbot"
