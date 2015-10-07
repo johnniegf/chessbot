@@ -18,8 +18,8 @@ public class Parser {
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
 	private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
-	private static final String OPTION = "setoption name (?<name>*)(?: value (?<value>*))?$";
-	private static final String OPTION_REPLACEMENT = "$name;$value";
+	private static final String OPTION = "setoption name (?<name>.+)(?: value (?<value>.+))?$";
+	private static final String OPTION_REPLACEMENT = "${name};{$value}";
 	
 	public static void uci() {
 		setUCIParameter();
