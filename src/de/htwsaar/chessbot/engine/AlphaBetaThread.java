@@ -5,6 +5,12 @@ import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
 
+/**
+ * Ein Thread, der einen AlphaBeta-Teilbaum bearbeitet.
+ * 
+ * @author David Holzapfel
+ *
+ */
 public class AlphaBetaThread extends Thread {
 
 	private static int INSTANCE_COUNT = 0;
@@ -17,24 +23,25 @@ public class AlphaBetaThread extends Thread {
 	private Board rootBoard = null;
 	private int depthLimit = 0;
 	private long deadLine = 0;
+	private int currentDepth = 0;
 	private boolean uncheckedResults = true;
+	private boolean scrapped = false;
 
 
 	public AlphaBetaThread(HashTable hashTable, EvaluationFunction evaluator) {
+		this.setName("AlphaBeta-" + INSTANCE_COUNT++);
 		this.hashTable = hashTable;
 		this.evaluator = evaluator;
 		this.bestMove = null;
 		this.bestScore = 0;
 		this.isRunning = false;
-		this.setDaemon(true);
-		this.setName("AlphaBeta-" + INSTANCE_COUNT++);
-		this.setPriority(4);
+		this.setPriority(6);
 	}
 
 	@Override
 	public void run() {
 		while(true) {
-			while(!isRunning) {
+			while(!isRunning || scrapped) {
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {
@@ -44,6 +51,7 @@ public class AlphaBetaThread extends Thread {
 
 			this.bestMove = null;
 			this.bestScore = 0;
+			this.currentDepth = 0;
 			boolean startMax = rootBoard.isWhiteAtMove();
 
 			alphaBeta(rootBoard, Integer.MIN_VALUE, Integer.MAX_VALUE, startMax, 0, depthLimit);
@@ -60,7 +68,14 @@ public class AlphaBetaThread extends Thread {
 		this.uncheckedResults = true;
 	}
 
+	public void stopSearch() {
+		this.isRunning = false;
+	}
+	
+	
 	private int alphaBeta(Board currentBoard, int alpha, int beta, boolean max, int depth, int maxDepth) {
+
+		currentDepth = depth > currentDepth ? depth : currentDepth;
 
 		if(getSearchStopped()) {
 			return 0;
@@ -92,7 +107,7 @@ public class AlphaBetaThread extends Thread {
 					continue;
 
 				if(getSearchStopped()) {
-					break;
+					return 0;
 				}
 
 				int result = alphaBeta(board, alpha, beta, !max, depth + 1, maxDepth);
@@ -110,7 +125,7 @@ public class AlphaBetaThread extends Thread {
 
 			}
 			hashTable.put(currentBoard, maxDepth - depth, bestResult, HashTable.FLAG_PV);
-			sendInfo(currentBoard, depth);
+			sendInfo(currentBoard);
 			return alpha;
 		}
 		else {
@@ -120,7 +135,7 @@ public class AlphaBetaThread extends Thread {
 					continue;
 
 				if(getSearchStopped()) {
-					break;
+					return 0;
 				}
 
 				int result = alphaBeta(board, alpha, beta, !max, depth + 1, maxDepth);
@@ -138,7 +153,7 @@ public class AlphaBetaThread extends Thread {
 
 			}
 			hashTable.put(currentBoard, maxDepth - depth, bestResult, HashTable.FLAG_PV);
-			sendInfo(currentBoard, depth);
+			sendInfo(currentBoard);
 			return beta;
 		}
 
@@ -146,7 +161,9 @@ public class AlphaBetaThread extends Thread {
 
 
 	private boolean getSearchStopped() {
-		return !this.isRunning || System.currentTimeMillis() >= this.deadLine;
+		return !this.isRunning
+				|| System.currentTimeMillis() >= this.deadLine
+				|| scrapped;
 	}
 
 	private int evaluate(Board board) {
@@ -184,12 +201,27 @@ public class AlphaBetaThread extends Thread {
 	}
 
 	//Sendet Informationen ueber den Zustand der Suche an die GUI
-	private void sendInfo(Board board, int depth) {
+	private void sendInfo(Board board) {
+		if(getSearchStopped()) {
+			return;
+		}
+		
 		UCISender.getInstance().sendDebug(getName() + ":");
 		UCISender.getInstance().sendToGUI(
-				"info currmove " + board.getLastMove() +
-				" depth " + depth
+				"info depth " + this.currentDepth
 				);
+	}
+
+	public void scrapThread() {
+		this.scrapped = true;
+	}
+
+	public boolean isScrapped() {
+		return this.scrapped;
+	}
+	
+	public void unscrapThread() {
+		this.scrapped = false;
 	}
 	
 }

@@ -1,7 +1,6 @@
 package de.htwsaar.chessbot.engine.config;
 
 import java.util.HashMap;
-import java.util.Properties;
 
 /**
  * Config Klasse zur Verwaltung von Optionen die die Engine
@@ -12,6 +11,15 @@ import java.util.Properties;
  *
  */
 public class Config {
+	
+	public static final String PAWN_SCORE = "PawnScore";
+	public static final String KING_SCORE = "KingScore";
+	public static final String QUEEN_SCORE = "QueenScore";
+	public static final String KNIGHT_SCORE = "KnightScore";
+	public static final String BISHOP_SCORE = "BishopScore";
+	public static final String ROOK_SCORE = "RookScore";
+	public static final String THREAD_COUNT = "ThreadCount";
+	public static final String PONDER = "Ponder";
 	
 	private HashMap<String, Option> options;
 	
@@ -33,18 +41,20 @@ public class Config {
 	//initialisiert die Standardoptionen
 	public void init() {
 		if (!initialized) {
-			addSpinOption("PawnScore", 100, 0, 10000000);
-			addSpinOption("KingScore" ,1000000, 0, 1000000);
-			addSpinOption("QueenScore", 900, 0, 1000000);
-			addSpinOption("KnightScore", 300, 0, 1000000);
-			addSpinOption("BishopScore", 300, 0, 1000000);
-			addSpinOption("RookScore", 500, 0, 1000000);
-			addCheckOption("Ponder", true);
+			int cores = Runtime.getRuntime().availableProcessors();
+			addSpinOption(PAWN_SCORE, 100, 0, 10000000);
+			addSpinOption(KING_SCORE ,1000000, 0, 1000000);
+			addSpinOption(QUEEN_SCORE, 900, 0, 1000000);
+			addSpinOption(KNIGHT_SCORE, 300, 0, 1000000);
+			addSpinOption(BISHOP_SCORE, 300, 0, 1000000);
+			addSpinOption(ROOK_SCORE, 500, 0, 1000000);
+			addSpinOption(THREAD_COUNT, 1, 1, cores);
+			addCheckOption(PONDER, true);
 			initialized = true;
 		}
 	}
 	
-	public void addSpinOption(String key, Object value, int min, int max){
+	public void addSpinOption(String key, int value, int min, int max){
 		options.put(key, new SpinOption(key, value, min, max));
 	}
 	
@@ -75,7 +85,7 @@ public class Config {
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
 		for(String s : options.keySet()) {
-			sb.append(options.get(s).toString()).append("\n");
+			sb.append(options.get(s).toString()).append(System.lineSeparator());
 		}
 		return sb.toString().substring(0, sb.length() - 1);
 	}

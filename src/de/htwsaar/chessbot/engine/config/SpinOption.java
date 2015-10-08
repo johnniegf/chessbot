@@ -12,7 +12,7 @@ public class SpinOption extends Option{
 	private int min;
 	private int max;
 	
-	public SpinOption(String key, Object value, int min, int max) {
+	public SpinOption(String key, int value, int min, int max) {
 		super(key, value);
 		this.min = min;
 		this.max = max;
@@ -26,13 +26,21 @@ public class SpinOption extends Option{
 		return max;
 	}
 	
+	public Integer getValue() {
+		return (Integer) super.getValue();
+	}
+	
 	/**
 	 * checkt ob sich der festgelegte Wert in der Reichweite befindet.
 	 * @return true wenn in der Reichweite, false wenn nicht
 	 */
+	@Override
 	public boolean setValue(Object value){
-		if((Integer)value >= min && (Integer)value <= max){
-			super.setValue(value);
+		if (!(value instanceof String))
+			return false;
+		int intVal = Integer.valueOf((String) value);
+		if(intVal >= min && intVal <= max){
+			super.setValue(intVal);
 			return true;
 		}
 		else return false;

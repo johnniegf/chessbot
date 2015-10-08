@@ -34,14 +34,19 @@ public class Engine {
 		Config.getInstance().init();
 		
 		//Initialize UCISender
-		UCISender.getInstance().sendDebug("Initialized UCISender");
+		UCISender.getInstance().sendDebug("Init UCISender");
 		
 		//Initialize AlphaBeta
 		moveSearcher = new AlphaBetaSearcher(new Evaluator());
 		moveSearcher.setThreadCount(3);
 		moveSearcher.start();
 		
+		//Initialize Logger
+		Logger.getInstance().start();
+		UCISender.getInstance().sendDebug("Init Logger");
+		
 		//Initialize UCI-Protocoll
+		UCISender.getInstance().start();
 		this.uci = new UCI(this);
 		this.uci.initialize();
 		try {
@@ -61,6 +66,10 @@ public class Engine {
 	
 	public AlphaBetaSearcher getSearcher() {
 		return moveSearcher;
+	}
+	
+	public UCI getUCI() {
+		return this.uci;
 	}
 	
 	public void uci() {
@@ -152,6 +161,11 @@ public class Engine {
 	public void quit() {
 		moveSearcher.interrupt();
 		Logger.getInstance().close();
+		try {
+			Logger.getInstance().join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		System.exit(0);
 	}
 	

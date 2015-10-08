@@ -35,15 +35,15 @@ public abstract class EvaluationFunction {
 		Exceptions.checkInBounds(id, "pieceId", 0, 5);
 		switch(id){
 		case King.ID:
-			return (Integer)Config.getInstance().getOption("KingScore").getValue();
+			return (Integer)Config.getInstance().getOption(Config.KING_SCORE).getValue();
 		case Pawn.ID:
-			return (Integer)Config.getInstance().getOption("PawnScore").getValue();
+			return (Integer)Config.getInstance().getOption(Config.PAWN_SCORE).getValue();
 		case Queen.ID:
-			return (Integer)Config.getInstance().getOption("QueenScore").getValue();
+			return (Integer)Config.getInstance().getOption(Config.QUEEN_SCORE).getValue();
 		case Knight.ID:
-			return (Integer)Config.getInstance().getOption("KnightScore").getValue();
+			return (Integer)Config.getInstance().getOption(Config.KNIGHT_SCORE).getValue();
 		case Bishop.ID:
-			return (Integer)Config.getInstance().getOption("RookScore").getValue();
+			return (Integer)Config.getInstance().getOption(Config.ROOK_SCORE).getValue();
 		}
 		return -1;
 	}
