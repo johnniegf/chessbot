@@ -98,7 +98,7 @@ public class ZobristHasher {
      * @param positionIndex Index der Figurenposition.
      * @return Hashwert der Figur
      * @throws IndexOutOfBoundsException
-     *      falls <code>pieceType</code> kein Figurtyp ist
+     *      falls <code>pieceType</code> kein Figurtyp ist, oder
      * @see Piece#id
      */
     public long hashPiece(final int pieceType,

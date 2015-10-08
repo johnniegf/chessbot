@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.htwsaar.chessbot.engine;
+package de.htwsaar.chessbot.engine.search;
 
-import static de.htwsaar.chessbot.engine.HashTable.FLAG_ALPHA;
-import static de.htwsaar.chessbot.engine.HashTable.FLAG_BETA;
-import static de.htwsaar.chessbot.engine.HashTable.FLAG_PV;
-import de.htwsaar.chessbot.engine.HashTable.MoveInfo;
+import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_ALPHA;
+import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_BETA;
+import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_PV;
+import de.htwsaar.chessbot.engine.search.HashTable.MoveInfo;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardUtils;
@@ -30,7 +30,7 @@ public class AlphaBetaSearcher
         "Ungültige Ausgangsstellung!";
     
     private final HashTable mHashTable = new HashTable();
-    private final Board     mInitial;
+    private Board     mInitial;
     private final EvaluationFunction mEvaluator;
     private int mDepth;
     private Move mBestMove;
@@ -76,7 +76,10 @@ public class AlphaBetaSearcher
         stopSearching = false;
         deepeningSearch(DEPTH_LIMIT);
     }
-
+    
+    public final void setBoard(final Board board) {
+        mInitial = board;
+    }
     
     private void deepeningSearch(int maxDepth) {
         mCurrentDepth = 1;
@@ -84,7 +87,7 @@ public class AlphaBetaSearcher
         while (maxDepth > 0 && mCurrentDepth <= maxDepth
            &&  !stopSearching) 
         {
-            search(mInitial, mCurrentDepth, -bound, bound);
+            search(mInitial, mCurrentDepth, -bound, bound, true);
             mCurrentDepth++;
             if (hasDepth() && mCurrentDepth > mDepth)
                 stop();
@@ -99,8 +102,11 @@ public class AlphaBetaSearcher
     private int search(final Board board,
                        final int depth,
                        int alpha,
-                       int beta) 
+                       int beta,
+                       boolean isRoot) 
     {
+        checkInBounds(beta, alpha, INFINITE);
+        
         if (hasDepth() && getDepth() < depth)
             stopSearching = true;
         
@@ -115,7 +121,7 @@ public class AlphaBetaSearcher
         
         
         MoveInfo moveInfo = new MoveInfo();
-        moveInfo.setScore(-INFINITE);
+        moveInfo.setScore(-INFINITE-1);
         
         // Evaluation or quiescence search
         if (depth <= 0) {
@@ -124,21 +130,23 @@ public class AlphaBetaSearcher
         
         // HashTable lookup
         if (getHashTable().get(board, depth, alpha, beta, moveInfo)) {
-            if (depth == mCurrentDepth)
+            if (isRoot)
                 setBestMove(moveInfo);
             return moveInfo.score();
         }
         
         int legalMoves = 0;
         int oldAlpha = alpha;
-        int score = -INFINITE;
+        int score;
         Board[] children = probePVMove(board, depth, alpha, beta);
         
-        int flag = HashTable.FLAG_ALPHA;
         for (Board childPosition : children) {
             legalMoves += 1;
             Move currentMove = childPosition.getLastMove();
-            score = -search(childPosition, depth-1, -beta, -alpha);
+            score = -search(childPosition, depth-1, -beta, -alpha, false);
+            
+            if (moveInfo.isNull())
+                moveInfo.setMove(currentMove);
             
             if (score > moveInfo.score()) {
                 moveInfo.setScore(score);
@@ -166,7 +174,8 @@ public class AlphaBetaSearcher
         } else {
             getHashTable().put(board, moveInfo.move(), depth, alpha, FLAG_ALPHA);
         }
-        if (depth == mCurrentDepth)
+        
+        if (isRoot)
             setBestMove(moveInfo);
         
         return alpha;
@@ -179,7 +188,7 @@ public class AlphaBetaSearcher
     {
         Board[] positions = position.getResultingPositions();
         MoveInfo mi = new MoveInfo();
-        if (getHashTable().get(position, depth, alpha, beta, mi)) {
+        if (getHashTable().get(position, depth-1, alpha, beta, mi)) {
             Move pvMove = mi.move();
             for (int i = 0; i < positions.length; i++) {
                 if ( pvMove.equals(positions[i].getLastMove()) ) {

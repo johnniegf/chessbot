@@ -33,7 +33,7 @@ public class Evaluator extends EvaluationFunction {
 		return sign * (
             rEval.evaluate(b) 
           + pEval.evaluate(b) 
-          + pEval.evaluate(b)
+          + bEval.evaluate(b)
         );
 	}
 }

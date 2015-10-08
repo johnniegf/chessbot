@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.htwsaar.chessbot.engine;
+package de.htwsaar.chessbot.engine.search;
 
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
@@ -86,13 +86,13 @@ public final class HashTable {
     {
         long zobristHash = board.hash();
         Entry entry = mEntries[makeIndex(zobristHash)];
-        if (entry == null) {
+        if (entry == null || entry.zobristHash != zobristHash) {
+//        if (entry == null) {
             entry = new Entry(board.hash(), bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
         } 
         
-        if (entry.zobristHash == zobristHash
-         && entry.depth < depth)
+        if (entry.depth < depth)
         {
             entry.score = score;
             entry.flags = flags;

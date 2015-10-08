@@ -13,7 +13,7 @@ import static de.htwsaar.chessbot.engine.model.Position.*;
  * @author Dominik Becker
  *
  */
-public class PawnEvaluator extends MaterialEvaluator {
+public class PawnEvaluator extends EvaluationFunction {
 
     private static final int DOUBLE_PAWN = 10;
     private static final int ISOLATED_PAWN = 20;
