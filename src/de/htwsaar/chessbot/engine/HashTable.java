@@ -8,6 +8,7 @@ package de.htwsaar.chessbot.engine;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 /**
  * Transpositionstabelle.
@@ -21,7 +22,7 @@ public final class HashTable {
     public static final int FLAG_PV    = 2;
     
     private static final int UNDEFINED = Integer.MIN_VALUE;
-    private static final int DEFAULT_CAPACITY = 1 << 15;
+    private static final int DEFAULT_CAPACITY = 1 << 16;
 
     private final Entry[] mEntries;
     
@@ -34,33 +35,51 @@ public final class HashTable {
         mEntries = new Entry[maxCapacity];
     }
     
-    public int get(final Board board,
-                   final int depth,
-                   final int alpha,
-                   final int beta) 
+    public boolean get(final Board board,
+                       final int depth,
+                       final int alpha,
+                       final int beta,
+                       final MoveInfo moveInfo) 
     {
+        checkNull(moveInfo);
         long zobristHash = board.hash();
         Entry entry = mEntries[makeIndex(zobristHash)];
         if (entry == null)
-            return UNDEFINED;
+            return false;
         
         if (entry.zobristHash == zobristHash) {
+            moveInfo.setMove(entry.bestMove);
             if (entry.depth >= depth) {
-                if (entry.flags == FLAG_PV)
-                    return entry.score;
-                if ((entry.flags == FLAG_ALPHA) &&
-                    (entry.score <= alpha))
-                    return alpha;
-                if ((entry.flags == FLAG_BETA) &&
-                    (entry.score >= beta))
-                    return beta;
+                moveInfo.setScore(entry.score);
+                
+                switch (entry.flags) {
+                    case FLAG_PV:
+                        return true;
+                    
+                    case FLAG_ALPHA:
+                        if (moveInfo.score() <= alpha) {
+                            moveInfo.setScore(alpha);
+                            return true;
+                        }
+                        break;
+                        
+                    case FLAG_BETA:
+                        if (moveInfo.score() >= beta) {
+                            moveInfo.setScore(beta);
+                            return true;
+                        }
+                        break;
+                        
+                    default:
+                        throw new IllegalArgumentException();
+                }
             }
-            //RememberBestMove();
         }
-        return UNDEFINED;
+        return false;
     }
     
     public void put(final Board board,
+                    final Move bestMove,
                     final int depth, 
                     final int score, 
                     final int flags)
@@ -68,7 +87,7 @@ public final class HashTable {
         long zobristHash = board.hash();
         Entry entry = mEntries[makeIndex(zobristHash)];
         if (entry == null) {
-            entry = new Entry(board, depth, score, flags);
+            entry = new Entry(board.hash(), bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
         } 
         
@@ -100,13 +119,14 @@ public final class HashTable {
         public int score;
         public int flags;
         
-        public Entry(final Board board,
+        public Entry(final long hash,
+                     final Move bestMove,
                      final int depth,
                      final int score,
                      final int flags) 
         {
-            this.zobristHash = board.hash();
-            this.bestMove = board.getLastMove();
+            this.zobristHash = hash;
+            this.bestMove = bestMove;
             this.depth = depth;
             this.score = score;
             this.flags = flags;
@@ -115,4 +135,34 @@ public final class HashTable {
         }
         
     }
+    
+    public static final class MoveInfo {
+        private Move mMove;
+        private int mScore;
+        
+        public MoveInfo() {
+            mMove = null;
+            mScore = UNDEFINED;
+        }
+        
+        public boolean isNull() {
+            return mMove == null || mScore == UNDEFINED;
+        }
+        
+        public Move move() {
+            return mMove;
+        }
+        
+        public void setMove(final Move move) {
+            mMove = move;
+        }
+        
+        public int score() {
+            return mScore;
+        }
+        
+        public void setScore(final int score) {
+            mScore = score;
+        }
+        }
 }

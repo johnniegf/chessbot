@@ -33,7 +33,7 @@ public class StandardMove extends Move {
         Piece pc = context.getPieceAt(getStart());
         if (!checkMove(context, pc)) return null;
         Board result = context.clone();
-        if ( !doCapture(result, pc) ) return null;
+        if ( !doCapture(context.hash(), result, pc) ) return null;
         if ( !movePiece(result, pc) ) return null;
         if ( !togglePlayer(result)  ) return null;
         if ( !disableCastlings(pc, result)) return null;

@@ -31,6 +31,14 @@ public class BoardUtils {
         return 1L << index;
     }
     
+    public static boolean isInCheck(final Board board) {
+        return isInCheck(board, board.isWhiteAtMove());
+    }
+    
+    public static boolean isInCheck(final Board board, final boolean whiteKing) {
+        return Board.isKingInCheck(board, Color.toColor(whiteKing));
+    }
+    
     private static final String EXN_ILLEGAL_BITBOARD_POS = "Position darf nur ein 1-bit enthalten";
     
     private static final long NOT_H_FILE = 0x7f7f_7f7f_7f7f_7f7fL;
@@ -110,6 +118,16 @@ public class BoardUtils {
     
     static {
         initMasks();
+    }
+
+    public static boolean isMate(Board b) {
+        return b.getResultingPositions().length == 0
+            && isInCheck(b);
+    }
+
+    public static boolean isStalemate(Board b) {
+        return b.getResultingPositions().length == 0
+            && !isInCheck(b);
     }
     
     

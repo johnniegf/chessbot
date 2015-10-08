@@ -130,7 +130,7 @@ public abstract class Move {
         return movingPiece.canMoveTo(board, getTarget());
     }
     
-    protected boolean doCapture(Board board, final Piece movingPiece) {
+    protected boolean doCapture(long origHash, Board board, final Piece movingPiece) {
         // Ist das Zielfeld besetzt...
         if ( !board.isFree(getTarget()) ) {
             Piece capturedPiece = board.getPieceAt(getTarget());
@@ -143,12 +143,16 @@ public abstract class Move {
                     disableCastlingsForRookCapture(capturedPiece, board);
                 board.removePiece(capturedPiece);
                 board.setHalfMoves(0);
+                board.clearHistory();
             }
         } else {
-            if (movingPiece.id() != Pawn.ID)
+            if (movingPiece.id() != Pawn.ID) {
                 board.setHalfMoves(board.getHalfMoves()+1);
-            else
+                board.appendHistory(origHash);
+            } else {
                 board.setHalfMoves(0);
+                board.clearHistory();
+            }
         }
         return true;
     }

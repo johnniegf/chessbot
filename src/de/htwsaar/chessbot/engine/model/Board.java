@@ -18,6 +18,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 /**
 * Beschreibung.
 *
@@ -47,6 +48,7 @@ public final class Board {
     private short   mMoveNumber;
     private byte    mCastlings;
     private Move    mLastMove;
+    private List<Long> mHistory;
 //    private String  mFenString;
     
     @Override
@@ -59,6 +61,7 @@ public final class Board {
         copy.mHalfMoves = mHalfMoves;
         copy.mMoveNumber = mMoveNumber;
         copy.mCastlings = mCastlings;
+        copy.mHistory.addAll(mHistory);
         copy.setHash(hash());
         return copy;
     }
@@ -100,6 +103,7 @@ public final class Board {
         setFullMoves(1);
         setCastlings((byte) 0);
         mLastMove = null;
+        mHistory = new ArrayList<Long>();
     }
     
     public boolean isAttacked(final Position pos, final boolean byWhite) {
@@ -142,7 +146,7 @@ public final class Board {
     }
     
     public boolean isValid() {
-        return !isKingInCheck(this) 
+        return !isKingInCheck(this, toColor(!isWhiteAtMove())) 
             && arePawnsValid(this);
         
     }
@@ -224,7 +228,7 @@ public final class Board {
         for (Piece p : getPiecesForColor(toColor(isWhiteAtMove()))) {
             for (Move m : p.getMoves(this)) {
                 b = m.tryExecute(this);
-                if (b != null && b.isValid()) 
+                if (Move.isValidResult(b)) 
                     resultingPositions.add(b);
             }
         }
@@ -367,7 +371,7 @@ public final class Board {
         return pieceList;
     }
     
-    private Piece[] getPiecesForColor(final int color) {
+    public Piece[] getPiecesForColor(final int color) {
         checkInBounds(color,0,1);
         int count = Bitwise.count(mColors[color]);
         Piece[] pieceList = new Piece[count];
@@ -583,9 +587,8 @@ public final class Board {
         return ZobristHasher.getInstance().getColourHash(color == WHITE);
     }
     
-    private static boolean isKingInCheck(final Board bb) {
-        //checkInBounds(color, "color", 0, 1);
-        int color = toColor(!bb.isWhiteAtMove());
+    static boolean isKingInCheck(final Board bb, final int color) {
+        checkInBounds(color, "color", 0, 1);
         long king = bb.mColors[color] & bb.mPieces[King.ID];
         return king != 0L && bb.isAttacked(king, invert(color));
     }
@@ -622,7 +625,22 @@ public final class Board {
     private static final long TOGGLE_HASH = HASHER.getColourHash(true)
                                           ^ HASHER.getColourHash(false);
     private static final long WHITE_HASH = HASHER.getColourHash(true);
+
+    public boolean isRepetition() {
+        if (getHalfMoves() == 0)
+            return false;
+        
+        return mHistory.contains(hash());
+    }
     
+    public void clearHistory() {
+        mHistory.clear();
+    }
+    
+    public void appendHistory(final long boardHash) {
+        mHistory.add(boardHash);
+    }
+     
 
 
 }

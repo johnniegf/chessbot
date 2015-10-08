@@ -2,6 +2,8 @@ package de.htwsaar.chessbot.engine.eval;
 
 import de.htwsaar.chessbot.engine.model.piece.Bishop;
 import de.htwsaar.chessbot.engine.model.Board;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
 import de.htwsaar.chessbot.engine.model.piece.Knight;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
@@ -111,18 +113,21 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 	}
 	
 	private int getPositionValue(Board b, Piece p) {
+        if (p == null)
+            return 0;
+		
 		int x = getX(p);
 		int y = getY(p, p.isWhite());
-		
-		if(p instanceof Pawn) {
+        
+		if(p.id() == Pawn.ID) {
 			return PAWN_VALUES[x][y];
-		} else if(p instanceof Knight) {
+		} else if(p.id() == Knight.ID) {
 			return KNIGHT_VALUES[x][y];
-		} else if(p instanceof Bishop) {
+		} else if(p.id() == Bishop.ID) {
 			return BISHOP_VALUES[x][y];
-		} else if(p instanceof Rook) {
+		} else if(p.id() == Rook.ID) {
 			return ROOK_VALUES[x][y];
-		} else if(p instanceof Queen) {
+		} else if(p.id() == Queen.ID) {
 			return QUEEN_VALUES[x][y];
 		} else {
 			if(isEndGame(b)) {
@@ -151,10 +156,10 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 		boolean condition1 = false, condition2 = false;
 		
 		boolean whiteQueen = false, blackQueen = false;
-		for(Piece p : b.getPieces()) {
-			if(p instanceof Queen && p.isWhite()) {
+		for(Piece p : b.getPieces(Queen.ID)) {
+			if(p.isWhite()) {
 				whiteQueen = true;
-			} else if(p instanceof Queen && !p.isWhite()) {
+			} else {
 				blackQueen = true;
 			}
 		}
@@ -166,11 +171,11 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 		
 		if(whiteQueen) {
 			boolean foundMinorPiece = false;
-			for(Piece p : b.getPieces()) {
-				if(p instanceof Rook && p.isWhite()) {
+			for(Piece p : b.getPiecesForColor(WHITE)) {
+				if(p.id() == Rook.ID) {
 					condition2 = false;
 					break;
-				} else if((p instanceof Bishop || p instanceof Knight) && p.isWhite()) {
+				} else if(p.id() == Bishop.ID || p.id() == Knight.ID) {
 					if(foundMinorPiece) {
 						condition2 = false;
 						break;
@@ -182,11 +187,11 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 		}
 		if(blackQueen && condition2) {
 			boolean foundMinorPiece = false;
-			for(Piece p : b.getPieces()) {
-				if(p instanceof Rook && !p.isWhite()) {
+			for(Piece p : b.getPiecesForColor(BLACK)) {
+				if(p.id() == Rook.ID && !p.isWhite()) {
 					condition2 = false;
 					break;
-				} else if((p instanceof Bishop || p instanceof Knight) && !p.isWhite()) {
+				} else if(p.id() == Bishop.ID || p.id() == Knight.ID) {
 					if(foundMinorPiece) {
 						condition2 = false;
 						break;
