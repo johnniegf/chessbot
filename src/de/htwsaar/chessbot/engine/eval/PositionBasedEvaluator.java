@@ -9,6 +9,7 @@ import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Queen;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
+import de.htwsaar.chessbot.util.Bitwise;
 
 /**
  * Erweiterung des MaterialEvaluators mit Positionsbewertungen.
@@ -19,14 +20,14 @@ import de.htwsaar.chessbot.engine.model.piece.Rook;
 public class PositionBasedEvaluator extends EvaluationFunction {
 
     private static final int[][] PAWN_VALUES = {
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {50, 50, 50, 50, 50, 50, 50, 50},
-        {10, 10, 20, 30, 30, 20, 10, 10},
-        {5, 5, 10, 25, 25, 10, 5, 5},
-        {0, 0, 0, 20, 20, 0, 0, 0},
-        {5, -5, -10, 0, 0, -10, -5, 5},
-        {5, 10, 10, -20, -20, 10, 10, 5},
-        {0, 0, 0, 0, 0, 0, 0, 0}
+        {0,   0,   0,   0,   0,   0,  0,  0},
+        {50, 50,  50,  50,  50,  50, 50, 50},
+        {10, 10,  20,  30,  30,  20, 10, 10},
+        {5,   5,  10,  25,  25,  10,  5,  5},
+        {0,   0,   0,  20,  20,   0,  0,  0},
+        {5,  -5, -10,   0,   0, -10, -5,  5},
+        {5,  10,  10, -20, -20,  10, 10,  5},
+        {0,   0,   0,   0,   0,   0,  0,  0}
     };
 
     private static final int[][] KNIGHT_VALUES = {
@@ -43,12 +44,12 @@ public class PositionBasedEvaluator extends EvaluationFunction {
 
     private static final int[][] BISHOP_VALUES = {
         {-20, -10, -10, -10, -10, -10, -10, -20},
-        {-10, 0, 0, 0, 0, 0, 0, -10},
-        {-10, 0, 5, 10, 10, 5, 0, -10},
-        {-10, 5, 5, 10, 10, 5, 5, -10},
-        {-10, 0, 10, 10, 10, 10, 0, -10},
-        {-10, 10, 10, 10, 10, 10, 10, -10},
-        {-10, 5, 0, 0, 0, 0, 5, -10},
+        {-10,   0,   0,   0,   0,   0,   0, -10},
+        {-10,   0,   5,  10,  10,   5,   0, -10},
+        {-10,   5,   5,  10,  10,   5,   5, -10},
+        {-10,   0,  10,  10,  10,  10,   0, -10},
+        {-10,  10,  10,  10,  10,  10,  10, -10},
+        {-10,   5,   0,   0,   0,   0,   5, -10},
         {-20, -10, -10, -10, -10, -10, -10, -20}
     };
 
@@ -103,7 +104,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     public int evaluate(Board b) {
         double materialCount = 0;
         int sign;
-        for (Piece piece : b.getPieces()) {
+        for (Piece piece : b.getAllPieces()) {
             sign = piece.isWhite() ? 1 : -1;
             materialCount += sign
                     * (PIECE_VALUE_WEIGHT * getPieceValue(piece.id())
@@ -155,56 +156,29 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     private boolean isEndGame(Board b) {
 		//EndGame -> 1) Beide Spieler ohne Dame
         //      oder 2) Jeder Spieler mit Dame hoechstens 1 "kleine" Figur (Laeufer/Springer)
-        boolean condition1 = false, condition2 = false;
+        long whitePieces = b.getPieceBitsForColor(true);
+        long queens = b.getPieceBitsForType(Queen.ID);
+        if (queens == 0L)
+            return true;
 
-        boolean whiteQueen = false, blackQueen = false;
-        for (Piece p : b.getPieces(Queen.ID)) {
-            if (p.isWhite()) {
-                whiteQueen = true;
-            } else {
-                blackQueen = true;
-            }
+        boolean condition2 = true;
+        long minorPieces = b.getPieceBitsForType(Knight.ID)
+                         | b.getPieceBitsForType(Bishop.ID);
+        long rooks = b.getPieceBitsForType(Rook.ID);
+        
+        if (Bitwise.count(queens) < 2)
+            condition2 = false;
+        else if (rooks != 0L)
+            condition2 = false;
+        else if (Bitwise.count(minorPieces) > 2)
+            condition2 = false;
+        else if (
+            Bitwise.count(minorPieces & whitePieces) > 1 
+         || Bitwise.count(minorPieces ^ whitePieces) > 1) {
+            condition2 = false;
         }
-        condition1 = !(whiteQueen || blackQueen);
-
-        if (whiteQueen || blackQueen) {
-            condition2 = true;
-        }
-
-        if (whiteQueen) {
-            boolean foundMinorPiece = false;
-            for (Piece p : b.getPiecesForColor(WHITE)) {
-                if (p.id() == Rook.ID) {
-                    condition2 = false;
-                    break;
-                } else if (p.id() == Bishop.ID || p.id() == Knight.ID) {
-                    if (foundMinorPiece) {
-                        condition2 = false;
-                        break;
-                    } else {
-                        foundMinorPiece = true;
-                    }
-                }
-            }
-        }
-        if (blackQueen && condition2) {
-            boolean foundMinorPiece = false;
-            for (Piece p : b.getPiecesForColor(BLACK)) {
-                if (p.id() == Rook.ID && !p.isWhite()) {
-                    condition2 = false;
-                    break;
-                } else if (p.id() == Bishop.ID || p.id() == Knight.ID) {
-                    if (foundMinorPiece) {
-                        condition2 = false;
-                        break;
-                    } else {
-                        foundMinorPiece = true;
-                    }
-                }
-            }
-        }
-
-        return condition1 || condition2;
+        
+        return condition2;
     }
 
 }

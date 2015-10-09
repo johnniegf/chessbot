@@ -15,7 +15,7 @@ public class MaterialEvaluator extends EvaluationFunction{
 	public int evaluate(Board b) {
 		int materialCount = 0;
 		int sign;
-		for (Piece piece : b.getPieces()) {
+		for (Piece piece : b.getAllPieces()) {
 			sign = piece.isWhite() ? 1 : -1;
 			materialCount += sign * getPieceValue(piece.id());
 		}
