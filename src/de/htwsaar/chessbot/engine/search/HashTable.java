@@ -86,16 +86,27 @@ public final class HashTable {
     {
         long zobristHash = board.hash();
         Entry entry = mEntries[makeIndex(zobristHash)];
-        if (entry == null || entry.zobristHash != zobristHash) {
-//        if (entry == null) {
-            entry = new Entry(board.hash(), bestMove, depth, score, flags);
+//        if (entry == null || entry.zobristHash != zobristHash) {
+        if (entry == null) {
+            entry = new Entry(zobristHash, bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
+            return;
         } 
         
-        if (entry.depth < depth)
-        {
+        if (entry.zobristHash == zobristHash && entry.depth > depth)
+            return;
+        else {
+            entry.zobristHash = zobristHash;
+            entry.bestMove = bestMove;
+            entry.depth = depth;
             entry.score = score;
             entry.flags = flags;
+        }
+    }
+    
+    public void clear() {
+        for (int i = 0; i < capacity(); i++) {
+            mEntries[i] = null;
         }
     }
     

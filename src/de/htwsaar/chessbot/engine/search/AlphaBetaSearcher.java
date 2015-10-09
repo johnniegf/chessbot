@@ -13,6 +13,7 @@ import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardUtils;
 import de.htwsaar.chessbot.engine.model.move.Move;
+import static de.htwsaar.chessbot.engine.model.move.Move.NOMOVE;
 import static de.htwsaar.chessbot.util.Exceptions.checkCondition;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
@@ -32,10 +33,10 @@ public class AlphaBetaSearcher
     private final HashTable mHashTable = new HashTable();
     private Board     mInitial;
     private final EvaluationFunction mEvaluator;
-    private int mDepth;
-    private Move mBestMove;
+    private Move mBestMove = NOMOVE;
     private int mBestScore;
-    private transient int mCurrentDepth;
+    private SearchInfo mCurrentSearch;
+    private SearchInfo mLimits;
     
     private boolean stopSearching = true;
     
@@ -49,6 +50,8 @@ public class AlphaBetaSearcher
         
         mInitial = fromPosition;
         mEvaluator = eval;
+        mCurrentSearch = new SearchInfo();
+        mLimits = new SearchInfo();
     }
     
     private HashTable getHashTable() {
@@ -57,23 +60,28 @@ public class AlphaBetaSearcher
 
     public final void setDepth(final int depth) {
         checkInBounds(depth, 0, 100);
-        mDepth = depth;
+        mLimits.depth = depth;
     }
     
     public boolean hasDepth() {
-        return mDepth > 0;
+        return mLimits.depth > 0;
     }
     
     public int getDepth() {
-        return mDepth;
+        return mLimits.depth;
     }
     
     public final void stop() {
         stopSearching = true;
     }
     
-    public final void go() {
+    private final void clearForSearch() {
         stopSearching = false;
+        mCurrentSearch = new SearchInfo();
+    }
+    
+    public final void go() {
+        clearForSearch();
         deepeningSearch(DEPTH_LIMIT);
     }
     
@@ -82,101 +90,125 @@ public class AlphaBetaSearcher
     }
     
     private void deepeningSearch(int maxDepth) {
-        mCurrentDepth = 1;
+        mCurrentSearch.depth = 1;
         int bound = INFINITE; // (mInitial.isWhiteAtMove() ? INFINITE : -INFINITE);
-        while (maxDepth > 0 && mCurrentDepth <= maxDepth
+        while (maxDepth > 0 && mCurrentSearch.depth <= maxDepth
            &&  !stopSearching) 
         {
-            search(mInitial, mCurrentDepth, -bound, bound, true);
-            mCurrentDepth++;
-            if (hasDepth() && mCurrentDepth > mDepth)
+            search(mInitial, mCurrentSearch.depth, 0, -bound, bound, true);
+            mCurrentSearch.depth++;
+            if (hasDepth() && mCurrentSearch.depth > mLimits.depth)
                 stop();
         }
     }
     
     private int quiescence(Board board, int alpha, int beta) {
-        int sign = (board.isWhiteAtMove() ? 1 : -1);
-        return sign * mEvaluator.evaluate(board);
+        return mEvaluator.evaluate(board);
     }
     
     private int search(final Board board,
-                       final int depth,
+                       int depth,
+                       final int ply,
                        int alpha,
                        int beta,
                        boolean isRoot) 
     {
         checkInBounds(beta, alpha, INFINITE);
         
+        int hashTableFlag = FLAG_ALPHA;
+        int score = -INFINITE;
+        Move bestMove = NOMOVE;
+        MoveInfo hashTableMove = new MoveInfo();
+        int legalMoves = 0;
+        int oldAlpha;
+        int mateThreshold = INFINITE - ply;
+        
+        /* *********************************************
+         * TIMEOUT CHECK
+         ***********************************************/
         if (hasDepth() && getDepth() < depth)
             stopSearching = true;
-        
         if (stopSearching)
             return 0;
         
-        if (board.isRepetition())
-            return 0;
+        /* *********************************************
+        *   MATE DISTANCE PRUNING
+        *************************************************/
+        if (alpha < -mateThreshold)
+            alpha = -mateThreshold;
+        if (beta > mateThreshold - 1)
+            beta = mateThreshold - 1;
+        if (alpha >= beta) {
+//            sendInfo("Mate pruning");
+//            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
+            return alpha;
+        }
         
-        if (board.getHalfMoves() >= 100)
-            return 0;
-        
-        
-        MoveInfo moveInfo = new MoveInfo();
-        moveInfo.setScore(-INFINITE-1);
+        if (BoardUtils.isInCheck(board))
+            depth += 1;
         
         // Evaluation or quiescence search
         if (depth <= 0) {
             return -quiescence(board, alpha, beta);
         }
         
+        mCurrentSearch.nodes++;
+        
+        if (board.isRepetition())
+            return 0;
+        if (board.getHalfMoves() >= 100)
+            return 0;
+        
         // HashTable lookup
-        if (getHashTable().get(board, depth, alpha, beta, moveInfo)) {
-            if (isRoot)
-                setBestMove(moveInfo);
-            return moveInfo.score();
+        if (getHashTable().get(board, depth, alpha, beta, hashTableMove)) {
+            score = hashTableMove.score();
+            if (score > alpha && score < beta)
+                return score;
         }
         
-        int legalMoves = 0;
-        int oldAlpha = alpha;
-        int score;
+        /* ================================================================== *\
+        |* === ITERATE THROUGH CHILD POSITIONS ============================== *|
+        \* ================================================================== */
+        
         Board[] children = probePVMove(board, depth, alpha, beta);
         
+        if (children.length > 0) {
+            bestMove = children[0].getLastMove();
+        }
+//        sendInfo("Entering child position from depth " + (mCurrentSearch.depth-depth));
         for (Board childPosition : children) {
             legalMoves += 1;
             Move currentMove = childPosition.getLastMove();
-            score = -search(childPosition, depth-1, -beta, -alpha, false);
             
-            if (moveInfo.isNull())
-                moveInfo.setMove(currentMove);
-            
-            if (score > moveInfo.score()) {
-                moveInfo.setScore(score);
-                moveInfo.setMove(currentMove);
+//            sendInfo("Before recursion, searching move " + currentMove);
+//            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
+            score = -search(childPosition, depth-1, ply+1, -beta, -alpha, false);
+//            sendInfo("After recursion");
+//            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
+            if (score > alpha) {
+                bestMove = currentMove;
+                if (isRoot)
+                    setBestMoveInfo(bestMove, score);
                 if (score >= beta) {
-                    getHashTable().put(board, currentMove, depth, score, FLAG_BETA);
-                    return beta;
+                    hashTableFlag = FLAG_BETA;
+                    alpha = beta;
+                    break;
                 }
-                if (score > alpha) {
-                    alpha = score;
-                }
+                hashTableFlag = FLAG_PV;
+                alpha = score;
             }
         }
         
         if (legalMoves == 0) {
+            bestMove = NOMOVE;
             if (BoardUtils.isInCheck(board)) {
-                return (board.isWhiteAtMove() ? INFINITE : -INFINITE);
+                alpha = -INFINITE + ply;
             } else {
-                return 0;
+                alpha = 0;
             }
         }
         
-        if (alpha != oldAlpha) {
-            getHashTable().put(board, moveInfo.move(), depth, moveInfo.score(), FLAG_PV);
-        } else {
-            getHashTable().put(board, moveInfo.move(), depth, alpha, FLAG_ALPHA);
-        }
-        
-        if (isRoot)
-            setBestMove(moveInfo);
+        getHashTable().put(board, bestMove, depth, alpha, hashTableFlag);
         
         return alpha;
     }
@@ -200,11 +232,11 @@ public class AlphaBetaSearcher
         return positions;
     }
     
-    private void setBestMove(final MoveInfo bestMove) {
+    private void setBestMoveInfo(final Move bestMove, final int score) {
         checkNull(bestMove);
-        checkCondition(!bestMove.isNull(), "Move is null");
-        mBestMove = bestMove.move();
-        mBestScore = bestMove.score();
+        mBestMove = bestMove;
+        mBestScore = score;
+//        sendInfo("Set best move " + mBestMove + " with score " + mBestScore);
     }
     
     public Move bestMove() {
@@ -222,4 +254,31 @@ public class AlphaBetaSearcher
         arr[idx1] = arr[idx2];
         arr[idx2] = tmp;
     }
+    
+    private static final class SearchInfo {
+        public long nodes;
+        public long msec;
+        public int depth;
+        
+        public SearchInfo() {
+            nodes = 0;
+            msec  = 0;
+            depth = 1;
+        }
+    }
+    
+    private static void sendInfo(String info) {
+        if (DEBUG)
+            System.out.println("info string " + info);
+    }
+    
+    private static void sendInfo(int depth, int ply, int score, int alpha, int beta, int hashFlag) {
+        if (DEBUG)
+            System.out.println(
+                String.format("info depth %d ply %d score %d alpha %d beta %d hashFlag %d",
+                              depth, ply, score, alpha, beta, hashFlag)
+            );
+    }
+    
+    private static final boolean DEBUG = false;
  }
