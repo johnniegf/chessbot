@@ -23,7 +23,7 @@ public class EnPassantMove extends Move {
     private static final String EXN_INVALID_TARGET =
         "Ungültiges Zielfeld für en passant Zug %s";
 
-    private final Move mMove;
+    private final StandardMove mMove;
     
     public byte type() {
         return TYPE;
@@ -33,7 +33,7 @@ public class EnPassantMove extends Move {
                          final Position targetPosition) 
     {
         super(startPosition, targetPosition);
-        mMove = Move.MV(getStart(), getTarget());
+        mMove = (StandardMove) Move.MV(getStart(), getTarget());
 	}
 
     public void setStart(final Position start) {
@@ -85,7 +85,7 @@ public class EnPassantMove extends Move {
         if(direction > 0 == isWhite ) 
             return null;
         //TODO neu implementieren
-        Board result = mMove.tryExecute(onBoard);
+        Board result = mMove.tryExecute(onBoard, false);
         if (result != null) {
             Position tp = getTarget().transpose(0, direction);
             Piece attackedPiece = result.getPieceAt(tp);
@@ -94,6 +94,7 @@ public class EnPassantMove extends Move {
             }
             result.removePieceAt(tp);
             if ( !updateLastMove(this, result)) return null;
+            result.recalculateAttacks();
         }
         return result;
 	}

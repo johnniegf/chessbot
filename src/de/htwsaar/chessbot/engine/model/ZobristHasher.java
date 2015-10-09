@@ -40,7 +40,8 @@ public class ZobristHasher {
      * Verteilung.
      */
 //    public static final long RNG_SEED       = 0x2660cddb1c76d1a4L;
-    public static final long RNG_SEED       = 0x354bb49ee49d0095L;
+//    public static final long RNG_SEED       = 0x354bb49ee49d0095L;
+    public static final long RNG_SEED       = 0x261be203e9123e8cL;
     private static final int  PIECE_COUNT    = 6 * 2 * 64;
     private static final int  CASTLING_COUNT = 16;
 

@@ -27,8 +27,7 @@ public class StandardMove extends Move {
         super(from,to);
     }
     
-    @Override
-    public Board tryExecute(final Board context) {
+    public Board tryExecute(final Board context, final boolean recalc) {
         checkNull(context, "context");
         Piece pc = context.getPieceAt(getStart());
         if (!checkMove(context, pc)) return null;
@@ -38,8 +37,15 @@ public class StandardMove extends Move {
         if ( !togglePlayer(result)  ) return null;
         if ( !disableCastlings(pc, result)) return null;
         if ( !updateLastMove(this, result)) return null;
-         
+        if (recalc) 
+            result.recalculateAttacks();
+
         return result;
+    }
+    
+    @Override
+    public Board tryExecute(final Board context) {
+        return tryExecute(context, true);
     }
     
     

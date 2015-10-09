@@ -72,6 +72,8 @@ public interface Piece {
     * @return ID dieser Figurenart
     */
     int id();
+    
+    long hash();
 
     /**
     * Gib zurück, ob die Figur weiß ist.

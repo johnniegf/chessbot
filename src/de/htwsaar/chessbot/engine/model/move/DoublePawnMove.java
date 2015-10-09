@@ -18,7 +18,7 @@ public class DoublePawnMove extends Move {
     
     public static final byte TYPE = 9;
     
-    private final Move mMove;
+    private final StandardMove mMove;
 
     public byte type() {
         return TYPE;
@@ -26,7 +26,7 @@ public class DoublePawnMove extends Move {
     
     public DoublePawnMove(final Position startingSquare) {
         super(startingSquare, Position.INVALID);
-        mMove = Move.MV(getStart(), getTarget());
+        mMove = (StandardMove) Move.MV(getStart(), getTarget());
     }
 
     public void setStart(final Position start) {
@@ -52,10 +52,11 @@ public class DoublePawnMove extends Move {
         if ( pc == null || pc.id() != Pawn.ID ) 
             return null;
 
-        Board result = mMove.tryExecute(onBoard);
+        Board result = mMove.tryExecute(onBoard, false);
         if (result != null) {
             result.setEnPassant(getTarget().transpose(0, pc.isWhite() ? -1 : 1));
             if ( !updateLastMove(this, result)) return null;
+            result.recalculateAttacks();
         }
         return result;
     }

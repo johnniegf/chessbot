@@ -29,6 +29,8 @@ import static de.htwsaar.chessbot.util.Exceptions.msg;
 * @author Johannes Haupt
 */
 public abstract class Move {
+    
+    public static final Move NOMOVE = new Move.NoMove();
 
     public static final Move MV(final Position from,
                                 final Position to)
@@ -87,11 +89,11 @@ public abstract class Move {
         if (result == null)
             throw new MoveException(
                 msg(EXN_ILLEGAL_MOVE, this, onBoard) );
-        else if (!result.isValid())
+        if (!result.isValid())
             throw new MoveException(
                 msg(EXN_ILLEGAL_MOVE, this, onBoard) );
-        else
-            return result;
+        
+        return result;
     }
 
     @Override
@@ -271,6 +273,28 @@ public abstract class Move {
         "Der Zug ist regelwidrig und kann nicht ausgeführt werden: %s";
     
     private static final MoveCache sCache = new MoveCache();
+    
+    public static final class NoMove extends Move {
+        
+        public static final byte TYPE = 11;
+        
+        private NoMove() {
+            super(Position.INVALID, Position.INVALID);
+        }
+        
+        public byte type() {
+            return TYPE;
+        }
+        
+        public void setTarget(final Position target) {
+            
+        }
+        
+        public Board tryExecute(final Board board) {
+            return null;
+        }
+        
+    }
 }
 
 class MoveCache {
@@ -335,4 +359,5 @@ class MoveCache {
         index |= (from.isValid() ? from.index() : 0);
         return (short) index;
     }
+    
 }

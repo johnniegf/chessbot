@@ -38,9 +38,10 @@ public final class Board {
     }
 
     // bitboards for pieces
-    protected long[] mColors;
-    protected long[] mPieces;
-    protected Position mEnPassant;
+    private final long[] mColors;
+    private final long[] mPieces;
+    private final long[] mAttacked;
+    private Position mEnPassant;
     
     private long    mZobristHash;
     private boolean mWhiteAtMove;
@@ -91,6 +92,7 @@ public final class Board {
     }
     
     public Board() {
+        mAttacked = new long[2];
         mColors = new long[2];
         mPieces = new long[6];
         
@@ -111,7 +113,7 @@ public final class Board {
     }
 
     public boolean isAttacked(final long position, final int color) {
-        return attackCount(position,color,false) > 0;
+        return (mAttacked[color] & position) != 0L;
     }
     
     public int attackCount(final long position, final int color) {
@@ -321,10 +323,17 @@ public final class Board {
         if (!isFree(position)) {
             return false;
         }
+        Piece piece = Pieces.PC(pieceId, toBool(color), toIndex(position));
         mPieces[pieceId] |= position;
         mColors[color] |= position;
-        applyHash( HASHER.hashPiece(pieceId, toBool(color), toIndex(position)));
+        applyHash( piece.hash() );
         return true;
+    }
+    
+    public void recalculateAttacks() {
+        for (Piece p : getAllPieces()) {
+            mAttacked[toColor(p.isWhite())] |= p.getAttackBits(this);
+        }
     }
     
     public boolean movePieceTo(final Position from, final Position to) {
@@ -360,13 +369,15 @@ public final class Board {
         return Bitwise.count(occupied());
     }
     
-    public Piece[] getPieces() {
+    public Piece[] getAllPieces() {
         Piece[] pieceList = new Piece[getPieceCount()];
         int offset = 0;
         for (int type = 0; type < 6; type++) {
-            Piece[] pieces = getPieces(type);
-            System.arraycopy(pieces, 0, pieceList, offset, pieces.length);
-            offset += pieces.length;
+            for (Piece p : getPieces(type)) {
+                pieceList[offset++] = p;
+            }
+//            System.arraycopy(pieces, 0, pieceList, offset, pieces.length);
+//            offset += pieces.length;
         }
         return pieceList;
     }
@@ -386,9 +397,9 @@ public final class Board {
     }
     
     private Piece getPiece(final int pieceId, final long atPosition, final int color) {
-        checkBitBoardPosition(atPosition);
-        checkInBounds(color, 0, 1);
-        checkInBounds(pieceId, 0, 5);
+//        checkBitBoardPosition(atPosition);
+//        checkInBounds(color, 0, 1);
+//        checkInBounds(pieceId, 0, 5);
         long search = mPieces[pieceId] & mColors[color] & atPosition;
         if (search != 0L) {
             return Pieces.PC(pieceId, toBool(color), toIndex(atPosition) );
@@ -471,17 +482,7 @@ public final class Board {
     }
     
     public long getAttacked(final long squares, final boolean byWhite) {
-        long mSquares = squares;
-        long attacked  = 0L;
-        long pos;
-        while(mSquares != 0L) {
-            pos = Bitwise.lowestBit(mSquares);
-            if (isAttacked(pos, toColor(byWhite))) {
-                attacked |= pos;
-            }
-            mSquares = Bitwise.popLowestBit(mSquares);
-        }
-        return attacked;
+        return squares & mAttacked[toColor(byWhite)];
     }
     
     public Piece getPieceAt(final Position pos) {
@@ -508,6 +509,14 @@ public final class Board {
     
     public long getPieceBitsForColor(final boolean white) {
         return mColors[toColor(white)];
+    }
+    
+    public long getPieceBits(final int pieceType, final int color) {
+        return mColors[color] & mPieces[pieceType];
+    }
+    
+    public long getPieceBitsForType(final int pieceType) {
+        return mPieces[pieceType];
     }
 
     @Override

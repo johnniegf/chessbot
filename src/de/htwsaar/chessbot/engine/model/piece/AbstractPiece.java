@@ -24,6 +24,8 @@ public abstract class AbstractPiece
 {
     private Position mPosition;
     private boolean  mIsWhite;
+    private long     mZobristHash = -1;
+    private boolean  hashIsSet = false;
 
     /**
     * Erzeuge eine neue uninitialisierte Figur.
@@ -147,6 +149,12 @@ public abstract class AbstractPiece
     * Hilfsmethode, gib den FEN-Schlüssel der Figur zurück.
     */
     protected abstract char fen();
+    
+    public final long hash() {
+        if (!hashIsSet)
+            mZobristHash = ZobristHasher.getInstance().hashPiece(this);
+        return mZobristHash;
+    }
 
     public Piece move(final Position targetSquare) {
         if (targetSquare == null)

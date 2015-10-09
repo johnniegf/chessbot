@@ -63,6 +63,14 @@ public final class Position
        return sCache.get(index);
     }
     
+    public static int fileOf(final int index) {
+        return (index % 8) + 1;
+    }
+    
+    public static int rankOf(final int index) {
+        return (index / 8) + 1;
+    }
+    
     public static Position BB(final long bitboard) {
         //BoardUtils.checkBitBoardPosition(bitboard);
         if (Bitwise.count(bitboard) != 1)
