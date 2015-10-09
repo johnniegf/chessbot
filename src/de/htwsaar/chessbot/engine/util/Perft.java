@@ -101,6 +101,8 @@ public class Perft {
     public void run() {
         long time = System.currentTimeMillis();
         mResult = calculate(); 
+        if (mResult == null)
+            return;
         time = System.currentTimeMillis() - time;
         mResult.setTime(time);
         mDone = true;

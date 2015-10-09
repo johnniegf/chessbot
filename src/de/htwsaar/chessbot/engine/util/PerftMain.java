@@ -32,7 +32,7 @@ public class PerftMain {
                 return;
         }
         Result r = Perft.run(RunType.PERFT,fen,depth,numWorkers);
-        System.out.println(r);
+        System.out.println(r == null ? "0" : r);
     }
 
     private static final String USAGE_STRING =
