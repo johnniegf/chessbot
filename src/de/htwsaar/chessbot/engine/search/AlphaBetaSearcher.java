@@ -10,6 +10,7 @@ import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_BETA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_PV;
 import de.htwsaar.chessbot.engine.search.HashTable.MoveInfo;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
+import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardUtils;
 import de.htwsaar.chessbot.engine.model.move.Move;
@@ -22,9 +23,10 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
  *
  * @author Johannes Haupt <johnniegf@fsfe.org>
  */
-public class AlphaBetaSearcher 
+public class AlphaBetaSearcher extends Thread
 //implements MoveSearcher 
 {
+	private static int INSTANCE_COUNT = 0;
     private static final int DEPTH_LIMIT = 100;
     private static final int INFINITE = 1_000_000;
     private static final String EXN_INVALID_BOARD =
@@ -35,6 +37,7 @@ public class AlphaBetaSearcher
     private final EvaluationFunction mEvaluator;
     private Move mBestMove = NOMOVE;
     private int mBestScore;
+    private long deadLine;
     private SearchInfo mCurrentSearch;
     private SearchInfo mLimits;
     
@@ -52,6 +55,26 @@ public class AlphaBetaSearcher
         mEvaluator = eval;
         mCurrentSearch = new SearchInfo();
         mLimits = new SearchInfo();
+        setName("AlphaBeta-" + INSTANCE_COUNT++);
+    }
+    
+    @Override
+    public void run() {
+    	while(true) {
+    		while(stopSearching) {
+    			try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+    		}
+    		
+    		setPriority(6);
+    		deepeningSearch(mLimits.depth);
+    		stopSearching = true;
+    		sendBestMove();
+    		setPriority(3);
+    	}
     }
     
     private HashTable getHashTable() {
@@ -59,8 +82,8 @@ public class AlphaBetaSearcher
     }
 
     public final void setDepth(final int depth) {
-        checkInBounds(depth, 0, 100);
         mLimits.depth = depth;
+        //checkInBounds(depth, 0, 100);
     }
     
     public boolean hasDepth() {
@@ -71,7 +94,7 @@ public class AlphaBetaSearcher
         return mLimits.depth;
     }
     
-    public final void stop() {
+    public final void stopSearch() {
         stopSearching = true;
     }
     
@@ -82,11 +105,19 @@ public class AlphaBetaSearcher
     
     public final void go() {
         clearForSearch();
-        deepeningSearch(DEPTH_LIMIT);
     }
     
     public final void setBoard(final Board board) {
         mInitial = board;
+    }
+    
+    public void setDeadLine(long deadLine) {
+    	this.deadLine = deadLine;
+    }
+    
+    private boolean isSearchStopped() {
+    	return stopSearching
+    			|| this.deadLine >= System.currentTimeMillis();
     }
     
     private void deepeningSearch(int maxDepth) {
@@ -98,7 +129,7 @@ public class AlphaBetaSearcher
             search(mInitial, mCurrentSearch.depth, 0, -bound, bound, true);
             mCurrentSearch.depth++;
             if (hasDepth() && mCurrentSearch.depth > mLimits.depth)
-                stop();
+                stopSearch();
         }
     }
     
@@ -139,8 +170,7 @@ public class AlphaBetaSearcher
         if (beta > mateThreshold - 1)
             beta = mateThreshold - 1;
         if (alpha >= beta) {
-//            sendInfo("Mate pruning");
-//            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
+            sendInfo(depth, score);
             return alpha;
         }
         
@@ -183,8 +213,7 @@ public class AlphaBetaSearcher
 //            sendInfo("Before recursion, searching move " + currentMove);
 //            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
             score = -search(childPosition, depth-1, ply+1, -beta, -alpha, false);
-//            sendInfo("After recursion");
-//            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
+            sendInfo(depth, score);
             if (score > alpha) {
                 bestMove = currentMove;
                 if (isRoot)
@@ -247,6 +276,11 @@ public class AlphaBetaSearcher
         return mBestScore;
     }
     
+    public void sendBestMove() {
+    	String bestMove = "bestmove %s";
+    	UCISender.getInstance().sendToGUI(String.format(bestMove, bestMove()));
+    }
+    
     private static <T> void swap(T[] arr, int idx1, int idx2) {
         checkInBounds(idx1, 0, arr.length);
         checkInBounds(idx1, 0, arr.length);
@@ -272,12 +306,10 @@ public class AlphaBetaSearcher
             System.out.println("info string " + info);
     }
     
-    private static void sendInfo(int depth, int ply, int score, int alpha, int beta, int hashFlag) {
-        if (DEBUG)
-            System.out.println(
-                String.format("info depth %d ply %d score %d alpha %d beta %d hashFlag %d",
-                              depth, ply, score, alpha, beta, hashFlag)
-            );
+    private static void sendInfo(int depth, int score) {
+    	String info = "info depth %d score cp %d";
+    	UCISender.getInstance().sendToGUI(String.format(info, depth, score));
+    	
     }
     
     private static final boolean DEBUG = false;

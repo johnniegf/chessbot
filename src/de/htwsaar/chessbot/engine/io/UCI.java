@@ -1,9 +1,11 @@
 package de.htwsaar.chessbot.engine.io;
  
-import de.htwsaar.chessbot.engine.Engine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import de.htwsaar.chessbot.engine.Engine;
+import de.htwsaar.chessbot.engine.util.TestCommands;
  
 /**
 *   Universal Chess Interface
@@ -40,7 +42,6 @@ public class UCI  {
      */
     public UCI(Engine engine) {
     	this.engine = engine;
-        
     }
     
     public void initialize() {
@@ -56,42 +57,44 @@ public class UCI  {
         while(true) {
             cmd = engineIn.readLine();
             Logger.getInstance().log(cmd, Logger.GUI_TO_ENGINE);
-            
-            if (cmd.startsWith("quit"))
-                System.exit(0);
-            
-            
-            String [] result = cmd.split(" ");
-            for(int i = 0; i < result.length; i++) {
-            	switch(result[i]) {
-            	case POS:
-            		Parser.position(cmd, this.engine);
-            		break;
-            	case GO:
-            		Parser.go(cmd, this.engine);
-            		break;
-            	case STOP:
-            		Parser.stop(this.engine);
-            		break;
-            	case UCI:
-            		Parser.uci();
-            		break;
-            	case READY:
-            		Parser.isReady();
-            		break;
-            	case NEWGAME:
-            		Parser.ucinewgame(this.engine);
-            		break;
-            	case PONDERHIT:
-            		Parser.ponderhit(this.engine);
-            		break;
-            	case SETOPTION:
-            		Parser.setoption(cmd);
-            		break;
-            	case TEST:
-            		Parser.test(cmd, this.engine);
-            	}
-            }
+            parseCommand(cmd);
         } 
     }
+
+	public void parseCommand(String cmd) {
+		if (cmd.startsWith("quit"))
+            System.exit(0);
+		
+		String [] result = cmd.split(" ");
+		for(int i = 0; i < result.length; i++) {
+			switch(result[i]) {
+			case POS:
+				Parser.position(cmd, this.engine);
+				break;
+			case GO:
+				Parser.go(cmd, this.engine);
+				break;
+			case STOP:
+				Parser.stop(this.engine);
+				break;
+			case UCI:
+				Parser.uci();
+				break;
+			case READY:
+				Parser.isReady();
+				break;
+			case NEWGAME:
+				Parser.ucinewgame(this.engine);
+				break;
+			case PONDERHIT:
+				Parser.ponderhit(this.engine);
+				break;
+			case SETOPTION:
+				Parser.setoption(cmd);
+				break;
+			case TEST:
+				TestCommands.test(cmd, this.engine);
+			}
+		}
+	}
 }

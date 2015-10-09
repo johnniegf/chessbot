@@ -4,6 +4,7 @@ import de.htwsaar.chessbot.engine.Engine;
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,22 +15,25 @@ import java.util.List;
  *
  */
 public class Parser {
-	
+
 	private static final String ILLEGALCMD = 
 			"Command is not supported: ";
 	private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
-	private static final String OPTION = "setoption name (?<name>.+)(?: value (?<value>.+))?$";
-	private static final String OPTION_REPLACEMENT = "${name};{$value}";
-	
+	private static final String OPTION = "setoption name .+ value .+";
+	private static final String OPTION_VALUE = "setoption name .+ value (?<value>.+)";
+	private static final String OPTION_NAME = "setoption name (?<name>.+) value .+";
+	private static final String OPTION_NAME_REPLACEMENT = "${name}";
+	private static final String OPTION_VALUE_REPLACEMENT = "${value}";
+
 	public static void uci() {
 		setUCIParameter();
 		sendCmd("uciok");
 	}
-	
+
 	public static void isReady() {
 		sendCmd("readyok");
 	}
-	
+
 	/**
 	 * ruft in der Engine newGame() auf um ein neues Spiel zu starten.
 	 * @param engine
@@ -37,7 +41,7 @@ public class Parser {
 	public static void ucinewgame(Engine engine) {
 		engine.newGame();
 	}
-	
+
 	/**
 	 * Position Kommando.
 	 * zerteilt die Ausgabe und gibt der Engine eine fertige Zugliste 
@@ -52,25 +56,25 @@ public class Parser {
 		List<String> moves = new ArrayList<String>();
 		if(cmd[0].equals("fen") && cmd.length > 6){
 			fenString = cmd[2] + " " + 
-                    cmd[2] + " " + 
-                    cmd[3] + " " + 
-                    cmd[4] + " " + 
-                    cmd[5] + " " + 
-                    cmd[6];
-	        cmd[1] = fenString;
-	        for (int i = 7; i < result.length; i++) {
-	        	moves.add(result[i]);
-	        }
-	        engine.setBoard(fenString, moves);
+					cmd[2] + " " + 
+					cmd[3] + " " + 
+					cmd[4] + " " + 
+					cmd[5] + " " + 
+					cmd[6];
+			cmd[1] = fenString;
+			for (int i = 7; i < result.length; i++) {
+				moves.add(result[i]);
+			}
+			engine.setBoard(fenString, moves);
 		}
 		else {
 			for(int i = 2; i < cmd.length; i++) {
-        		moves.add(cmd[i]);
-        	}
-        	engine.resetBoard(moves);
+				moves.add(cmd[i]);
+			}
+			engine.resetBoard(moves);
 		}
 	}
-	
+
 	/**
 	 * GO-Kommando.
 	 * zerteilt die Ausgabe und ueberprueft welche Schalter
@@ -82,10 +86,9 @@ public class Parser {
 	 */
 	public static void go(String line, Engine engine) {
 		List<Move> moves = null;
-		int depth = 0;
+		int depth = Integer.MAX_VALUE;
 		boolean infinite =  false;
-		engine.getSearcher().setTimeLimit(0);
-		engine.getSearcher().setPondering(false);
+		long deadLine = Long.MAX_VALUE;
 		String[] cmds = line.split(" ");
 		for(int i = 0; i < cmds.length; i++) {
 			switch(cmds[i]) {
@@ -115,18 +118,22 @@ public class Parser {
 				break;
 			case "movetime":
 				String movetime = cmds[i+1];
-				engine.getSearcher().setTimeLimit(Integer.parseInt(movetime));
+				long time = Long.parseLong(movetime);
+				deadLine = System.currentTimeMillis() + time;
 				break;
 			case "infinite":
-				infinite = true;
+				depth = Integer.MAX_VALUE;
+				deadLine = Long.MAX_VALUE;
 				break;
 			case "ponder":
-				engine.getSearcher().setPondering(true);
 				break;
 			}
 		}
-		
-		
+
+		engine.getSearcher().setDeadLine(deadLine);
+		engine.search(depth);
+
+		/*
 		if(moves != null && depth != 0){
 			engine.searchmoves(moves, depth);
 		}
@@ -134,11 +141,12 @@ public class Parser {
 		else if(depth != 0){engine.search(depth);}
 		else if(infinite)engine.search(Integer.MAX_VALUE);
 		else {
-			engine.search(6);
+			engine.search(Integer.MAX_VALUE);
 		}
+		 */
 	}
-	
-	
+
+
 	/**
 	 * filtert die Zuege aus der Ausgabe
 	 * und gibt diese zurueck.
@@ -158,33 +166,34 @@ public class Parser {
 			}
 		}
 		return moves;
-		
+
 	}
-	
+
 	//Stop-Kommando
 	public static void stop(Engine engine) {
 		engine.stop();
 	}
-	
+
 	//Ponderhit-Kommando
 	public static void ponderhit(Engine engine) {
-		engine.getSearcher().ponderhit();
+		//engine.getSearcher().ponderhit();
 	}
-		
+
 	/**
 	 * aendert die Optionen der Engine.
 	 * @param line
 	 */
 	public static void setoption(String line) {
-		if(!line.matches(OPTION))
+		if(!line.matches(OPTION)) {
 			return;
-		String result = line.replaceFirst(OPTION, OPTION_REPLACEMENT);
-		String[] options = result.split(";");
-		if(Config.getInstance().containsKey(options[0])){
-			Config.getInstance().getOption(options[0]).setValue(options[1]);
+		}
+		String name = line.replaceFirst(OPTION_NAME, OPTION_NAME_REPLACEMENT);
+		String val = line.replaceFirst(OPTION_VALUE, OPTION_VALUE_REPLACEMENT);
+		if(Config.getInstance().containsKey(name)){
+			Config.getInstance().getOption(name).setValue(val);
 		}
 	}
-	
+
 	/**
 	 * stellt die Debug-Funktion ein oder aus
 	 * @param line
@@ -197,57 +206,21 @@ public class Parser {
 		else if(result[1].equals("off"))
 			UCISender.getInstance().setShowDebug(false);
 	}
-	
+
 	public static void illegalCmd(String line) {
 		sendCmd(ILLEGALCMD+line);
 	}
-	
-	private static void sendCmd(String cmd) {
-        UCISender.getInstance().sendToGUI(cmd);
-    }
- 
-    private static void setUCIParameter() {
-        sendCmd("id name Chessbot");
-        sendCmd("id author Projektgruppe 2015 Schachengine");
-        sendCmd(Config.getInstance().toString());
- 
-    }
 
-    
-    public static void test(String cmd, Engine engine) {
-    	String[] params = cmd.split(" ");
-    	String msg = "TEST_MSG";
-    	if(params.length > 4) {
-    		msg = "";
-    		for(int i = 4; i < params.length; i++) {
-    			msg += params[i] + " ";
-    		}
-    	}
-    	
-    	switch(params[1].toLowerCase()) {
-    	case "queuemsg":
-    		int count = Integer.parseInt(params[3]);
-    		switch(params[2].toLowerCase()) {
-    		case "togui":
-    			for(int i = 0; i < count; i++) {
-    				UCISender.getInstance().sendToGUI(msg);
-    			}
-    			UCISender.getInstance().sendDebug("[TEST]Done.");
-    			break;
-    		case "debug":
-    			for(int i = 0; i < count; i++) {
-    				UCISender.getInstance().sendDebug(msg);
-    			}
-    			UCISender.getInstance().sendDebug("[TEST]Done.");
-    			break;
-    		case "error":
-    			for(int i = 0; i < count; i++) {
-    				UCISender.getInstance().sendError(msg);
-    			}
-    			UCISender.getInstance().sendDebug("[TEST]Done.");
-    		}
-    		break;
-    	}
-    }
-    
+	private static void sendCmd(String cmd) {
+		UCISender.getInstance().sendToGUI(cmd);
+	}
+
+	private static void setUCIParameter() {
+		sendCmd("id name Chessbot");
+		sendCmd("id author Projektgruppe 2015 Schachengine");
+		sendCmd(Config.getInstance().toString());
+
+	}
+
+
 }
