@@ -10,11 +10,13 @@ public abstract class Option {
 	
 	private String key;
 	private Object value;
+    private final Object defaultValue;
 
 	//Konstruktor mit Key und Wert der Option
 	public Option(String key, Object value) {
 		this.key = key;
 		this.value = value;
+        this.defaultValue = value;
 	}
 	
 	public String getKey() {

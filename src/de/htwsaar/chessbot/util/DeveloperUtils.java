@@ -19,6 +19,13 @@ public class DeveloperUtils {
     private static final Output stderr = new PrintStreamOutput(System.err);
     
     public static boolean DEBUG_ENABLED = true;
+    private static final String SEPARATOR =
+          "========================================"
+        + "========================================";
+    
+    public static void SEPARATE() {
+        stdout.println(SEPARATOR);
+    }
     
     public static void PRINT(final Object message) {
         stdout.println(message);

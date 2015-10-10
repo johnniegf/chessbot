@@ -1,6 +1,8 @@
 package de.htwsaar.chessbot.engine.config;
 
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -26,39 +28,36 @@ public class Config {
 		if(sInstance == null) {
 			sInstance = new Config();
 			sInstance.init();
+            initialized = true;
 		}
 		return sInstance;
 	}
 	
 	//initialisiert die Standardoptionen
-	public void init() {
+	private void init() {
 		if (!initialized) {
-			addSpinOption("PawnScore", 100, 0, 10000000);
-			addSpinOption("KingScore" ,1000000, 0, 1000000);
-			addSpinOption("QueenScore", 900, 0, 1000000);
-			addSpinOption("KnightScore", 300, 0, 1000000);
-			addSpinOption("BishopScore", 300, 0, 1000000);
-			addSpinOption("RookScore", 500, 0, 1000000);
 			addCheckOption("Ponder", true);
 			initialized = true;
 		}
 	}
 	
-	public void addSpinOption(String key, Object value, int min, int max){
-		options.put(key, new SpinOption(key, value, min, max));
+	public void addSpinOption(String key, int defValue, int min, int max){
+		options.put(key, new SpinOption(key, defValue, min, max));
 	}
 	
-	public void addCheckOption(String key, Object value) {
-		options.put(key, new CheckOption(key, value));
+	public void addCheckOption(String key, boolean defValue) {
+		options.put(key, new CheckOption(key, defValue));
 	}
 	
-	public void addButtonOption(String key, Object value) {
-		options.put(key, new ButtonOption(key, value));
+	public void addComboOption(String key, String defValue, List<String> cboOptions) {
+		options.put(key, new ComboOption(key, defValue, cboOptions));
 	}
-	
-	public void addComboOption(String key, Object value) {
-		options.put(key, new ComboOption(key, value));
-	}
+    
+    public void addOption(final Option option) {
+        checkNull(option);
+        if (!options.containsKey(option.getKey()))
+            options.put(option.getKey(), option);
+    }
 	
 	public void setOption(String key, Object value) {
 		options.get(key).setValue(value);

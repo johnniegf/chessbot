@@ -6,12 +6,18 @@ package de.htwsaar.chessbot.engine.config;
  * @author Dominik Becker
  *
  */
-public class ButtonOption extends Option{
+public class ButtonOption extends Option {
 
 	public ButtonOption(String key, Object value) {
-		super(key, value);
+		super(key, null);
 	}
-	
+    
+    public Object getValue() {
+        return null;
+    }
+    
+    
+    
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());

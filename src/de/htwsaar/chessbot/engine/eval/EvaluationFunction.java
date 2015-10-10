@@ -32,7 +32,19 @@ public abstract class EvaluationFunction {
 
     static {
         scores = new int[6];
-        updatePieceValues();
+        scores[King.ID]   = 300_000;
+        scores[Queen.ID]  = 900;
+        scores[Rook.ID]   = 500;
+        scores[Knight.ID] = 300;
+        scores[Bishop.ID] = 300;
+        scores[Pawn.ID]   = 100;
+        final Config cfg = Config.getInstance();
+        cfg.addSpinOption("KingScore" ,  scores[King.ID],   0, INFINITE);
+        cfg.addSpinOption("QueenScore",  scores[Queen.ID],  0, INFINITE);
+        cfg.addSpinOption("RookScore",   scores[Rook.ID],   0, INFINITE);
+        cfg.addSpinOption("KnightScore", scores[Knight.ID], 0, INFINITE);
+        cfg.addSpinOption("BishopScore", scores[Bishop.ID], 0, INFINITE);
+        cfg.addSpinOption("PawnScore",   scores[Pawn.ID],   0, INFINITE);
     }
 
     public static int getPieceValue(final int id) {

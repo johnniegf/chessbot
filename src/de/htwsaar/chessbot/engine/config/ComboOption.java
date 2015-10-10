@@ -1,5 +1,6 @@
 package de.htwsaar.chessbot.engine.config;
 
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,12 +16,9 @@ public class ComboOption extends Option{
 	//enthaelt die Auswahlmoeglichkeiten
 	private List<String> combos;
 
-	public ComboOption(String key, Object value) {
+	public ComboOption(String key, String value, List<String> options) {
 		super(key, value);
-		this.combos = new ArrayList<String>();
-		combos.add("Solid");
-		combos.add("Normal");
-		combos.add("Risky");
+		this.combos = options;
 	}
 	
 	/**
@@ -29,22 +27,18 @@ public class ComboOption extends Option{
 	 * @return true wenn erfolgreich, false wenn fehlgeschlagen
 	 */
 	public boolean setValue(Object value) {
-		for(String s : combos){
-			if(value instanceof String && s.equals((String)value)){
-				super.setValue(value);
-				return true;
-			}
-		}
+        checkNull(value);
+        String sval = value.toString();
+        if (combos.contains(sval))
+            super.setValue(sval);
 		return false;
 	}
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());
 		sb.append("type combo default ");
-		sb.append(Config.getInstance().getOption(getKey()).getValue());
-		sb.append(" var ").append(combos.get(0));
-		sb.append(" var ").append(combos.get(1));
-		sb.append(" var ").append(combos.get(2));
+        for (String opt : combos)
+		sb.append(" var ").append(opt);
 		
 		return sb.toString();
 	}

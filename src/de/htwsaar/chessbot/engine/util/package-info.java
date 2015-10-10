@@ -1,5 +1,7 @@
 /**
-* Fehlerbehandlung und Ausnahmeklassen.
+* Zusammenfassung.
+*
+* Ausführliche Beschreibung.
 *
 * @author Kevin Alberts
 * @author Dominik Becker
@@ -8,4 +10,4 @@
 * @author Timo Klein
 * @author Henning Walte
 */
-package de.htwsaar.chessbot.exception;
+package de.htwsaar.chessbot.engine.util;

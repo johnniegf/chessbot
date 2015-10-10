@@ -15,6 +15,7 @@ import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
 import de.htwsaar.chessbot.engine.search.SearchWorker;
 import static de.htwsaar.chessbot.util.DeveloperUtils.MESSAGE;
 import static de.htwsaar.chessbot.util.DeveloperUtils.PRINT;
+import static de.htwsaar.chessbot.util.DeveloperUtils.SEPARATE;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,7 @@ public class MoveSearcherTest {
         Board current = initial;
         searcher.start();
         while (true) {
+            SEPARATE();
             PRINT(current);
             if (BoardUtils.isDraw(current)) {
                 MESSAGE("Draw");
@@ -60,9 +62,10 @@ public class MoveSearcherTest {
                 if (!searcher.isSearching())
                     break;
             } while (true);
-           MESSAGE(System.currentTimeMillis() - started);
+            MESSAGE(System.currentTimeMillis() - started);
             Move bestMove = searcher.getSearcher().getBestMove();
             current = bestMove.execute(current);
+            PRINT("");
         }
         try {
             searcher.quit();

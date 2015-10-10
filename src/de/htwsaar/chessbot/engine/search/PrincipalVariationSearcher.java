@@ -15,6 +15,7 @@ import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_ALPHA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_BETA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_PV;
 import de.htwsaar.chessbot.engine.search.HashTable.MoveInfo;
+import static de.htwsaar.chessbot.util.DeveloperUtils.DEBUG;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,10 +58,12 @@ public class PrincipalVariationSearcher
     public void go() {
         prepareSearch();
         start();
-        iterativeSearch();
+        int score = iterativeSearch();
+        DEBUG("bestscore " + score);
+        stop();
     }
 
-    private void iterativeSearch() {
+    private int iterativeSearch() {
         mCurrentDepth = 1;
         int score = searchRoot(mCurrentDepth, -INFINITE, INFINITE);
         while (isSearching()) {
@@ -73,7 +76,7 @@ public class PrincipalVariationSearcher
             if (shouldStop(mCurrentDepth, mNodes))
                 stop();
         }
-        stop();
+        return score;
     }
     
     private int widenSearch(int depth, int score) {
@@ -97,9 +100,9 @@ public class PrincipalVariationSearcher
             final int alpha,
             final int beta) 
     {
-        if (moveNumber > 0) {
-            return positions[moveNumber];
-        }
+//        if (moveNumber > 0) {
+//            return positions[moveNumber];
+//        }
 
         MoveInfo mi = new MoveInfo();
         if (getHashTable().get(current, depth, alpha, beta, mi)) {
@@ -125,11 +128,14 @@ public class PrincipalVariationSearcher
         }
 
         int moveCount = getBoardList().length;
+            
 
         Board childPos = null;
         for (int moveNumber = 0; moveNumber < moveCount; moveNumber++) {
 
             childPos = pickNextMove(getBoard(), getBoardList(), moveNumber, depth, alpha, beta);
+            if (NOMOVE == getBestMove())
+                setBestMove(childPos.getLastMove());
 
             // Falls wir den ersten Zug der Liste untersuchen oder
             // die Zero-Window-Suche fehlschlägt, führen wir die Suche mit dem
@@ -165,7 +171,8 @@ public class PrincipalVariationSearcher
             final int ply,
             int alpha,
             int beta,
-            final boolean isPV) {
+            final boolean isPV) 
+    {
         int score = -INFINITE;
         Move bestMove = NOMOVE;
         MoveInfo hashMove = new MoveInfo();
@@ -174,9 +181,18 @@ public class PrincipalVariationSearcher
         boolean inCheck = BoardUtils.isInCheck(board);
 
         // Check timeout
-        
+        if (getConfiguration().isTimeOut())
+            stop();
+        if (!isSearching())
+            return 0;
         
         // Mate pruning
+        if (alpha < -mateThreshold) 
+            alpha = -mateThreshold;
+        if (beta > mateThreshold-1)
+            beta = mateThreshold-1;
+        if (alpha >= beta)
+            return alpha;
         
         
         // Check extension
@@ -213,7 +229,8 @@ public class PrincipalVariationSearcher
 
         int oldAlpha = alpha;
         for (int moveNum = 0; moveNum < moveList.length; moveNum++) {
-            Board currPos = moveList[moveNum];
+            //Board currPos = moveList[moveNum];
+            Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
             Move currMove = currPos.getLastMove();
 
             if (!isPV && newDepth > 3

@@ -9,10 +9,12 @@ import de.htwsaar.chessbot.engine.io.Logger;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.search.MoveSearcher;
+import de.htwsaar.chessbot.engine.search.NegaMaxSearcher;
 import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
 import de.htwsaar.chessbot.engine.search.SearchWorker;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,11 +27,35 @@ public class Engine {
 
     private static final EvaluationFunction DEFAULT_EVALUATOR =
             new Evaluator();
+    private static final String OPT_SEARCH = "SearchAlgorithm";
+    private static final String OPT_SEARCH_VAL_PVS = "PrincipalVariation";
+    private static final String OPT_SEARCH_VAL_NEGAMAX = "NegaMax";
+    private static final String[] OPT_SEARCH_VALUES = new String[] {
+        OPT_SEARCH_VAL_NEGAMAX, OPT_SEARCH_VAL_PVS
+    };
+    
+    static {
+        Config.getInstance().addComboOption(
+            OPT_SEARCH, OPT_SEARCH_VAL_PVS, Arrays.asList(OPT_SEARCH_VALUES)
+        );
+    }
     
     private Game mGame;
     private final SearchWorker mSearchThread;
     private UCI mUCI;
 
+    private MoveSearcher createSearcher(EvaluationFunction eval) {
+        String searchType = Config.getInstance().getOption(OPT_SEARCH).getValue().toString();
+        switch (searchType) {
+            case OPT_SEARCH_VAL_NEGAMAX:
+                return new NegaMaxSearcher(eval);
+            case OPT_SEARCH_VAL_PVS:
+                return new PrincipalVariationSearcher(eval);
+            default:
+                throw new IllegalStateException();
+        }
+    }
+    
     public Engine() {
         //Initialize Engine
         Thread.currentThread().setName("chessbot-main");
@@ -38,14 +64,14 @@ public class Engine {
         mGame = new Game();
 
         //Initialize Config
-        Config.getInstance().init();
+        Config.getInstance();
 
         //Initialize UCISender
 //        UCISender.getInstance().sendDebug("Initialized UCISender");
 
         //Initialize move searcher
         mSearchThread = new SearchWorker(
-            new PrincipalVariationSearcher(DEFAULT_EVALUATOR)
+            createSearcher(DEFAULT_EVALUATOR)
         );
 
         //Initialize UCI-Protocoll

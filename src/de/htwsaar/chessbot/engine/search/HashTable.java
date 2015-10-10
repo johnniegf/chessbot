@@ -41,7 +41,7 @@ public final class HashTable {
     }
     
     public final int usage() {
-        return (1000 * size() / capacity());
+        return 1000 * (size() / capacity());
     }
 
     public final int size() {
