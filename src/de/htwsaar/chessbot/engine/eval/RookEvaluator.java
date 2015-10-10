@@ -42,7 +42,7 @@ public class RookEvaluator extends EvaluationFunction {
 	}
 	
 	public int evaluate(final Board b) {
-		return -calculate(b);
+		return calculate(b);
 	}
     
     private static final long[] RANK_MASKS = new long[2];
@@ -62,10 +62,6 @@ public class RookEvaluator extends EvaluationFunction {
 	 * @return malus 
 	 */
 	private int calculate(final Board b) {
-		int malus = 0;
-		boolean open = true;
-		boolean halfOpen = false;
-        
         int score = 0;
         
         for (int color : COLORS) {

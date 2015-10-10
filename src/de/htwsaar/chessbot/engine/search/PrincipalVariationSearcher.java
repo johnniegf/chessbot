@@ -55,13 +55,39 @@ public class PrincipalVariationSearcher
     }
 
     public void go() {
-
+        prepareSearch();
+        start();
+        iterativeSearch();
     }
 
-    private void iterativeSearch(final int alpha, final int beta) {
+    private void iterativeSearch() {
+        mCurrentDepth = 1;
+        int score = searchRoot(mCurrentDepth, -INFINITE, INFINITE);
         while (isSearching()) {
-            searchRoot(mCurrentDepth, alpha, beta);
+            
+            // checkDepth
+            score = widenSearch(mCurrentDepth, score);
+            mCurrentDepth += 1;
+            
+            // Check timeout
+            if (shouldStop(mCurrentDepth, mNodes))
+                stop();
         }
+        stop();
+    }
+    
+    private int widenSearch(int depth, int score) {
+        int temp = score;
+        int alpha = score - 50;
+        int beta  = score + 50;
+ 
+        // Check the aspiration window.
+        temp = searchRoot(depth, alpha, beta);
+        
+        // If the narrow window search fails, re-search with full window.
+        if (temp <= alpha || temp >= beta)
+            temp = searchRoot(depth, -INFINITE, INFINITE);
+        return temp;
     }
 
     private Board pickNextMove(final Board current,
@@ -69,7 +95,8 @@ public class PrincipalVariationSearcher
             final int moveNumber,
             final int depth,
             final int alpha,
-            final int beta) {
+            final int beta) 
+    {
         if (moveNumber > 0) {
             return positions[moveNumber];
         }
@@ -113,6 +140,7 @@ public class PrincipalVariationSearcher
             }
 
             if (shouldStop(depth, mNodes)) {
+                stop();
                 return 0;
             }
 
@@ -146,7 +174,11 @@ public class PrincipalVariationSearcher
         boolean inCheck = BoardUtils.isInCheck(board);
 
         // Check timeout
+        
+        
         // Mate pruning
+        
+        
         // Check extension
         if (inCheck) {
             depth += 1;
@@ -187,8 +219,8 @@ public class PrincipalVariationSearcher
             if (!isPV && newDepth > 3
                     && moveNum > 3
                     && !inCheck
-                    && !currMove.isCapture(board)
-                    && !Move.isPromotion(currMove)) {
+                    && currMove.isQuiet(board))
+            {
                 reductionDepth = 1;
                 if (moveNum > 8) {
                     reductionDepth += 1;
@@ -198,9 +230,13 @@ public class PrincipalVariationSearcher
             }
 
             do {
-                if (oldAlpha >= alpha) {
+                if (alpha == oldAlpha) {
+                    // Falls alpha nicht erhöht wurde, suchen wir normal weiter
                     score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, isPV);
                 } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, false) > alpha) {
+                    // Andernfalls führen wir eine ZWS durch. Wenn diese einen
+                    // Alpha-Cutoff verursacht, suchen wir mit vollem Such-
+                    // fenster erneut.
                     score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, true);
                 }
 
@@ -215,13 +251,19 @@ public class PrincipalVariationSearcher
             legalMoves += 1;
 
             // Check timeout
+            if (getConfiguration().isTimeOut())
+                stop();
+            if (!isSearching())
+                return 0;
+            
+            // Cutoffs
             if (score > alpha) {
                 bestMove = currMove;
                 if (score >= beta) {
                     hashFlag = FLAG_BETA;
                     alpha = beta;
+                    break;
                 }
-
                 hashFlag = FLAG_PV;
                 alpha = score;
             }
@@ -231,7 +273,6 @@ public class PrincipalVariationSearcher
         // Matt- und Patterkennung
         if (legalMoves == 0) {
             bestMove = NOMOVE;
-
             if (inCheck) {
                 alpha = -INFINITE + ply;
             } else {
@@ -252,14 +293,19 @@ public class PrincipalVariationSearcher
         return score;
     }
 
-    private void swap(Board[] positions, int moveNumber, int i) {
+    private static void swap(Board[] positions, int moveNumber, int i) {
         Board temp = positions[moveNumber];
         positions[moveNumber] = positions[i];
         positions[i] = temp;
     }
 
+    /**
+     * Evaluation für Patt- und Remissituationen.
+     * 
+     * @return Bewertung einer Pattsituation.
+     */
     private int contempt() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 0;
     }
 
 }

@@ -110,7 +110,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
                     * (PIECE_VALUE_WEIGHT * getPieceValue(piece.id())
                     + PIECE_POSITION_WEIGHT * getPositionValue(b, piece));
         }
-        return -(int) materialCount;
+        return (int) materialCount;
     }
 
     private int getPositionValue(Board b, Piece p) {

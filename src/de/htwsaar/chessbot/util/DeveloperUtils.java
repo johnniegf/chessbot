@@ -20,6 +20,10 @@ public class DeveloperUtils {
     
     public static boolean DEBUG_ENABLED = true;
     
+    public static void PRINT(final Object message) {
+        stdout.println(message);
+    }
+    
     public static void MESSAGE(final Object message) {
         if (DEBUG_ENABLED)
             stdout.printf(MESSAGE_TEMPLATE, MSG, message);

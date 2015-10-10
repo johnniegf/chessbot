@@ -33,12 +33,17 @@ public class SearchConfiguration {
     }
 
     public final boolean shouldStop(final int depth, final long nodes) {
-        return !isInfinite()
-            && ( (((nodes & TIMEOUT_INTERVAL) == TIMEOUT_INTERVAL) ? isTimeOut() : false)
-              || nodes >= getNodeLimit()
-              || depth >= getDepthLimit()
-            );
+        if (isInfinite()) return false;
+        if (getNodeLimit() > 0 && nodes > getNodeLimit())
+            return true;
+        if (getDepthLimit() > 0 && depth > getDepthLimit())
+            return true;
+        if ((nodes & TIMEOUT_INTERVAL) == TIMEOUT_INTERVAL)
+            return isTimeOut();
+        else
+            return false;
     }
+    
     private static final int TIMEOUT_INTERVAL = 4095;
 
     public final void reset() {

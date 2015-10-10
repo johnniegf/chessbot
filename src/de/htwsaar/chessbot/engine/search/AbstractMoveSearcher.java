@@ -60,10 +60,12 @@ public abstract class AbstractMoveSearcher
         mHashTable.clear();
     }
 
-    protected HashTable getHashTable() {
+    @Override
+    public HashTable getHashTable() {
         return mHashTable;
     }
 
+    @Override
     public Move getBestMove() {
         return mBestMove;
     }
@@ -99,6 +101,10 @@ public abstract class AbstractMoveSearcher
     @Override
     public void stop() {
         mIsSearching = false;
+    }
+    
+    protected void start() {
+        mIsSearching = true;
     }
 
     protected boolean shouldStop(int depth, long nodes) {

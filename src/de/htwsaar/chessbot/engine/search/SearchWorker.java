@@ -5,6 +5,7 @@
  */
 package de.htwsaar.chessbot.engine.search;
 
+import de.htwsaar.chessbot.engine.io.UCISender;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 /**
@@ -33,8 +34,12 @@ public final class SearchWorker
         super.setName(searcher.name());
     }
     
+    public boolean isSearching() {
+        return mSearching;
+    }
+    
     public void startSearching() {
-        
+        mSearching = true;
     }
     
     public void stopSearching() {
@@ -56,6 +61,9 @@ public final class SearchWorker
                 }
             }
             mSearcher.go();
+            UCISender.getInstance().sendToGUI("bestmove " + mSearcher.getBestMove());
+            UCISender.getInstance().sendToGUI("hashfull " + mSearcher.getHashTable().usage());
+            stopSearching();
         }
     }
 }

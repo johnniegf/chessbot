@@ -39,6 +39,10 @@ public final class HashTable {
         mEntries = new Entry[maxCapacity];
         mSize = 0;
     }
+    
+    public final int usage() {
+        return (1000 * size() / capacity());
+    }
 
     public final int size() {
         return mSize;

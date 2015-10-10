@@ -33,6 +33,8 @@ public interface MoveSearcher {
      * @return eindeutiger Name dieses Suchers.
      */
     String name();
+    
+    HashTable getHashTable();
 
     /**
      * Leere die Transpositionstabelle des Suchers.
