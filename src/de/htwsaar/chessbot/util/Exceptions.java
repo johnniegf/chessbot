@@ -7,6 +7,7 @@ package de.htwsaar.chessbot.util;
 */
 public class Exceptions {
     
+    private static final String NONE = "";
     /**
     * Standardkonstruktor.
     */ 
@@ -29,9 +30,16 @@ public class Exceptions {
                                      final int lower,
                                      final int upper)
     {
-        checkInBounds(value, "", lower, upper);
+        checkInBounds(value, NONE, lower, upper);
     }
-
+    
+    public static void checkInBounds(final long value,
+                                     final long lower,
+                                     final long upper)
+    {
+        checkInBounds(value, NONE, lower, upper);
+    }
+    
     public static void checkInBounds(final int value, 
                                      final String paramName,
                                      final int lower,
@@ -41,6 +49,21 @@ public class Exceptions {
             throw new IndexOutOfBoundsException(
                 msg( EXN_INDEX_OOB, paramName, value, lower, upper )
             );
+    }
+
+    public static void checkInBounds(final long value, 
+                                     final String paramName,
+                                     final long lower,
+                                     final long upper)
+    {
+        if (value < lower || value > upper)
+            throw new IndexOutOfBoundsException(
+                msg( EXN_INDEX_OOB, paramName, value, lower, upper )
+            );
+    }
+    
+    public static void checkCondition(final boolean condition) {
+        checkCondition(condition, NONE);
     }
     
     public static void checkCondition(final boolean condition,

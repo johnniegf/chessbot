@@ -78,6 +78,15 @@ public abstract class Move {
         mTarget = targetSquare;
     }
     
+    public boolean isCapture(final Board onBoard) {
+        return !onBoard.isFree(getTarget());
+    }
+    
+    public boolean isQuiet(final Board onBoard) {
+        return !isCapture(onBoard)
+            && !Move.isPromotion(this);
+    }
+    
     public boolean isPossible(final Board onBoard) {
         Board r = tryExecute(onBoard);
         return r != null && r.isValid();
@@ -98,8 +107,8 @@ public abstract class Move {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;
         if (obj == this) return true;
+        if (obj == null) return false;
 
         if (obj instanceof Move) {
             final Move move = (Move) obj;
@@ -292,6 +301,10 @@ public abstract class Move {
         
         public Board tryExecute(final Board board) {
             return null;
+        }
+        
+        public String toString() {
+            return "NoMove";
         }
         
     }

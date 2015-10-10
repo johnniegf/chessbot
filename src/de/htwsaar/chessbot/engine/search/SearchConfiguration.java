@@ -1,0 +1,116 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package de.htwsaar.chessbot.engine.search;
+
+import de.htwsaar.chessbot.engine.model.move.Move;
+import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Konfiguration für MoveSearcher.
+ *
+ * Optionen für die Suche können dem "go"-Kommando im UCI-Protokoll
+ * mitgegeben werden
+ * @author Johannes Haupt <johnniegf@fsfe.org>
+ */
+public class SearchConfiguration {
+
+    private int  mMaxDepth;
+    private long mMaxNodes;
+    private long mMaxTime;
+    private long mTimeStarted;
+    private boolean mInfinite;
+    private boolean mPonder;
+    private List<Move> mMoves;
+
+    public SearchConfiguration() {
+        reset();
+    }
+
+    public final boolean shouldStop(final int depth, final long nodes) {
+        return !isInfinite()
+            && ( (((nodes & TIMEOUT_INTERVAL) == TIMEOUT_INTERVAL) ? isTimeOut() : false)
+              || nodes >= getNodeLimit()
+              || depth >= getDepthLimit()
+            );
+    }
+    private static final int TIMEOUT_INTERVAL = 4095;
+
+    public final void reset() {
+        mMaxDepth    = 0;
+        mMaxNodes    = 0L;
+        mMaxTime     = 0L;
+        mTimeStarted = 0L;
+        mMoves       = new LinkedList<Move>();
+        mInfinite    = false;
+        mPonder      = false;
+    }
+
+    public final void prepareForSearch() {
+        mTimeStarted = System.currentTimeMillis();
+    }
+
+    public final boolean isTimeOut() {
+        return !isInfinite()
+            && getTimeLimit() > 0
+            && System.currentTimeMillis() - mTimeStarted < getTimeLimit();
+    }
+
+    public int getDepthLimit() {
+        return mMaxDepth;
+    }
+
+    public long getNodeLimit() {
+        return mMaxNodes;
+    }
+
+    public long getTimeLimit() {
+        return mMaxTime;
+    }
+
+    public List<Move> getMoves() {
+        return mMoves;
+    }
+
+    public boolean isInfinite() {
+        return mInfinite;
+    }
+
+    public boolean isPondering() {
+        return mPonder;
+    }
+
+    public void setDepthLimit(final int maxDepth) {
+        checkInBounds(maxDepth, 0, Integer.MAX_VALUE);
+        mMaxDepth = maxDepth;
+    }
+
+    public void setNodeLimit(final long maxNodes) {
+        checkInBounds(maxNodes, 0L, Long.MAX_VALUE);
+        mMaxNodes = maxNodes;
+    }
+
+    public void setTimeLimit(final long maxTime) {
+        checkInBounds(maxTime, 0L, Long.MAX_VALUE);
+        mMaxTime = maxTime;
+    }
+
+    public void setMoves(final List<Move> moves) {
+        checkNull(moves);
+        mMoves = moves;
+    }
+
+    public void setInfinite(final boolean isInfinite) {
+        mInfinite = isInfinite;
+    }
+
+    public void setPonder(final boolean shouldPonder) {
+        mPonder = shouldPonder;
+    }
+
+}

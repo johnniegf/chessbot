@@ -44,7 +44,11 @@ public class AlphaBetaTest {
                 System.out.println("Stalemate");
                 break;
             }
-
+            if (BoardUtils.isDraw(b)) {
+                System.out.println("Draw");
+                break;
+            }
+            
             for (int i = 1; i <= DEPTH_LIMIT; i++) {
                 abs.setDepth(i);
                 long time = System.currentTimeMillis();
@@ -53,7 +57,8 @@ public class AlphaBetaTest {
                 System.out.println("info depth " + i 
                                  + " bestmove " + abs.bestMove() 
                                  + " score " + abs.bestScore()
-                                 + " time " + time + " ms");
+                                 + " time " + time + " ms"
+                                 + " hash " + abs.getHashTable().size());
             }
             bestMove = abs.bestMove();
             checkNull(bestMove, "bestmove");
@@ -62,7 +67,7 @@ public class AlphaBetaTest {
                 break;
             }
             b = abs.bestMove().execute(b);
-            abs = new AlphaBetaSearcher(b, ev);
+//            abs = new AlphaBetaSearcher(b, ev);
             System.out.println();
         }
     }
@@ -73,5 +78,5 @@ public class AlphaBetaTest {
     }
     
     private static final int MOVES_PER_POS = 300;
-    private static final int DEPTH_LIMIT = 4;
+    private static final int DEPTH_LIMIT = 2;
 }

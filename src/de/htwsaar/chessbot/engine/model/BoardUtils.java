@@ -130,6 +130,10 @@ public class BoardUtils {
             && !isInCheck(b);
     }
     
+    public static boolean isDraw(Board b) {
+        return b.isThirdRepetition();
+    }
+    
     
     public static final class Color {
         public static final int WHITE = 0;

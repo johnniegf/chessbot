@@ -34,6 +34,7 @@ public class AlphaBetaSearcher
     private Board     mInitial;
     private final EvaluationFunction mEvaluator;
     private Move mBestMove = NOMOVE;
+    private Move mMoveToMake = NOMOVE;
     private int mBestScore;
     private SearchInfo mCurrentSearch;
     private SearchInfo mLimits;
@@ -54,7 +55,7 @@ public class AlphaBetaSearcher
         mLimits = new SearchInfo();
     }
     
-    private HashTable getHashTable() {
+    public HashTable getHashTable() {
         return mHashTable;
     }
 
@@ -75,8 +76,9 @@ public class AlphaBetaSearcher
         stopSearching = true;
     }
     
-    private final void clearForSearch() {
+    private void clearForSearch() {
         stopSearching = false;
+        setBestMoveInfo(NOMOVE, 0);
         mCurrentSearch = new SearchInfo();
     }
     
@@ -92,10 +94,13 @@ public class AlphaBetaSearcher
     private void deepeningSearch(int maxDepth) {
         mCurrentSearch.depth = 1;
         int bound = INFINITE; // (mInitial.isWhiteAtMove() ? INFINITE : -INFINITE);
+        if (!mInitial.isWhiteAtMove() && mInitial.getFullMoves() == 22) {
+            int a = 5;
+        }
         while (maxDepth > 0 && mCurrentSearch.depth <= maxDepth
            &&  !stopSearching) 
         {
-            search(mInitial, mCurrentSearch.depth, 0, -bound, bound, true);
+            searchRoot(mCurrentSearch.depth, -bound, bound);
             mCurrentSearch.depth++;
             if (hasDepth() && mCurrentSearch.depth > mLimits.depth)
                 stop();
@@ -106,28 +111,69 @@ public class AlphaBetaSearcher
         return mEvaluator.evaluate(board);
     }
     
+    private int searchRoot(int depth, int alpha, int beta)  {
+ 
+    int val = 0;
+    int legalMoves = 0;
+    
+    /* Check  extension is done also at  the  root */
+ 
+    if ( BoardUtils.isInCheck(mInitial) ) ++depth;
+    
+    Board[] children = mInitial.getResultingPositions();
+ 
+    for (Board board : children) {
+        legalMoves++;
+        Move currmove = board.getLastMove();
+        /* the "if" clause introduces PVS at root */
+ 
+        val = -search(mInitial, depth-1, 0, -beta, -alpha);
+ 
+        //TODO: Timeout control
+        
+        if ( val > alpha ) {
+ 
+           mBestMove = currmove;
+            setBestMoveInfo(currmove, val);
+ 
+           if ( val > beta ) { // should be >=, see post
+               getHashTable().put(mInitial, mBestMove, depth, beta, FLAG_BETA);
+//              info_pv( beta );
+              return beta;
+           }
+ 
+           alpha = val;
+           getHashTable().put(mInitial, mBestMove, depth, alpha, FLAG_ALPHA);
+ 
+//           info_pv( val );
+        } // changing node value finished
+    }
+ 
+    getHashTable().put(mInitial, mBestMove, depth, alpha, FLAG_PV);
+    return alpha;
+}
+    
     private int search(final Board board,
                        int depth,
                        final int ply,
                        int alpha,
-                       int beta,
-                       boolean isRoot) 
+                       int beta)
     {
         checkInBounds(beta, alpha, INFINITE);
         
+
+        
         int hashTableFlag = FLAG_ALPHA;
         int score = -INFINITE;
-        Move bestMove = NOMOVE;
         MoveInfo hashTableMove = new MoveInfo();
         int legalMoves = 0;
-        int oldAlpha;
         int mateThreshold = INFINITE - ply;
         
         /* *********************************************
          * TIMEOUT CHECK
          ***********************************************/
-        if (hasDepth() && getDepth() < depth)
-            stopSearching = true;
+//        if (hasDepth() && getDepth() < depth)
+//            stopSearching = true;
         if (stopSearching)
             return 0;
         
@@ -136,8 +182,8 @@ public class AlphaBetaSearcher
         *************************************************/
         if (alpha < -mateThreshold)
             alpha = -mateThreshold;
-        if (beta > mateThreshold - 1)
-            beta = mateThreshold - 1;
+        if (beta > mateThreshold)
+            beta = mateThreshold;
         if (alpha >= beta) {
 //            sendInfo("Mate pruning");
 //            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
@@ -154,10 +200,9 @@ public class AlphaBetaSearcher
         
         mCurrentSearch.nodes++;
         
-        if (board.isRepetition())
-            return 0;
-        if (board.getHalfMoves() >= 100)
-            return 0;
+        if ((board.isRepetition() || board.getHalfMoves() >= 100)) {
+            return (board.isWhiteAtMove() == mInitial.isWhiteAtMove() ? 10 : -10);
+        }
         
         // HashTable lookup
         if (getHashTable().get(board, depth, alpha, beta, hashTableMove)) {
@@ -173,7 +218,7 @@ public class AlphaBetaSearcher
         Board[] children = probePVMove(board, depth, alpha, beta);
         
         if (children.length > 0) {
-            bestMove = children[0].getLastMove();
+            mBestMove = children[0].getLastMove();
         }
 //        sendInfo("Entering child position from depth " + (mCurrentSearch.depth-depth));
         for (Board childPosition : children) {
@@ -182,13 +227,11 @@ public class AlphaBetaSearcher
             
 //            sendInfo("Before recursion, searching move " + currentMove);
 //            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
-            score = -search(childPosition, depth-1, ply+1, -beta, -alpha, false);
+            score = -search(childPosition, depth-1, ply+1, -beta, -alpha);
 //            sendInfo("After recursion");
 //            sendInfo(depth, ply, score, alpha, beta, hashTableFlag);
             if (score > alpha) {
-                bestMove = currentMove;
-                if (isRoot)
-                    setBestMoveInfo(bestMove, score);
+                mBestMove = currentMove;
                 if (score >= beta) {
                     hashTableFlag = FLAG_BETA;
                     alpha = beta;
@@ -200,15 +243,15 @@ public class AlphaBetaSearcher
         }
         
         if (legalMoves == 0) {
-            bestMove = NOMOVE;
+            mBestMove = NOMOVE;
             if (BoardUtils.isInCheck(board)) {
-                alpha = -INFINITE + ply;
+                alpha = INFINITE - ply;
             } else {
                 alpha = 0;
             }
         }
         
-        getHashTable().put(board, bestMove, depth, alpha, hashTableFlag);
+        getHashTable().put(board, mBestMove, depth, alpha, hashTableFlag);
         
         return alpha;
     }
@@ -220,8 +263,9 @@ public class AlphaBetaSearcher
     {
         Board[] positions = position.getResultingPositions();
         MoveInfo mi = new MoveInfo();
-        if (getHashTable().get(position, depth-1, alpha, beta, mi)) {
+        if (getHashTable().get(position, depth, alpha, beta, mi)) {
             Move pvMove = mi.move();
+            sendInfo("pvHit " + pvMove);
             for (int i = 0; i < positions.length; i++) {
                 if ( pvMove.equals(positions[i].getLastMove()) ) {
                     swap(positions, 0, i);
@@ -234,7 +278,7 @@ public class AlphaBetaSearcher
     
     private void setBestMoveInfo(final Move bestMove, final int score) {
         checkNull(bestMove);
-        mBestMove = bestMove;
+        mMoveToMake = bestMove;
         mBestScore = score;
 //        sendInfo("Set best move " + mBestMove + " with score " + mBestScore);
     }

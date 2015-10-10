@@ -649,6 +649,19 @@ public final class Board {
     public void appendHistory(final long boardHash) {
         mHistory.add(boardHash);
     }
+
+    boolean isThirdRepetition() {
+        boolean foundRep = false;
+        for (long hash : mHistory) {
+            if (hash == hash()) {
+                if (foundRep)
+                    return true;
+                else
+                    foundRep = true;
+            }
+        }
+        return false;
+    }
      
 
 

@@ -1,171 +1,183 @@
 package de.htwsaar.chessbot.engine;
 
 import de.htwsaar.chessbot.engine.config.Config;
+import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
+import de.htwsaar.chessbot.engine.eval.Evaluator;
 import de.htwsaar.chessbot.engine.io.UCI;
 import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.io.Logger;
+import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
+import de.htwsaar.chessbot.engine.search.MoveSearcher;
+import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
+import de.htwsaar.chessbot.engine.search.SearchWorker;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
- * 
+ *
  * @author David Holzapfel
  * @author Dominik Becker
  *
  */
-
 public class Engine {
 
-	private Game game;
-	private final AlphaBetaSearch moveSearcher;
-	private UCI uci;
-	
-	public Engine() {
-		//Initialize Engine
-		Thread.currentThread().setName("Engine");
-		
-		//Initialize Game
-		this.game = new Game();
-		
-		//Initialize Config
-		Config.getInstance().init();
-		
-		//Initialize UCISender
-		UCISender.getInstance().sendDebug("Initialized UCISender");
-		
-		//Initialize AlphaBeta
-		moveSearcher = new AlphaBetaSearch(game);
-		moveSearcher.start();
-		
-		//Initialize UCI-Protocoll
-		this.uci = new UCI(this);
-		this.uci.initialize();
-		try {
-			this.uci.start();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
+    private static final EvaluationFunction DEFAULT_EVALUATOR =
+            new Evaluator();
+    
+    private Game mGame;
+    private final SearchWorker mSearchThread;
+    private UCI mUCI;
+
+    public Engine() {
+        //Initialize Engine
+        Thread.currentThread().setName("chessbot-main");
+
+        //Initialize Game
+        mGame = new Game();
+
+        //Initialize Config
+        Config.getInstance().init();
+
+        //Initialize UCISender
+//        UCISender.getInstance().sendDebug("Initialized UCISender");
+
+        //Initialize move searcher
+        mSearchThread = new SearchWorker(
+            new PrincipalVariationSearcher(DEFAULT_EVALUATOR)
+        );
+
+        //Initialize UCI-Protocoll
+        mUCI = new UCI(this);
+        mUCI.initialize();
+    }
+    
+    public void start() {
+        mSearchThread.start();
+        try {
+            mUCI.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //======================================
+    //= uci
+    //======================================
+    public void uci() {
+        UCISender.getInstance().sendToGUI("id name chessbot");
+        UCISender.getInstance().sendToGUI("id author grpKretschmer");
+        UCISender.getInstance().sendToGUI("uciok");
+    }
+
 	//======================================
-	//= uci
+    //= isready
+    //======================================
+    public void isready() {
+        UCISender.getInstance().sendToGUI("readyok");
+    }
+
+    public MoveSearcher getSearcher() {
+        return mSearchThread.getSearcher();
+    }
+    
 	//======================================
-	
-	public Game getGame() {
-		return this.game;
-	}
-	
-	public AlphaBetaSearch getSearcher() {
-		return moveSearcher;
-	}
-	
-	public void uci() {
-		System.out.println("id name chessbot\n");
-		System.out.println("id author grpKretschmer\n");
-		System.out.println("uciok\n");
-	}
-	
-	//======================================
-	//= isready
-	//======================================
-	
-	public void isready() {
-		System.out.println("readyok\n");
-	}
-	
-	//======================================
-	//= ucinewgame
-	//======================================
+    //= ucinewgame
+    //======================================
 	/*
-	 * erstellt ein neues Spiel.
-	 */
-	public void newGame() {
-		this.game = new Game();
-		this.moveSearcher.setGame(game);
-	}
-	
-	
-	//======================================
-	//= position
-	//======================================
-	/*
-	 * setzt das Spiel auf die Startstellung
-	 * fuehrt Zuege aus falls vorhanden.
-	 */
-	public void resetBoard(List<String> moves) {
-		this.game = new Game();
-		this.moveSearcher.setGame(game);
-		executeMoves(moves);
-	}
-	
-	/*
-	 * erzeugt eine Stellung auf Grund des fens
-	 * fuehrt die uebergegebenen Zuege aus falls vorhanden.
-	 */
-	public void setBoard(String fen, List<String> moves) {
-		this.game = new Game(fen);
-		this.moveSearcher.setGame(game);
-		executeMoves(moves);
-	}
-	
-	/**
-	 * fuehrt die uebergebenen Zuege aus.
-	 * @param moves
-	 */
-	public void executeMoves(List<String> moves) {
-		for(int i = 0; i < moves.size(); i++) {
-			game.doMove(moves.get(i).toString());
-		}
-	}
-	
+     * erstellt ein neues Spiel.
+     */
+    public void newGame() {
+        mGame = new Game();
+        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
+    }
+
+    //======================================
+    //= position
+    //======================================
+    /**
+     * setzt das Spiel auf die Startstellung
+     * fuehrt Zuege aus falls vorhanden.
+     */
+    public void resetBoard(final List<String> moves) {
+        mGame = new Game();
+        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
+        executeMoves(moves);
+    }
+
+    /*
+     * erzeugt eine Stellung auf Grund des fens
+     * fuehrt die uebergegebenen Zuege aus falls vorhanden.
+     */
+    public void setBoard(final String fen, final List<String> moves) {
+        mGame = new Game(fen);
+        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
+        executeMoves(moves);
+    }
+    
+    public Board getBoard() {
+        return mGame.getCurrentBoard();
+    }
+
+    /**
+     * fuehrt die uebergebenen Zuege aus.
+     *
+     * @param moves
+     */
+    public void executeMoves(final List<String> moves) {
+        for (int i = 0; i < moves.size(); i++) {
+            mGame.doMove(moves.get(i).toString());
+        }
+    }
+
 	//========================================
-	//= go
+    //= go
+    //========================================
+    public void search(int depth) {
+        mSearchThread.getSearcher().getConfiguration().setDepthLimit(depth);
+        mSearchThread.startSearching();
+    }
+
+    public void searchmoves(List<Move> moves, int depth) {
+        mSearchThread.getSearcher().getConfiguration().setMoves(moves);
+        mSearchThread.startSearching();
+    }
+
 	//========================================
-	
-	public void search(int depth) {
-		moveSearcher.resetLimitMoveList();
-		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.startSearch();
-	}
-	
-	public void searchmoves(List<Move> moves, int  depth) {
-		moveSearcher.setMaxSearchDepth(depth);
-		moveSearcher.setLimitedMoveList(moves);
-		moveSearcher.startSearch();
-	}
-	
+    //= stop
+    //========================================
+    public void stop() {
+        mSearchThread.stopSearching();
+    }
+    
+    public boolean isSearching() {
+        return false;
+    }
+    
+    public boolean isReady() {
+        return !isSearching();
+    }
+
 	//========================================
-	//= stop
-	//========================================
-	
-	public void stop() {
-		moveSearcher.stopSearch();
-	}
-	
-	
-	//========================================
-	//= quit
-	//========================================
-	
-	/**
-	 * beendet das Programm
-	 */
-	public void quit() {
-		moveSearcher.interrupt();
-		Logger.getInstance().close();
-		System.exit(0);
-	}
-	
-	/*
-	 * main-Methode der Engine.
-	 */
-	public static void main(String[] args) {
-		//UCIManager anlegen
-		new Engine();
-	}
-	
-	
-	
+    //= quit
+    //========================================
+    /**
+     * beendet das Programm
+     */
+    public void quit() {
+        mSearchThread.quit();
+        Logger.getInstance().close();
+        System.exit(0);
+    }
+
+    /*
+     * main-Methode der Engine.
+     */
+    public static void main(String[] args) {
+        //UCIManager anlegen
+        Engine chessbot = new Engine();
+        chessbot.start();
+    }
+
 }

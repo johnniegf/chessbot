@@ -8,55 +8,55 @@ import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Knight;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Queen;
-/**
-* Bewertungsfunktion für Stellungen.
-*
-* Eine Bewertungsfunktion kann eine Stellung aufgrund vieler verschiedener
-* Kriterien bewerten.
-*
-* @author Johannes Haupt, Dominik Becker
-*/
-public abstract class EvaluationFunction {
-	private static int[] scores;
-	
-	static{
-		scores = new int[6];
-		/*
-		scores[0] = (Integer)Config.getInstance().getOption("PawnScore").getValue();
-		scores[1] = (Integer)Config.getInstance().getOption("KingScore").getValue();
-		scores[2] = (Integer)Config.getInstance().getOption("QueenScore").getValue();
-		scores[3] = (Integer)Config.getInstance().getOption("KnightScore").getValue();
-		scores[4] = (Integer)Config.getInstance().getOption("BishopScore").getValue();
-		scores[5] = (Integer)Config.getInstance().getOption("RookScore").getValue();
-		*/
-	}
-	
-	static int getPieceValue(int id) {
-		Exceptions.checkInBounds(id, "pieceId", 0, 5);
-		switch(id){
-		case King.ID:
-			return (Integer)Config.getInstance().getOption("KingScore").getValue();
-		case Pawn.ID:
-			return (Integer)Config.getInstance().getOption("PawnScore").getValue();
-		case Queen.ID:
-			return (Integer)Config.getInstance().getOption("QueenScore").getValue();
-		case Knight.ID:
-			return (Integer)Config.getInstance().getOption("KnightScore").getValue();
-		case Bishop.ID:
-			return (Integer)Config.getInstance().getOption("RookScore").getValue();
-		}
-		return -1;
-	}
-	
+import de.htwsaar.chessbot.engine.model.piece.Rook;
 
-	/**
-	* Bewerte die übergebene Stellung.
-	*
-	* @param board die zu bewertende Stellung
-	* @return die Bewertung der übergebenen Stellung.
- 	* @throws NullPointerException falls <code>board == null</code>
-	*/
-    public abstract int evaluate(Board b);
-     
+/**
+ * Bewertungsfunktion für Stellungen.
+ * 
+* Eine Bewertungsfunktion kann eine Stellung aufgrund vieler verschiedener
+ * Kriterien bewerten.
+ * 
+* @author Johannes Haupt, Dominik Becker
+ */
+public abstract class EvaluationFunction {
+
+    /**
+     * Obere Schranke für alle Bewertungen.
+     */
+    public static final int INFINITE = 1_000_000;
+    
+    /**
+     * Figurbewertungen in centi-pawns.
+     */
+    private static int[] scores;
+
+    static {
+        scores = new int[6];
+        updatePieceValues();
+    }
+
+    public static int getPieceValue(final int id) {
+        Exceptions.checkInBounds(id, "pieceId", 0, 5);
+        return scores[id];
+    }
+
+    public static void updatePieceValues() {
+        Config cfg = Config.getInstance();
+        scores[King.ID] = (Integer) cfg.getOption("KingScore").getValue();
+        scores[Queen.ID] = (Integer) cfg.getOption("QueenScore").getValue();
+        scores[Rook.ID] = (Integer) cfg.getOption("RookScore").getValue();
+        scores[Knight.ID] = (Integer) cfg.getOption("KnightScore").getValue();
+        scores[Bishop.ID] = (Integer) cfg.getOption("BishopScore").getValue();
+        scores[Pawn.ID] = (Integer) cfg.getOption("PawnScore").getValue();
+    }
+
+    /**
+     * Bewerte die übergebene Stellung.
+     *
+     * @param board die zu bewertende Stellung
+     * @return die Bewertung der übergebenen Stellung.
+     * @throws NullPointerException falls <code>board == null</code>
+     */
+    public abstract int evaluate(final Board b);
 
 }

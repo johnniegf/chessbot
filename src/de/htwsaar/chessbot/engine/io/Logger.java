@@ -1,6 +1,5 @@
 package de.htwsaar.chessbot.engine.io;
 
-import de.htwsaar.chessbot.engine.io.UCISender;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,87 +13,86 @@ import java.util.Calendar;
 
 public class Logger {
 
-	public static final byte GUI_TO_ENGINE = 0b0001;
-	public static final byte ENGINE_TO_GUI = 0b0010;
-	public static final byte DEBUG = 0b0100;
-	public static final byte ERROR = 0b1000;
-	
-	private static Logger INSTANCE;
+    public static final byte GUI_TO_ENGINE = 0b0001;
+    public static final byte ENGINE_TO_GUI = 0b0010;
+    public static final byte DEBUG = 0b0100;
+    public static final byte ERROR = 0b1000;
 
-	private Writer logWriter;
-	private String logFilePath = "chessbot.log";
-	private File logFile;
-	private SimpleDateFormat dateFormat;
-	private boolean loggingDisabled = false;
-	
+    private static Logger INSTANCE;
 
-	public static Logger getInstance() {
-		if(INSTANCE == null) {
-			INSTANCE = new Logger();
-		}
-		return INSTANCE;
-	}
+    private Writer logWriter;
+    private String logFilePath = "chessbot.log";
+    private File logFile;
+    private SimpleDateFormat dateFormat;
+    private boolean loggingDisabled = false;
 
-	public void setLoggingDisabled(boolean disabled) {
-		this.loggingDisabled = disabled;
-	}
-	
-	private Logger() {
-		logFile = new File(logFilePath);
-		dateFormat = new SimpleDateFormat("HH:mm:ss");
-		try {
-			logWriter = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(logFile), "utf-8"));
-		} catch (UnsupportedEncodingException | FileNotFoundException e) {
-			setLoggingDisabled(true);
-			System.out.println("Could not open log file. Logging disabled");
-		}
-	}
-	
-	private String getPrefix(byte logType) {
-		String prefix = "[" + dateFormat.format(Calendar.getInstance().getTime()) + "]";
-		
-		switch(logType) {
-		case GUI_TO_ENGINE:
-			prefix += "{G > E}| ";
-			break;
-		case ENGINE_TO_GUI:
-			prefix += "{E > G}| ";
-			break;
-		case DEBUG:
-			prefix += "{DEBUG}| ";
-			break;
-		case ERROR:
-			prefix += "{ERROR}| ";
-			break;
-		default:
-			prefix += "{OTHER}| ";
-		}
-		
-		return prefix;
-	}
+    public static Logger getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new Logger();
+        }
+        return INSTANCE;
+    }
 
-	public void log(String message, byte logType) {
-		if(this.loggingDisabled) {
-			return;
-		}
+    public void setLoggingDisabled(boolean disabled) {
+        this.loggingDisabled = disabled;
+    }
 
-		try {
-			String logMessage = getPrefix(logType);
-			logMessage += message;
-			logMessage += "\n";
-			this.logWriter.write(logMessage);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void close() {
-		try {
-			this.logWriter.close();
-		} catch (IOException e) {
-			return;
-		}
-	}
-	
+    private Logger() {
+        logFile = new File(logFilePath);
+        dateFormat = new SimpleDateFormat("HH:mm:ss");
+        try {
+            logWriter = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(logFile), "utf-8"));
+        } catch (UnsupportedEncodingException | FileNotFoundException e) {
+            setLoggingDisabled(true);
+            System.out.println("Could not open log file. Logging disabled");
+        }
+    }
+
+    private String getPrefix(byte logType) {
+        String prefix = "[" + dateFormat.format(Calendar.getInstance().getTime()) + "]";
+
+        switch (logType) {
+            case GUI_TO_ENGINE:
+                prefix += "{G > E}| ";
+                break;
+            case ENGINE_TO_GUI:
+                prefix += "{E > G}| ";
+                break;
+            case DEBUG:
+                prefix += "{DEBUG}| ";
+                break;
+            case ERROR:
+                prefix += "{ERROR}| ";
+                break;
+            default:
+                prefix += "{OTHER}| ";
+        }
+
+        return prefix;
+    }
+
+    public void log(String message, byte logType) {
+        if (this.loggingDisabled) {
+            return;
+        }
+
+        try {
+            String logMessage = getPrefix(logType);
+            logMessage += message;
+            logMessage += "\n";
+            this.logWriter.write(logMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void close() {
+        try {
+            this.logWriter.close();
+        } catch (IOException e) {
+            return;
+        }
+    }
+
 }
