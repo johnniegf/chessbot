@@ -151,8 +151,10 @@ public abstract class AbstractPiece
     protected abstract char fen();
     
     public final long hash() {
-        if (!hashIsSet)
+        if (!hashIsSet) {
             mZobristHash = ZobristHasher.getInstance().hashPiece(this);
+            hashIsSet = true;
+        }
         return mZobristHash;
     }
 

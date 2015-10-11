@@ -1,6 +1,6 @@
 package de.htwsaar.chessbot.engine.io;
 
-import de.htwsaar.chessbot.engine.Engine;
+import de.htwsaar.chessbot.Engine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

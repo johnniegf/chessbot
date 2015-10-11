@@ -1,5 +1,6 @@
-package de.htwsaar.chessbot.engine;
+package de.htwsaar.chessbot;
 
+import de.htwsaar.chessbot.engine.Game;
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.eval.Evaluator;

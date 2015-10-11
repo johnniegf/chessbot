@@ -1,6 +1,6 @@
 package de.htwsaar.chessbot.engine.io;
 
-import de.htwsaar.chessbot.engine.Engine;
+import de.htwsaar.chessbot.Engine;
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import java.util.ArrayList;

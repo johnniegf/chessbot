@@ -1,5 +1,5 @@
 /**
-* Hauptpaket der Software.
+* Hauptpaket der Engine.
 *
 * @author Kevin Alberts
 * @author Dominik Becker
