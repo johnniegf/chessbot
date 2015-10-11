@@ -5,42 +5,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Die ComboOption stellt 3 Auswahlmoeglichkeiten zur Verfuegung:
- * Solid, Normal und Risky
- * Normal ist die default Einstellung
+ * Die ComboOption stellt 3 Auswahlmoeglichkeiten zur Verfuegung: Solid, Normal
+ * und Risky Normal ist die default Einstellung
+ *
  * @author Dominik Becker
  *
  */
-public class ComboOption extends Option{
-	
-	//enthaelt die Auswahlmoeglichkeiten
-	private List<String> combos;
+public class ComboOption extends Option {
 
-	public ComboOption(String key, String value, List<String> options) {
-		super(key, value);
-		this.combos = options;
-	}
-	
-	/**
-	 * ueberprueft vorher ob der zu aendernde Wert 
-	 * auch ein gueltiger Wert ist
-	 * @return true wenn erfolgreich, false wenn fehlgeschlagen
-	 */
-	public boolean setValue(Object value) {
+    //enthaelt die Auswahlmoeglichkeiten
+    private List<String> combos;
+
+    public ComboOption(String key, String value, List<String> options) {
+        super(key, value);
+        this.combos = options;
+    }
+
+    /**
+     * ueberprueft vorher ob der zu aendernde Wert auch ein gueltiger Wert ist
+     *
+     * @return true wenn erfolgreich, false wenn fehlgeschlagen
+     */
+    public boolean setValue(Object value) {
         checkNull(value);
         String sval = value.toString();
-        if (combos.contains(sval))
+        if (combos.contains(sval)) {
             super.setValue(sval);
-		return false;
-	}
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
-		sb.append("type combo default ");
-        for (String opt : combos)
-		sb.append(" var ").append(opt);
-		
-		return sb.toString();
-	}
+        }
+        return false;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append("type combo default ");
+        for (String opt : combos) {
+            sb.append(" var ").append(opt);
+        }
+
+        return sb.toString();
+    }
 
 }

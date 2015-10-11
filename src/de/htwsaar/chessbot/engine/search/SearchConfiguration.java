@@ -38,13 +38,13 @@ public class SearchConfiguration {
             return true;
         if (getDepthLimit() > 0 && depth > getDepthLimit())
             return true;
-        if ((nodes & TIMEOUT_INTERVAL) == TIMEOUT_INTERVAL)
+        if ((nodes & TIMEOUT_INTERVAL) == 0L)
             return isTimeOut();
         else
             return false;
     }
     
-    private static final int TIMEOUT_INTERVAL = 4095;
+    private static final long TIMEOUT_INTERVAL = 2047;
 
     public final void reset() {
         mMaxDepth    = 0;
@@ -57,13 +57,14 @@ public class SearchConfiguration {
     }
 
     public final void prepareForSearch() {
-        mTimeStarted = System.currentTimeMillis();
+        mTimeStarted = System.nanoTime() / 1_000_000L;
     }
 
     public final boolean isTimeOut() {
+        long curtime = System.nanoTime() / 1_000_000L;
         return !isInfinite()
             && getTimeLimit() > 0
-            && System.currentTimeMillis() - mTimeStarted < getTimeLimit();
+            && curtime - mTimeStarted > getTimeLimit();
     }
 
     public int getDepthLimit() {

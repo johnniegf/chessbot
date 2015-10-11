@@ -45,7 +45,7 @@ public abstract class AbstractMoveSearcher
         mBestMove = NOMOVE;
         mPositionList = mCurrentPosition.getResultingPositions();
         if (!mConfig.getMoves().isEmpty()) {
-            List<Board> positionsToSearch = new ArrayList<Board>();
+            List<Board> positionsToSearch = new ArrayList<>();
             List<Board> childPositions = Arrays.asList(mPositionList);
             for (Board currPos : childPositions) {
                 if (mConfig.getMoves().contains(currPos.getLastMove()))
@@ -53,6 +53,7 @@ public abstract class AbstractMoveSearcher
             }
             mPositionList = positionsToSearch.toArray(new Board[0]);
         }
+        mConfig.prepareForSearch();
     }
 
     @Override
@@ -108,8 +109,7 @@ public abstract class AbstractMoveSearcher
     }
 
     protected boolean shouldStop(int depth, long nodes) {
-        return !mConfig.isInfinite()
-            && mConfig.shouldStop(depth, nodes);
+        return mConfig.shouldStop(depth, nodes);
 
     }
 

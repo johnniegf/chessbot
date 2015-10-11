@@ -52,13 +52,15 @@ public final class SearchWorker
     
     @Override
     public void run() {
-        while (!mExit) {
+        while (true) {
             while (!mSearching) {
                 try {
                     Thread.sleep(50);
                 } catch(InterruptedException ire) {
                     // ignore
                 }
+                if (mExit)
+                    return;
             }
             mSearcher.go();
             UCISender.getInstance().sendToGUI("bestmove " + mSearcher.getBestMove());

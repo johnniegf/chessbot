@@ -12,11 +12,11 @@ public class PrintStreamOutput
         checkNull(target);
         this.out = target;
     }
-    
+
     public void print(Object message) {
         this.out.print(
-            message == null 
-                ? "<null>" 
+            message == null
+                ? "<null>"
                 : message.toString()
         );
     }

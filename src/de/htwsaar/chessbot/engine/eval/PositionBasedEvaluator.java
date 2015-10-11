@@ -58,7 +58,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     };
 
     private static final int[] ROOK_VALUES = {
-         0,  0,  0,  5,  5,  0,  0,  0,
+         0,  -5,  -5,  5,  5,  -5,  -5,  0,
         -5,  0,  0,  0,  0,  0,  0, -5,
         -5,  0,  0,  0,  0,  0,  0, -5,
         -5,  0,  0,  0,  0,  0,  0, -5,
@@ -69,7 +69,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     };
 
     private static final int[] QUEEN_VALUES = {
-        -20, -10, -10, -5, -5, -10, -10, -20
+        -20, -10, -10, -5, -5, -10, -10, -20,
         -10,   0,   5,  0,  0,   0,   0, -10,
         -10,   5,   5,  5,  5,   5,   0, -10,
           0,   0,   5,  5,  5,   5,   0,  -5,
@@ -101,7 +101,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
         -50, -40, -30, -20, -20, -30, -40, -50
     };
     
-    private static final int[][][] PIECE_VALUES = new int[6][2][64];
+    private static final int[][][] PIECE_VALUES = new int[6][2][];
 
     private static final int PIECE_VALUE_WEIGHT = 50;
     private static final int PIECE_POSITION_WEIGHT = 50;

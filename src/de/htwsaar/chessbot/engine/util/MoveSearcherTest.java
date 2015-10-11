@@ -50,7 +50,8 @@ public class MoveSearcherTest {
             }
             searcher.getSearcher().setBoard(current);
             searcher.getSearcher().resetConfiguration();
-            searcher.getSearcher().getConfiguration().setDepthLimit(4);
+            searcher.getSearcher().getConfiguration().setDepthLimit(7);
+            searcher.getSearcher().getConfiguration().setTimeLimit(10000);
             long started = System.currentTimeMillis();
             searcher.startSearching();
             do {

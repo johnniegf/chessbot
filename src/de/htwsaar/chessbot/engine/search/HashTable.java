@@ -41,7 +41,7 @@ public final class HashTable {
     }
     
     public final int usage() {
-        return 1000 * (size() / capacity());
+        return (1000 * size()) / capacity();
     }
 
     public final int size() {
@@ -113,7 +113,7 @@ public final class HashTable {
         // Hashwert existiert, wird ein neuer Eintrag angelegt
         if (entry == null
          || entry.flags != FLAG_PV && entry.zobristHash != zobristHash) {
-            mSize++;
+            mSize += (entry == null ? 1 : 0);
             entry = new Entry(zobristHash, bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
             return;

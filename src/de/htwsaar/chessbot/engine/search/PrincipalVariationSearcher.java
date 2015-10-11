@@ -67,7 +67,6 @@ public class PrincipalVariationSearcher
     }
 
     private int iterativeSearch() {
-        mCurrentDepth = 1;
         int score = searchRoot(mCurrentDepth, -INFINITE, INFINITE);
         while (isSearching()) {
             
@@ -110,7 +109,7 @@ public class PrincipalVariationSearcher
         MoveInfo mi = new MoveInfo();
         if (getHashTable().get(current, depth, alpha, beta, mi)) {
             Move next = mi.move();
-            for (int i = 0; i < positions.length; i++) {
+            for (int i = moveNumber; i < positions.length; i++) {
                 if (next.equals(positions[i].getLastMove())) {
                     swap(positions, moveNumber, i);
                     break;
@@ -119,10 +118,30 @@ public class PrincipalVariationSearcher
         }
         return positions[moveNumber];
     }
+    
+    
+    
+    private void infoPv(int score) {
+        
+        findPvLine();
+    }
+    
+    private void findPvLine() {
+        mPvLine.clear();
+        
+        Board current = getBoard();
+        MoveInfo mi = new MoveInfo();
+        for (int i = 1; i < mCurrentDepth; i++) {
+            if (!getHashTable().get(current, 0, 0, 0, mi)) {
+                break;
+            }
+            mPvLine.add(mi.move());
+            current = mi.move().execute(current);
+        }
+    }
 
     private int searchRoot(int depth, int alpha, int beta) {
         int score = -INFINITE;
-        int hashFlag = FLAG_ALPHA;
         Move bestMove = NOMOVE;
 
         // Wir erweitern die Suchtiefe, falls wir im Schach stehen
@@ -137,8 +156,8 @@ public class PrincipalVariationSearcher
         for (int moveNumber = 0; moveNumber < moveCount; moveNumber++) {
 
             childPos = pickNextMove(getBoard(), getBoardList(), moveNumber, depth, alpha, beta);
-            if (NOMOVE == getBestMove())
-                setBestMove(childPos.getLastMove());
+//            if (NOMOVE == getBestMove())
+//                setBestMove(childPos.getLastMove());
 
             // Falls wir den ersten Zug der Liste untersuchen oder
             // die Zero-Window-Suche fehlschlägt, führen wir die Suche mit dem
@@ -150,7 +169,7 @@ public class PrincipalVariationSearcher
 
             if (shouldStop(depth, mNodes)) {
                 stop();
-                return 0;
+                break;
             }
 
             if (score > alpha) {
@@ -184,10 +203,10 @@ public class PrincipalVariationSearcher
         boolean inCheck = BoardUtils.isInCheck(board);
 
         // Check timeout
-        if (getConfiguration().isTimeOut())
+        if (shouldStop(depth, mNodes)) {
             stop();
-        if (!isSearching())
             return 0;
+        }
         
         // Mate pruning
         if (alpha < -mateThreshold) 
@@ -271,10 +290,10 @@ public class PrincipalVariationSearcher
             legalMoves += 1;
 
             // Check timeout
-            if (getConfiguration().isTimeOut())
+            if (shouldStop(depth, mNodes)) {
                 stop();
-            if (!isSearching())
                 return 0;
+            }
             
             // Cutoffs
             if (score > alpha) {
