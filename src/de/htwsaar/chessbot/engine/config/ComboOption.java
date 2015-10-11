@@ -15,9 +15,11 @@ public class ComboOption extends Option {
 
     //enthaelt die Auswahlmoeglichkeiten
     private List<String> combos;
-
+    private String defValue;
+    
     public ComboOption(String key, String value, List<String> options) {
         super(key, value);
+        defValue = value;
         this.combos = options;
     }
 
@@ -34,11 +36,17 @@ public class ComboOption extends Option {
         }
         return false;
     }
+    
+    @Override
+    public String getValue() {
+        return super.getValue().toString();
+    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("type combo default ");
+        sb.append(defValue);
         for (String opt : combos) {
             sb.append(" var ").append(opt);
         }

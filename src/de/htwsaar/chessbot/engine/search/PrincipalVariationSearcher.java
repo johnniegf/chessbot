@@ -41,6 +41,7 @@ public class PrincipalVariationSearcher
     private int mCurrentDepth;
     private long mNodes;
     private final String mName;
+    private int mBestScore;
 
     public PrincipalVariationSearcher(EvaluationFunction evaluator) {
         super(evaluator);
@@ -58,6 +59,7 @@ public class PrincipalVariationSearcher
         mPvLine.clear();
         mCurrentDepth = 1;
         mNodes = 0;
+        mBestScore = -INFINITE;
     }
 
     public void go() {
@@ -161,6 +163,20 @@ public class PrincipalVariationSearcher
         return sb.toString();
     }
     
+    public void setBestMove(final Move move, final int score) {
+        if (score > mBestScore) {
+            super.setBestMove(move);
+        }
+    }
+    
+//    public Move getBestMove() {
+//        findPvLine();
+//        if (mPvLine.isEmpty())
+//            return super.getBestMove();
+//        else
+//            return mPvLine.get(0);
+//    }
+    
     private void findPvLine() {
         mPvLine.clear();
         
@@ -211,7 +227,7 @@ public class PrincipalVariationSearcher
 
             if (score > alpha) {
                 bestMove = childPos.getLastMove();
-                setBestMove(bestMove);
+                setBestMove(bestMove, score);
                 if (score >= beta) {
                     getHashTable().put(getBoard(), bestMove, depth, beta, FLAG_BETA);
                     infoPv(beta);
@@ -244,6 +260,8 @@ public class PrincipalVariationSearcher
         // Check timeout
         if (shouldStop(depth, mNodes)) {
             stop();
+        }
+        if (!isSearching()) {
             return 0;
         }
         
@@ -333,6 +351,8 @@ public class PrincipalVariationSearcher
             // Check timeout
             if (shouldStop(depth, mNodes)) {
                 stop();
+            }
+            if (!isSearching()) {
                 return 0;
             }
             

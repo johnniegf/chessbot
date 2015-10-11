@@ -44,6 +44,7 @@ public final class SearchWorker
     
     public void stopSearching() {
         mSearching = false;
+        mSearcher.stop();
     }
     
     public void quit() {

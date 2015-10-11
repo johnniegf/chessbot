@@ -129,8 +129,8 @@ public class Engine {
      */
     public void resetBoard(final List<String> moves) {
         mGame = new Game();
-        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
         executeMoves(moves);
+//        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
     }
 
     /*
@@ -139,8 +139,8 @@ public class Engine {
      */
     public void setBoard(final String fen, final List<String> moves) {
         mGame = new Game(fen);
-        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
         executeMoves(moves);
+//        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
     }
     
     public Board getBoard() {
@@ -168,6 +168,11 @@ public class Engine {
 
     public void searchmoves(List<Move> moves, int depth) {
         mSearchThread.getSearcher().getConfiguration().setMoves(moves);
+        mSearchThread.startSearching();
+    }
+    
+    public void search() {
+        getSearcher().setBoard(mGame.getCurrentBoard());
         mSearchThread.startSearching();
     }
 

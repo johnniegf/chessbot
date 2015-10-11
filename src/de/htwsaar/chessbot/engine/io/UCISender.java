@@ -32,6 +32,7 @@ public class UCISender extends Thread {
             UCIMessage message = pollMessage();
             if (message != null) {
                 message.send();
+                System.out.flush();
             } else {
                 try {
                     Thread.sleep(10);

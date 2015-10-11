@@ -88,7 +88,7 @@
     </target>
 
     <target name="run" depends="buildClasses">
-        <java classname="de.htwsaar.chessbot.engine.Engine"
+        <java classname="de.htwsaar.chessbot.Engine"
               classpath="${classpath}" >
         </java>
     </target>

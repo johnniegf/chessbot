@@ -3,6 +3,7 @@ package de.htwsaar.chessbot.engine.io;
 import de.htwsaar.chessbot.Engine;
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.model.move.Move;
+import de.htwsaar.chessbot.engine.search.SearchConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,11 @@ public class Parser {
     private static final String ILLEGALCMD
             = "Command is not supported: ";
     private static final String MOVE = "([a-h][1-8]){2}[bnrq]?";
-    private static final String OPTION = "setoption name (?<name>.+)(?: value (?<value>.+))?$";
-    private static final String OPTION_REPLACEMENT = "${name};${value}";
+    private static final String OPTION = "setoption name .+ value .+";
+    private static final String OPTION_VALUE = "setoption name .+ value (?<value>.+)";
+    private static final String OPTION_NAME = "setoption name (?<name>.+) value .+";
+    private static final String OPTION_NAME_REPLACEMENT = "${name}";
+    private static final String OPTION_VALUE_REPLACEMENT = "${value}";
     private static final String POSITION = "position (?<pos>.+) (moves (?<moves>.+))?";
 
     public static void uci() {
@@ -54,7 +58,7 @@ public class Parser {
         String fenString;
         List<String> moves = new ArrayList<String>();
         if (cmd[0].equals("fen") && cmd.length > 6) {
-            fenString = cmd[2] + " "
+            fenString = cmd[1] + " "
                     + cmd[2] + " "
                     + cmd[3] + " "
                     + cmd[4] + " "
@@ -88,11 +92,13 @@ public class Parser {
         int depth = 0;
         boolean infinite = false;
         engine.getSearcher().resetConfiguration();
+        SearchConfiguration cfg = engine.getSearcher().getConfiguration();
         String[] cmds = line.split(" ");
         for (int i = 0; i < cmds.length; i++) {
             switch (cmds[i]) {
                 case "searchmoves":
                     moves = getMoves(line, engine.getBoard().getMoveList());
+                    cfg.setMoves(moves);
                     break;
                     /*
                 case "wtime":
@@ -119,31 +125,36 @@ public class Parser {
                     break; */
                 case "depth":
                     depth = Integer.parseInt(cmds[i + 1]);
+                    cfg.setDepthLimit(depth);
                     break;
                 case "movetime":
-                    String movetime = cmds[i + 1];
-                    engine.getSearcher().getConfiguration().setTimeLimit(Integer.parseInt(movetime));
+                    int movetime = Integer.parseInt(cmds[i + 1]);
+                    cfg.setTimeLimit(movetime);
                     break;
                 case "infinite":
-                    infinite = true;
+                    cfg.setInfinite(true);
                     break;
                 case "ponder":
-                    engine.getSearcher().getConfiguration().setPonder(true);
+                    cfg.setPonder(true);
                     break;
             }
         }
+        if (cfg.getTimeLimit() == 0L)
+            cfg.setTimeLimit(20000);
+        
+        engine.search();
 
-        if (moves != null && depth != 0) {
-            engine.searchmoves(moves, depth);
-        } else if (moves != null) {
-            engine.searchmoves(moves, 5);
-        } else if (depth != 0) {
-            engine.search(depth);
-        } else if (infinite) {
-            engine.search(Integer.MAX_VALUE);
-        } else {
-            engine.search(6);
-        }
+//        if (moves != null && depth != 0) {
+//            engine.searchmoves(moves, depth);
+//        } else if (moves != null) {
+//            engine.searchmoves(moves, 5);
+//        } else if (depth != 0) {
+//            engine.search(depth);
+//        } else if (infinite) {
+//            engine.search(Integer.MAX_VALUE);
+//        } else {
+//            engine.search(6);
+//        }
     }
 
     /**
@@ -186,13 +197,13 @@ public class Parser {
      * @param line
      */
     public static void setoption(String line) {
-        if (!line.matches(OPTION)) {
+        if(!line.matches(OPTION)) {
             return;
         }
-        String result = line.replaceFirst(OPTION, OPTION_REPLACEMENT);
-        String[] options = result.split(";");
-        if (Config.getInstance().containsKey(options[0])) {
-            Config.getInstance().getOption(options[0]).setValue(options[1]);
+        String name = line.replaceFirst(OPTION_NAME, OPTION_NAME_REPLACEMENT);
+        String val = line.replaceFirst(OPTION_VALUE, OPTION_VALUE_REPLACEMENT);
+        if(Config.getInstance().containsKey(name)){
+            Config.getInstance().getOption(name).setValue(val);
         }
     }
 
