@@ -30,6 +30,9 @@ public class PrincipalVariationSearcher
     private static final String NAME = "pv-searcher";
     private static int ID = 1;
     private static final int INFINITE = 1_000_000;
+    private static final boolean IS_PV = true;
+    private static final boolean NO_PV = false;
+    
 
     private final EvaluationHashTable mEvalTable;
     private final List<Move> mPvLine;
@@ -141,8 +144,8 @@ public class PrincipalVariationSearcher
             // die Zero-Window-Suche fehlschlägt, führen wir die Suche mit dem
             // vollen Fenster erneut durch.
             if (moveNumber == 0
-                    || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, false) > alpha) {
-                score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, true);
+                    || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV) > alpha) {
+                score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, IS_PV);
             }
 
             if (shouldStop(depth, mNodes)) {
@@ -250,11 +253,11 @@ public class PrincipalVariationSearcher
                 if (alpha == oldAlpha) {
                     // Falls alpha nicht erhöht wurde, suchen wir normal weiter
                     score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, isPV);
-                } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, false) > alpha) {
+                } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, NO_PV) > alpha) {
                     // Andernfalls führen wir eine ZWS durch. Wenn diese einen
                     // Alpha-Cutoff verursacht, suchen wir mit vollem Such-
                     // fenster erneut.
-                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, true);
+                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, IS_PV);
                 }
 
                 if (reductionDepth > 0 && score > alpha) {

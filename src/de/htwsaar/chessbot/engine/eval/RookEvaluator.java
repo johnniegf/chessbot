@@ -5,6 +5,7 @@ import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
 import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.signOf;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
@@ -65,7 +66,7 @@ public class RookEvaluator extends EvaluationFunction {
         int score = 0;
         
         for (int color : COLORS) {
-            int sign = (color == WHITE ? 1 : -1);
+            int sign = signOf(color);
             long rooks = b.getPieceBits(Rook.ID, color);
             score += sign * Bitwise.count(RANK_MASKS[color] & rooks) * ROOK_AT_7;
             long ownPawns = b.getPieceBits(Pawn.ID, color);

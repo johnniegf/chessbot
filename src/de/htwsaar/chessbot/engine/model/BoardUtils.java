@@ -154,6 +154,10 @@ public class BoardUtils {
             return (int) Bitwise.xor(color,1);
         }
         
+        public static int signOf(final int color) {
+            return (color == WHITE ? 1 : -1);
+        }
+        
         private Color() {
 
         }

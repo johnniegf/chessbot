@@ -33,10 +33,11 @@ public class Evaluator extends EvaluationFunction {
 	 */
 	public int evaluate(Board b) {
         int sign = b.isWhiteAtMove() ? 1 : -1;
-		return sign * mobilityEval.evaluate(b) * (
-            rookEval.evaluate(b) 
+		return sign * (
+            mobilityEval.evaluate(b) 
+          + rookEval.evaluate(b) 
           + pawnEval.evaluate(b) 
-          + pieceSquareEval.evaluate(b)
+          + materialEval.evaluate(b)
         );
 	}
 }

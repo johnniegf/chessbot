@@ -13,16 +13,14 @@ import de.htwsaar.chessbot.engine.model.Board;
  */
 public class MobilityEvaluator extends EvaluationFunction {
     
+    private static final int MOBILITY_WEIGHT = 20;
+    
     public MobilityEvaluator() {
         
     }
     
     public int evaluate(final Board board) {
         int myMoves = board.getResultingPositions().length;
-        Board alt = board.clone();
-        alt.togglePlayer();
-        int theirMoves = alt.getResultingPositions().length;
-//        return myMoves / theirMoves;
-        return 1;
+        return myMoves / MOBILITY_WEIGHT;
     }
 }
