@@ -36,6 +36,7 @@ public class MoveSearcherTest {
         while (true) {
             SEPARATE();
             PRINT(current);
+            PRINT("score " + eval.evaluate(current));
             if (BoardUtils.isDraw(current)) {
                 MESSAGE("Draw");
                 break;
@@ -50,8 +51,8 @@ public class MoveSearcherTest {
             }
             searcher.getSearcher().setBoard(current);
             searcher.getSearcher().resetConfiguration();
-            searcher.getSearcher().getConfiguration().setDepthLimit(7);
-            searcher.getSearcher().getConfiguration().setTimeLimit(10000);
+            searcher.getSearcher().getConfiguration().setDepthLimit(20);
+            searcher.getSearcher().getConfiguration().setTimeLimit(20000);
             long started = System.currentTimeMillis();
             searcher.startSearching();
             do {
@@ -63,7 +64,7 @@ public class MoveSearcherTest {
                 if (!searcher.isSearching())
                     break;
             } while (true);
-            MESSAGE(System.currentTimeMillis() - started);
+            MESSAGE("time " + (System.currentTimeMillis() - started) + " ms");
             Move bestMove = searcher.getSearcher().getBestMove();
             current = bestMove.execute(current);
             PRINT("");

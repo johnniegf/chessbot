@@ -7,6 +7,7 @@ package de.htwsaar.chessbot.engine.search;
 
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
+import static de.htwsaar.chessbot.engine.model.move.Move.NOMOVE;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
@@ -25,10 +26,11 @@ public final class HashTable {
     public static final int FLAG_PV    = 2;
 
     private static final int UNDEFINED = Integer.MIN_VALUE;
-    private static final int DEFAULT_CAPACITY = 1 << 16;
+    private static final int DEFAULT_CAPACITY = 1 << 18;
 
     private final Entry[] mEntries;
     private int mSize;
+    private int mPvEntries;
 
     public HashTable() {
         this(DEFAULT_CAPACITY);
@@ -38,10 +40,15 @@ public final class HashTable {
         checkInBounds(maxCapacity, 0, Integer.MAX_VALUE);
         mEntries = new Entry[maxCapacity];
         mSize = 0;
+        mPvEntries = 0;
     }
     
     public final int usage() {
         return (1000 * size()) / capacity();
+    }
+    
+    public final int pvEntries() {
+        return mPvEntries;
     }
 
     public final int size() {
@@ -69,6 +76,8 @@ public final class HashTable {
             return false;
 
         if (entry.zobristHash == zobristHash) {
+            if (entry.bestMove == NOMOVE)
+                return false;
             moveInfo.setMove(entry.bestMove);
             HITS++;
             if (entry.depth >= depth) {
@@ -114,6 +123,7 @@ public final class HashTable {
         if (entry == null
          || entry.flags != FLAG_PV && entry.zobristHash != zobristHash) {
             mSize += (entry == null ? 1 : 0);
+            mPvEntries += (flags == FLAG_PV ? 1 : 0);
             entry = new Entry(zobristHash, bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
             return;

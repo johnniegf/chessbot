@@ -57,14 +57,13 @@ public class SearchConfiguration {
     }
 
     public final void prepareForSearch() {
-        mTimeStarted = System.nanoTime() / 1_000_000L;
+        mTimeStarted = System.currentTimeMillis();
     }
 
     public final boolean isTimeOut() {
-        long curtime = System.nanoTime() / 1_000_000L;
         return !isInfinite()
             && getTimeLimit() > 0
-            && curtime - mTimeStarted > getTimeLimit();
+            && System.currentTimeMillis() - mTimeStarted > getTimeLimit();
     }
 
     public int getDepthLimit() {
@@ -77,6 +76,10 @@ public class SearchConfiguration {
 
     public long getTimeLimit() {
         return mMaxTime;
+    }
+    
+    public long getTimeStarted() {
+        return mTimeStarted;
     }
 
     public List<Move> getMoves() {

@@ -12,7 +12,7 @@ public class Evaluator extends EvaluationFunction {
 
     EvaluationFunction pawnEval;
     EvaluationFunction rookEval;
-    EvaluationFunction evalKenivel;
+    EvaluationFunction evalKenievel;
     EvaluationFunction pieceSquareEval;
     EvaluationFunction mobilityEval;
 
@@ -22,7 +22,7 @@ public class Evaluator extends EvaluationFunction {
     public Evaluator() {
         this.pawnEval = new PawnEvaluator();
         this.rookEval = new RookEvaluator();
-        this.evalKenivel = new MaterialEvaluator();
+        this.evalKenievel = new MaterialEvaluator();
         this.pieceSquareEval = new PositionBasedEvaluator();
         this.mobilityEval = new MobilityEvaluator();
     }
@@ -35,8 +35,9 @@ public class Evaluator extends EvaluationFunction {
         return sign * ( 0
 //                +  mobilityEval.evaluate(b)
                 + rookEval.evaluate(b)
-                + pawnEval.evaluate(b)
+//                + pawnEval.evaluate(b)
                 + pieceSquareEval.evaluate(b)
+//                + evalKenievel.evaluate(b)
         );
     }
 }

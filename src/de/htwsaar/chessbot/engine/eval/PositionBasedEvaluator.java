@@ -2,8 +2,6 @@ package de.htwsaar.chessbot.engine.eval;
 
 import de.htwsaar.chessbot.engine.model.piece.Bishop;
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Knight;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
@@ -58,7 +56,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     };
 
     private static final int[] ROOK_VALUES = {
-         0,  -5,  -5,  5,  5,  -5,  -5,  0,
+         0,  0,  0,  5,  5,  0,  0,  0,
         -5,  0,  0,  0,  0,  0,  0, -5,
         -5,  0,  0,  0,  0,  0,  0, -5,
         -5,  0,  0,  0,  0,  0,  0, -5,
@@ -103,8 +101,8 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     
     private static final int[][][] PIECE_VALUES = new int[6][2][];
 
-    private static final int PIECE_VALUE_WEIGHT = 50;
-    private static final int PIECE_POSITION_WEIGHT = 50;
+    private static final int PIECE_VALUE_WEIGHT = 75;
+    private static final int PIECE_POSITION_WEIGHT = 25;
     private static final int WEIGHT_SUM = 
         PIECE_VALUE_WEIGHT + PIECE_POSITION_WEIGHT;
     

@@ -6,6 +6,7 @@
 package de.htwsaar.chessbot.engine.search;
 
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
+import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardUtils;
 import de.htwsaar.chessbot.engine.model.move.Move;
@@ -16,6 +17,7 @@ import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_BETA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_PV;
 import de.htwsaar.chessbot.engine.search.HashTable.MoveInfo;
 import static de.htwsaar.chessbot.util.DeveloperUtils.DEBUG;
+import de.htwsaar.chessbot.util.Output;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -122,8 +124,41 @@ public class PrincipalVariationSearcher
     
     
     private void infoPv(int score) {
+        String scoreString = null;
+        if (Math.abs(score) < INFINITE - 2000) {
+            scoreString = "cp " + score;
+        } else {
+            if (score > 0) {
+                scoreString = "mate " + ((INFINITE-score) / 2 + 1);
+            } else {
+                scoreString = "mate " + (-(INFINITE+score) / 2 - 1);
+            }
+        }
+        long time = System.currentTimeMillis() - getConfiguration().getTimeStarted();
+        String pvLine = pvLineToString();
+        String info = "info depth %d score %s time %d nodes %d nps %d pv %s";
+        UCISender.getInstance().sendToGUI(
+            String.format(
+                info, mCurrentDepth, scoreString, time,
+                mNodes, countNps(mNodes, time), pvLine
+            )
+        );
+    }
+    
+    private static long countNps(long nodes, long time) {
+        if (time == 0L) return 0L;
         
+        return nodes * 1000 / time;
+    }
+    
+    private String pvLineToString() {
         findPvLine();
+        StringBuilder sb = new StringBuilder();
+        for (Move m : mPvLine) {
+            sb.append(m);
+            sb.append(Output.SPACE);
+        }
+        return sb.toString();
     }
     
     private void findPvLine() {
@@ -131,12 +166,14 @@ public class PrincipalVariationSearcher
         
         Board current = getBoard();
         MoveInfo mi = new MoveInfo();
-        for (int i = 1; i < mCurrentDepth; i++) {
+        for (int i = 1; i <= mCurrentDepth; i++) {
             if (!getHashTable().get(current, 0, 0, 0, mi)) {
                 break;
             }
+            current = mi.move().tryExecute(current);
+            if (!Move.isValidResult(current))
+                break;
             mPvLine.add(mi.move());
-            current = mi.move().execute(current);
         }
     }
 
@@ -176,15 +213,17 @@ public class PrincipalVariationSearcher
                 bestMove = childPos.getLastMove();
                 setBestMove(bestMove);
                 if (score >= beta) {
-                    getHashTable().put(childPos, bestMove, depth, beta, FLAG_BETA);
+                    getHashTable().put(getBoard(), bestMove, depth, beta, FLAG_BETA);
+                    infoPv(beta);
                     break;
                 }
+                getHashTable().put(getBoard(), bestMove, depth, score, FLAG_ALPHA);
+                infoPv(score);
                 alpha = score;
-                getHashTable().put(childPos, bestMove, depth, alpha, FLAG_ALPHA);
             }
         }
 
-        getHashTable().put(childPos, bestMove, depth, alpha, FLAG_PV);
+        getHashTable().put(getBoard(), bestMove, depth, alpha, FLAG_PV);
         return alpha;
     }
 
@@ -222,12 +261,13 @@ public class PrincipalVariationSearcher
             depth += 1;
         }
 
+        mNodes += 1;
+        
         // Leaf evaluation / quiescence search
         if (depth == 0) {
             return quiescenceSearch(board, alpha, beta);
         }
 
-        mNodes += 1;
 
         // Repetition checking
         if (board.isRepetition()) {
@@ -257,6 +297,7 @@ public class PrincipalVariationSearcher
 
             if (!isPV && newDepth > 3
                     && moveNum > 3
+                    && BoardUtils.isInCheck(currPos)
                     && !inCheck
                     && currMove.isQuiet(board))
             {

@@ -65,6 +65,7 @@ public final class SearchWorker
             mSearcher.go();
             UCISender.getInstance().sendToGUI("bestmove " + mSearcher.getBestMove());
             UCISender.getInstance().sendToGUI("hashfull " + mSearcher.getHashTable().usage());
+            UCISender.getInstance().sendToGUI("hashfull pv " + (mSearcher.getHashTable().pvEntries() * 1000 / mSearcher.getHashTable().capacity()));
             stopSearching();
         }
     }
