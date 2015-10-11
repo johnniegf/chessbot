@@ -1,9 +1,9 @@
 package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toColor;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Rook;

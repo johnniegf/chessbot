@@ -8,7 +8,7 @@ package de.htwsaar.chessbot.engine.util;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.eval.Evaluator;
 import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.BoardUtils;
+import de.htwsaar.chessbot.engine.model.BitBoardUtils;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.search.NegaMaxSearcher;
 import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
@@ -37,15 +37,15 @@ public class MoveSearcherTest {
             SEPARATE();
             PRINT(current);
             PRINT("score " + eval.evaluate(current));
-            if (BoardUtils.isDraw(current)) {
+            if (BitBoardUtils.isDraw(current)) {
                 MESSAGE("Draw");
                 break;
             }
-            if (BoardUtils.isMate(current)) {
+            if (BitBoardUtils.isMate(current)) {
                 MESSAGE("Mate");
                 break;
             }
-            if (BoardUtils.isStalemate(current)) { 
+            if (BitBoardUtils.isStalemate(current)) { 
                 MESSAGE("Stalemate");
                 break;
             }

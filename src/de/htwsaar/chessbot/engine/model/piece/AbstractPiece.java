@@ -1,8 +1,8 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.isNegativeRay;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.isNegativeRay;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.ZobristHasher;
@@ -216,7 +216,7 @@ public abstract class AbstractPiece
     
     protected long getRayAttacks(final Board context, int[] directions) {
         int curpos = getPosition().index();
-        long occupation = context.occupied();
+        long occupation = context.getOccupiedBits();
         long attackRay, blocker;
         int behind;
         long attacks = 0L;

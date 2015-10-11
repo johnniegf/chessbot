@@ -14,7 +14,7 @@ import static de.htwsaar.chessbot.util.Exceptions.msg;
  *
  * @author Johannes Haupt <johnniegf@fsfe.org>
  */
-public class BoardUtils {
+public class BitBoardUtils {
     
     public static void checkBitBoardPosition(final long bb) {
         if (Bitwise.lowestBitIndex(bb) > 63)
@@ -90,8 +90,8 @@ public class BoardUtils {
         return RANK_MASK[rank];
     }
     
-    private static long[]   FILE_MASK  = new long[8];
-    private static long[]   RANK_MASK  = new long[8];
+    public static long[]   FILE_MASK  = new long[8];
+    public static long[]   RANK_MASK  = new long[8];
 
     private static void initMasks() {
         long fileMask = 0x0101_0101_0101_0101L;

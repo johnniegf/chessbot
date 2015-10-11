@@ -8,7 +8,7 @@ package de.htwsaar.chessbot.engine.search;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.BoardUtils;
+import de.htwsaar.chessbot.engine.model.BitBoardUtils;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.move.Move.NOMOVE;
 import static de.htwsaar.chessbot.engine.search.EvaluationHashTable.UNDEFINED;
@@ -187,8 +187,8 @@ public class PrincipalVariationSearcher
                 break;
             }
             current = mi.move().tryExecute(current);
-            if (!Move.isValidResult(current))
-                break;
+//            if (!Move.isValidResult(current))
+//                break;
             mPvLine.add(mi.move());
         }
     }
@@ -198,7 +198,7 @@ public class PrincipalVariationSearcher
         Move bestMove = NOMOVE;
 
         // Wir erweitern die Suchtiefe, falls wir im Schach stehen
-        if (BoardUtils.isInCheck(getBoard())) {
+        if (BitBoardUtils.isInCheck(getBoard())) {
             depth += 1;
         }
 
@@ -238,7 +238,7 @@ public class PrincipalVariationSearcher
                 alpha = score;
             }
         }
-
+        
         getHashTable().put(getBoard(), bestMove, depth, alpha, FLAG_PV);
         return alpha;
     }
@@ -255,7 +255,7 @@ public class PrincipalVariationSearcher
         MoveInfo hashMove = new MoveInfo();
         int hashFlag = FLAG_ALPHA;
         int mateThreshold = INFINITE - ply;
-        boolean inCheck = BoardUtils.isInCheck(board);
+        boolean inCheck = BitBoardUtils.isInCheck(board);
 
         // Check timeout
         if (shouldStop(depth, mNodes)) {
@@ -315,7 +315,7 @@ public class PrincipalVariationSearcher
 
             if (!isPV && newDepth > 3
                     && moveNum > 3
-                    && BoardUtils.isInCheck(currPos)
+                    && BitBoardUtils.isInCheck(currPos)
                     && !inCheck
                     && currMove.isQuiet(board))
             {

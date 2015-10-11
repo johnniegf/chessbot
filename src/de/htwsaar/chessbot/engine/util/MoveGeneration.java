@@ -6,8 +6,8 @@
 package de.htwsaar.chessbot.engine.util;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.COLORS;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toBool;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.piece.AbstractPiece;

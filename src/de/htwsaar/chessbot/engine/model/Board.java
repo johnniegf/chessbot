@@ -1,13 +1,13 @@
 package de.htwsaar.chessbot.engine.model;
 
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.checkBitBoardPosition;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.toIndex;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.COLORS;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toBool;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.checkBitBoardPosition;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.toIndex;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Pieces;
@@ -306,7 +306,7 @@ public final class Board {
 
     public boolean isFree(final long position) {
         //checkBitBoardPosition(position);
-        return (occupied() & position) == 0L;
+        return (getOccupiedBits() & position) == 0L;
     }
 
     public boolean putPiece(final Piece piece) {
@@ -366,7 +366,7 @@ public final class Board {
 
 
     public byte getPieceCount() {
-        return Bitwise.count(occupied());
+        return Bitwise.count(getOccupiedBits());
     }
 
     public Piece[] getAllPieces() {
@@ -459,7 +459,7 @@ public final class Board {
             */
     }
 
-    public long occupied() {
+    public long getOccupiedBits() {
         return mColors[WHITE] ^ mColors[BLACK];
     }
 

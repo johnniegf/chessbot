@@ -1,14 +1,14 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.East;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthWest;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthWest;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.West;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.East;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.West;
 import de.htwsaar.chessbot.engine.model.Position;
 /**
 * Die Dame.

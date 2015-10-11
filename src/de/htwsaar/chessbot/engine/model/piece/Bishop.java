@@ -1,10 +1,10 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthWest;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthWest;
 import de.htwsaar.chessbot.engine.model.Position;
 import static de.htwsaar.chessbot.engine.model.move.Move.MV;
 import de.htwsaar.chessbot.util.Bitwise;

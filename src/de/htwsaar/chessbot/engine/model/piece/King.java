@@ -2,16 +2,16 @@ package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.BoardException;
-import de.htwsaar.chessbot.engine.model.BoardUtils;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.East;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.West;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
+import de.htwsaar.chessbot.engine.model.BitBoardUtils;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.East;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.West;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.engine.model.move.Move.MV;
@@ -115,7 +115,7 @@ public class King
         long result = 0L;
         int color = toColor(isWhite());
         byte castlings = context.getCastlings();
-        long occupation = context.occupied();
+        long occupation = context.getOccupiedBits();
         for (int side = QUEENSIDE; side <= KINGSIDE; side++) {
             if ((castlings & MOVE_FLAGS[color][side]) == 0L)
                 continue;

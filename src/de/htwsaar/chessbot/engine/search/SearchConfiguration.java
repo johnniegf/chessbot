@@ -27,6 +27,8 @@ public class SearchConfiguration {
     private boolean mInfinite;
     private boolean mPonder;
     private List<Move> mMoves;
+    
+    private static final int DEPTH_HARD_LIMIT = 300;
 
     public SearchConfiguration() {
         reset();
@@ -36,7 +38,7 @@ public class SearchConfiguration {
         if (isInfinite()) return false;
         if (getNodeLimit() > 0 && nodes > getNodeLimit())
             return true;
-        if (getDepthLimit() > 0 && depth > getDepthLimit())
+        if (getDepthLimit() > 0 && depth > getDepthLimit() && depth > DEPTH_HARD_LIMIT)
             return true;
         if ((nodes & TIMEOUT_INTERVAL) == 0L)
             return isTimeOut();

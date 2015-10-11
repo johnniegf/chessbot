@@ -101,8 +101,8 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     
     private static final int[][][] PIECE_VALUES = new int[6][2][];
 
-    private static final int PIECE_VALUE_WEIGHT = 75;
-    private static final int PIECE_POSITION_WEIGHT = 25;
+    private static final int PIECE_VALUE_WEIGHT = 80;
+    private static final int PIECE_POSITION_WEIGHT = 20;
     private static final int WEIGHT_SUM = 
         PIECE_VALUE_WEIGHT + PIECE_POSITION_WEIGHT;
     
@@ -143,18 +143,6 @@ public class PositionBasedEvaluator extends EvaluationFunction {
        
         int pid = p.id();
         return PIECE_VALUES[pid][endgame][i];
-    }
-
-    private int getX(Piece p) {
-        return p.getPosition().file() - 1;
-    }
-
-    private int getY(Piece p, boolean whiteMoves) {
-        if (whiteMoves) {
-            return p.getPosition().rank() - 1;
-        } else {
-            return 8 - p.getPosition().rank();
-        }
     }
 
     private int isEndGame(Board b) {

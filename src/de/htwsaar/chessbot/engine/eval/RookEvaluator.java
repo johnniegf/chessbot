@@ -1,11 +1,13 @@
 package de.htwsaar.chessbot.engine.eval;
 
+import de.htwsaar.chessbot.engine.model.BitBoardUtils;
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.invert;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.signOf;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.COLORS;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.invert;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.signOf;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.FILE_MASK;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
@@ -47,14 +49,9 @@ public class RookEvaluator extends EvaluationFunction {
 	}
     
     private static final long[] RANK_MASKS = new long[2];
-    private static final long[] FILE_MASKS = new long[8];
     static {
-        RANK_MASKS[WHITE] = 0x00ff_0000_0000_0000L;
-        RANK_MASKS[BLACK] = 0x0000_0000_0000_ff00L;
-        long fileMask = 0x0101_0101_0101_0101L;
-        for (int s = 0; s < 8; s++) {
-            FILE_MASKS[s] = fileMask << s;
-        }
+        RANK_MASKS[WHITE] = BitBoardUtils.RANK_MASK[6];
+        RANK_MASKS[BLACK] = BitBoardUtils.RANK_MASK[1];
     }
 	
 	/**
@@ -74,7 +71,7 @@ public class RookEvaluator extends EvaluationFunction {
             while (rooks != 0L) {
                 int index = Bitwise.lowestBitIndex(rooks);
                 long rook = Bitwise.lowestBit(rooks);
-                long file = FILE_MASKS[Position.fileOf(index)-1];
+                long file = FILE_MASK[Position.fileOf(index)-1];
                 long line = (color == WHITE ? ~(rook | (rook-1)) : (rook-1));
                 line &= file;
                 if ((line & ownPawns) == 0L) {

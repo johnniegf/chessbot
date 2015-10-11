@@ -1,10 +1,10 @@
 package de.htwsaar.chessbot.engine.model.move;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.BoardUtils.Color;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toBool;
+import de.htwsaar.chessbot.engine.model.BitBoardUtils.Color;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toBool;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.King;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
@@ -55,7 +55,7 @@ public class CastlingMove extends Move {
         long freeSquares = PATH_MASKS[mCastlingType];
         long possibleAttacks = freeSquares & ATTACK_MASK;
         
-        if ((freeSquares & onBoard.occupied()) != 0L) return null;
+        if ((freeSquares & onBoard.getOccupiedBits()) != 0L) return null;
         if ( onBoard.getAttacked(possibleAttacks, !toBool(color)) != 0L ) return null;
         
         Board result = mMove.tryExecute(onBoard, false);

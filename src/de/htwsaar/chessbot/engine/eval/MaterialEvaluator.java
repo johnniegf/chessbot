@@ -1,8 +1,8 @@
 package de.htwsaar.chessbot.engine.eval;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.COLORS;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.signOf;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.COLORS;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.signOf;
 import de.htwsaar.chessbot.engine.model.piece.Bishop;
 import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.util.Bitwise;

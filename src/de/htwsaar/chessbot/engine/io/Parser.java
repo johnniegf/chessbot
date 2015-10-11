@@ -100,29 +100,18 @@ public class Parser {
                     moves = getMoves(line, engine.getBoard().getMoveList());
                     cfg.setMoves(moves);
                     break;
-                    /*
                 case "wtime":
                     String wtime = cmds[i + 1];
-                    engine.getGame().getClock(true).setTime(Long.parseLong(wtime));
                     break;
                 case "btime":
                     String btime = cmds[i + 1];
-                    engine.getGame().getClock(false).setTime(Long.parseLong(btime));
                     break;
                 case "winc":
                     long winc = Long.parseLong(cmds[i + 1]);
-                    if (winc > 0) {
-                        engine.getGame().getClock(true).
-                                setTime(engine.getGame().getClock(true).getTime() + winc);
-                    }
                     break;
                 case "binc":
                     long binc = Long.parseLong(cmds[i + 1]);
-                    if (binc > 0) {
-                        engine.getGame().getClock(false).
-                                setTime(engine.getGame().getClock(false).getTime() + binc);
-                    }
-                    break; */
+                    break; 
                 case "depth":
                     depth = Integer.parseInt(cmds[i + 1]);
                     cfg.setDepthLimit(depth);
@@ -140,7 +129,7 @@ public class Parser {
             }
         }
         if (cfg.getTimeLimit() == 0L)
-            cfg.setTimeLimit(20000);
+            cfg.setTimeLimit(12500);
         
         engine.search();
 

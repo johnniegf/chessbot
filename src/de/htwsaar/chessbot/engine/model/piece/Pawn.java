@@ -1,16 +1,16 @@
 package de.htwsaar.chessbot.engine.model.piece;
 
 import de.htwsaar.chessbot.engine.model.Board;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.BLACK;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.toColor;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.North;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.NorthWest;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.South;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthEast;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.SouthWest;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.shift;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.toColor;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.North;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.NorthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.South;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthEast;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.SouthWest;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.model.move.PromotionMove;
 import de.htwsaar.chessbot.engine.model.Position;
@@ -152,7 +152,7 @@ public class Pawn
     private long getNormalTarget(Board context) {
         int direction = (isWhite() ? North : South);
         long target = shift(direction, getPosition().toBitBoard());
-        return target & ~context.occupied();
+        return target & ~context.getOccupiedBits();
     }
 
     private Collection<Move> getNormalMove(Board context) {
@@ -186,7 +186,7 @@ public class Pawn
         if (!canPush())
             return 0L;
         
-        if ((context.occupied() & getPushMask()) != 0L)
+        if ((context.getOccupiedBits() & getPushMask()) != 0L)
             return 0L;
         
         return TARGET_SQUARE_MASK & getPushMask();
