@@ -181,8 +181,8 @@ public class Engine {
     
     public void ponderhit() {
         if (mSearchThread.getSearcher().getConfiguration().isPondering()) {
-            mSearchThread.getSearcher().getConfiguration().prepareForSearch();
             mSearchThread.getSearcher().getConfiguration().setPonder(false);
+            mSearchThread.getSearcher().getConfiguration().prepareForSearch();
         }
     }
 

@@ -60,7 +60,7 @@ public abstract class AbstractMoveSearcher
             }
             mPositionList = positionsToSearch.toArray(new Board[0]);
         }
-        if (!mConfig.isPondering() && mConfig.getTimeLimit() == 0L) {
+        if (mConfig.getTimeLimit() == 0L) {
             long timeLimit = getTimeLimit();
             mConfig.setTimeLimit(timeLimit);
         }

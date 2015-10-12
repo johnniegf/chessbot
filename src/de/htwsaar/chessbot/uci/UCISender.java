@@ -59,7 +59,7 @@ public class UCISender extends Thread {
     }
 
     public void sendToGUI(String command, boolean urgent) {
-        //Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
+        Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
         if (urgent)
             queueFirst(new UCIToGuiMessage(command));
         else
