@@ -6,6 +6,8 @@
 package de.htwsaar.chessbot.engine.search;
 
 import de.htwsaar.chessbot.engine.io.UCISender;
+import de.htwsaar.chessbot.engine.model.Board;
+import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
 /**
@@ -19,6 +21,7 @@ public final class SearchWorker
     private MoveSearcher mSearcher;
     private boolean mExit = false;
     private boolean mSearching = false;
+    private boolean mSearcherDone = true;
     
     public SearchWorker(MoveSearcher searcher) {
         setSearcher(searcher);
@@ -47,14 +50,19 @@ public final class SearchWorker
         mSearcher.stop();
     }
     
+    public boolean isSearcherDone() {
+        return mSearcherDone;
+    }
+    
     public void quit() {
+        stopSearching();
         mExit = true;
     }
     
     @Override
     public void run() {
         while (true) {
-            while (!mSearching) {
+            while (!isSearching()) {
                 try {
                     Thread.sleep(50);
                 } catch(InterruptedException ire) {
@@ -63,11 +71,24 @@ public final class SearchWorker
                 if (mExit)
                     return;
             }
+            mSearcherDone = false;
             mSearcher.go();
-            UCISender.getInstance().sendToGUI("bestmove " + mSearcher.getBestMove());
-            UCISender.getInstance().sendToGUI("hashfull " + mSearcher.getHashTable().usage());
-            UCISender.getInstance().sendToGUI("hashfull pv " + (mSearcher.getHashTable().pvEntries() * 1000 / mSearcher.getHashTable().capacity()));
+            infoHash(mSearcher.getHashTable().usage());
+//            if (!mSearcher.getConfiguration().isPondering())
+            infoBestmove(mSearcher.getBestMove(), mSearcher.getPonderMove());
+            mSearcherDone = true;
             stopSearching();
         }
+    }
+    
+    private static void infoBestmove(Move bestMove, Move ponder) {
+        String message = "bestmove " + bestMove;
+        if (ponder != null)
+            message += " ponder " + ponder;
+        UCISender.getInstance().sendToGUI(message);
+    }
+    
+    private static void infoHash(int usage) {
+        UCISender.getInstance().sendToGUI("info hashfull " + usage);
     }
 }

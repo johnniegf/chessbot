@@ -113,7 +113,8 @@ public final class Board {
     }
 
     public boolean isAttacked(final long position, final int color) {
-        return (mAttacked[color] & position) != 0L;
+//        return (mAttacked[color] & position) != 0L;
+        return attackCount(position, color, false) > 0;
     }
 
     public int attackCount(final long position, final int color) {

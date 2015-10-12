@@ -1,10 +1,12 @@
 package de.htwsaar.chessbot.engine;
 
+import de.htwsaar.chessbot.engine.model.BitBoardUtils;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.util.Exceptions.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 /**
 * Schachpartie.
@@ -15,8 +17,7 @@ import java.util.List;
 */
 public class Game {
     
-    private Clock   mWhiteClock;
-    private Clock   mBlackClock;
+    private Clock   mClock;
     private History mHistory;
 
     /**
@@ -31,8 +32,8 @@ public class Game {
     }
 
     public Game(final String fenInitial, final String[] moves) {
-        checkNull(fenInitial, "fenInitial");
-        checkNull(moves, "moves");
+        checkNull(fenInitial);
+        checkNull(moves);
 
         mHistory    = new History( 
             fenInitial.equals("startpos") ? Board.B() : Board.B(fenInitial) 
@@ -40,13 +41,19 @@ public class Game {
         for (String move : moves) {
             doMove(move);
         }
-
-        mWhiteClock = new Clock();
-        mBlackClock = new Clock();
+        mClock = new Clock();
     }
 
     public Board getCurrentBoard() {
         return mHistory.getMostRecent();
+    }
+    
+    public Board getPosition(int plyIndex) {
+        return mHistory.get(plyIndex);
+    }
+    
+    public int plyCount() {
+        return mHistory.size();
     }
 
     public boolean doMove(final String moveString) {
@@ -61,8 +68,12 @@ public class Game {
         return false;
     }
 
-    public Clock getClock(boolean ofWhitePlayer) {
-        return (ofWhitePlayer ? mWhiteClock : mBlackClock);
+    public Clock getClock() {
+        return mClock;
+    }
+    
+    public void setClock(long wtime, long btime, long winc, long binc, int movestogo) {
+        mClock = new Clock(wtime, btime, winc, binc, movestogo);
     }
 
     public boolean isFinished() {
@@ -70,23 +81,15 @@ public class Game {
     }
 
     public boolean isMate() {
-        Board current = getCurrentBoard();
-        return current.getMoveList().length == 0 && isKingInCheck(current);
+        return BitBoardUtils.isMate(getCurrentBoard());
     }
 
     public boolean isStalemate() {
-        Board current = getCurrentBoard();
-        return current.getMoveList().length == 0 && !isKingInCheck(current);
-    }
-
-    private boolean isKingInCheck(final Board context) {
-        Board b = context.clone();
-        b.togglePlayer();
-        return b.isValid();
+        return BitBoardUtils.isStalemate(getCurrentBoard());
     }
 
     public boolean isDraw() {
-        return getCurrentBoard().getHalfMoves() >= 50;
+        return BitBoardUtils.isDraw(getCurrentBoard());
     }
 
     public Result result() {
@@ -113,9 +116,7 @@ public class Game {
 
 class History {
 
-    private List<Move> moveList;
-    private Board initialPosition;
-    private Board currentPosition;
+    private List<Board> positions;
 
     public History() {
         this( Board.B() );
@@ -127,50 +128,38 @@ class History {
     
     public History(final Board initial, final List<Move> moves) {
         checkNull(initial, "initial");
-        this.initialPosition = initial;
-        this.currentPosition = this.initialPosition;
-
-        this.moveList = new ArrayList<Move>();
-
+        positions = new LinkedList<>();
+        positions.add(initial);
+        Board current = initial;
         if ( moves != null && !moves.isEmpty() ) {
             for (Move m : moves) {
-                this.append(m);
+                current = m.execute(current);
+                positions.add(0, current);
             }
         }
     }
 
     public boolean append(final Move move) {
         checkNull(move, "move");
-        if (move.isPossible(getMostRecent())) {
-            Board result = move.execute(getMostRecent());
-            setMostRecent(result);
-            moveList.add(move);
+        Board result = move.tryExecute(getMostRecent());
+        if (Move.isValidResult(result)) {
+            positions.add(0, result);
             return true;
-
         } else 
             return false;
     }
 
-    private void setMostRecent(final Board current) {
-        checkNull(current);
-        this.currentPosition = current;
-    }
-
     public Board getMostRecent() {
-        return currentPosition;
+        return positions.get(0);
     }
 
     public Board get(int moveNumber) {
-        checkInBounds(moveNumber, "moveNumber", 0, moveList.size());
-        if (moveNumber == moveList.size())
-            return getMostRecent();
-        else {
-            Board b = initialPosition;
-            for (int i = 0; i < moveNumber; i++) {
-                b = moveList.get(i).execute(b);
-            }
-            return b;
-        }       
+        checkInBounds(moveNumber, 0, positions.size()-1);
+        return positions.get(positions.size()-1-moveNumber);
+    }
+    
+    public int size() {
+        return positions.size();
     }
 
 }

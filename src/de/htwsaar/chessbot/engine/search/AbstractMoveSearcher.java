@@ -5,6 +5,8 @@
  */
 package de.htwsaar.chessbot.engine.search;
 
+import de.htwsaar.chessbot.engine.Clock;
+import de.htwsaar.chessbot.engine.Game;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
@@ -30,6 +32,8 @@ public abstract class AbstractMoveSearcher
     private boolean mIsSearching;
     private Move mBestMove;
     protected final EvaluationFunction mEvaluator;
+    private Move mPonderMove;
+    private Game mGame;
 
     public AbstractMoveSearcher(final EvaluationFunction evaluator) {
         checkNull(evaluator);
@@ -40,10 +44,10 @@ public abstract class AbstractMoveSearcher
     }
 
     protected void prepareSearch() {
-        checkCondition(Move.isValidResult(mCurrentPosition));
+        checkCondition(Move.isValidResult(getBoard()));
         EvaluationFunction.updatePieceValues();
         mBestMove = NOMOVE;
-        mPositionList = mCurrentPosition.getResultingPositions();
+        mPositionList = getBoard().getResultingPositions();
         if (!mConfig.getMoves().isEmpty()) {
             List<Board> positionsToSearch = new ArrayList<>();
             List<Board> childPositions = Arrays.asList(mPositionList);
@@ -53,7 +57,27 @@ public abstract class AbstractMoveSearcher
             }
             mPositionList = positionsToSearch.toArray(new Board[0]);
         }
+        if (mConfig.getTimeLimit() == 0L) {
+            long timeLimit = getTimeLimit();
+            mConfig.setTimeLimit(timeLimit);
+        }
         mConfig.prepareForSearch();
+    }
+    
+    private long getTimeLimit() {
+        Clock cl = getGame().getClock();
+        boolean isWhiteAtMove = getGame().getCurrentBoard().isWhiteAtMove();
+        if (cl.movestogo == 0) {
+            if (isWhiteAtMove)
+                return cl.wtime / 20 + cl.winc;
+            else
+                return cl.btime / 20 + cl.binc;
+        } else {
+            if (isWhiteAtMove)
+                return cl.wtime / cl.movestogo;
+            else
+                return cl.btime / cl.movestogo;
+        }
     }
 
     @Override
@@ -74,9 +98,19 @@ public abstract class AbstractMoveSearcher
     protected void setBestMove(final Move bestMove) {
         mBestMove = bestMove;
     }
+    
+    @Override
+    public Move getPonderMove() {
+        return mPonderMove;
+    }
+    
+    protected void setPonderMove(final Move ponderMove) {
+        mPonderMove = ponderMove;
+    }
 
+    @Override
     public Board getBoard() {
-        return mCurrentPosition;
+        return mGame.getCurrentBoard();
     }
 
     protected Board[] getBoardList() {
@@ -87,6 +121,16 @@ public abstract class AbstractMoveSearcher
     public void setBoard(Board board) {
         checkCondition(Move.isValidResult(board));
         mCurrentPosition = board;
+    }
+    
+    @Override
+    public Game getGame() {
+        return mGame;
+    }
+    
+    @Override
+    public void setGame(final Game game) {
+        mGame = game;
     }
 
     @Override
@@ -110,7 +154,6 @@ public abstract class AbstractMoveSearcher
 
     protected boolean shouldStop(int depth, long nodes) {
         return mConfig.shouldStop(depth, nodes);
-
     }
 
     @Override

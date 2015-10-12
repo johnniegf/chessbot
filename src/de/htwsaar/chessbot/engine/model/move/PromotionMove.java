@@ -36,7 +36,7 @@ public class PromotionMove extends Move {
 
 
     private final byte mPromotionType;
-    private final StandardMove mMove;
+    private final Move mMove;
 
     public PromotionMove(final Position start, 
                      final Position target, 
@@ -47,7 +47,7 @@ public class PromotionMove extends Move {
         setStart(start);
         setTarget(target);
         this.mPromotionType = promotionType;
-        mMove = (StandardMove) Move.MV(getStart(), getTarget());
+        mMove = Move.MV(getStart(), getTarget());
 
     }
     
@@ -78,7 +78,7 @@ public class PromotionMove extends Move {
         if (pawn == null || pawn.id() != Pawn.ID)
             return null;
         
-        Board result = mMove.tryExecute(onBoard, false);
+        Board result = mMove.tryExecute(onBoard);
         if (result != null) {
             result.removePieceAt(getTarget());
             Piece converted = Pieces.PC(getPieceType(mPromotionType), 
@@ -86,7 +86,6 @@ public class PromotionMove extends Move {
                                         getTarget());
             result.putPiece(converted);
             if ( !updateLastMove(this, result)) return null;
-            result.recalculateAttacks();
 
         }
         return result;

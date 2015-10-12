@@ -26,7 +26,7 @@ public class CastlingMove extends Move {
     private static final String line = "---------------------------------------";
 
     private final byte mCastlingType;
-    private StandardMove mMove;
+    private Move mMove;
 
     public CastlingMove(final byte castlingType) {
         super(Position.INVALID, Position.INVALID);
@@ -34,7 +34,7 @@ public class CastlingMove extends Move {
         mCastlingType = castlingType;
         super.setStart(POSITIONS[mCastlingType][0]);
         super.setTarget(POSITIONS[mCastlingType][1]);
-        mMove = (StandardMove) Move.MV(getStart(), getTarget());
+        mMove = Move.MV(getStart(), getTarget());
     }
 
     public void setStart(final Position start) {    }
@@ -58,11 +58,10 @@ public class CastlingMove extends Move {
         if ((freeSquares & onBoard.getOccupiedBits()) != 0L) return null;
         if ( onBoard.getAttacked(possibleAttacks, !toBool(color)) != 0L ) return null;
         
-        Board result = mMove.tryExecute(onBoard, false);
+        Board result = mMove.tryExecute(onBoard);
         if (result != null) {
             moveRook(result, toBool(color));
             if ( !updateLastMove(this, result)) return null;
-            result.recalculateAttacks();
         }
         return result;
     }

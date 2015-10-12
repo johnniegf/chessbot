@@ -5,6 +5,7 @@
  */
 package de.htwsaar.chessbot.engine.search;
 
+import de.htwsaar.chessbot.engine.Game;
 import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
 import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
@@ -47,6 +48,10 @@ public interface MoveSearcher {
      * @return den besten Zug für die aktuelle Stellung.
      */
     Move getBestMove();
+    
+    Move getPonderMove();
+    
+    Board getBoard();
 
     /**
      * Lege die Ausgangsstellung für die Suche fest.
@@ -54,6 +59,10 @@ public interface MoveSearcher {
      * @param board Ausgangsstellung für die nächste Suche.
      */
     void setBoard(final Board board);
+    
+    Game getGame();
+    
+    void setGame(final Game game);
 
     /**
      * Setze die Konfiguration des Suchers zurück.

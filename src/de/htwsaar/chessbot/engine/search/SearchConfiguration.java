@@ -28,7 +28,7 @@ public class SearchConfiguration {
     private boolean mPonder;
     private List<Move> mMoves;
     
-    private static final int DEPTH_HARD_LIMIT = 300;
+    private static final int DEPTH_HARD_LIMIT = 100;
 
     public SearchConfiguration() {
         reset();
@@ -36,9 +36,10 @@ public class SearchConfiguration {
 
     public final boolean shouldStop(final int depth, final long nodes) {
         if (isInfinite()) return false;
+        if (isPondering()) return false;
         if (getNodeLimit() > 0 && nodes > getNodeLimit())
             return true;
-        if (getDepthLimit() > 0 && depth > getDepthLimit() && depth > DEPTH_HARD_LIMIT)
+        if (getDepthLimit() > 0 && (depth > getDepthLimit() || depth > DEPTH_HARD_LIMIT))
             return true;
         if ((nodes & TIMEOUT_INTERVAL) == 0L)
             return isTimeOut();

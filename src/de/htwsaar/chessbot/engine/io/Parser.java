@@ -86,14 +86,15 @@ public class Parser {
      * @param engine
      */
     public static void go(String line, Engine engine) {
-        if (engine.isSearching())
-            return;
         List<Move> moves = null;
         int depth = 0;
         boolean infinite = false;
         engine.getSearcher().resetConfiguration();
         SearchConfiguration cfg = engine.getSearcher().getConfiguration();
         String[] cmds = line.split(" ");
+        long wtime = 0, btime = 0,
+             winc = 0, binc = 0;
+        int movestogo = 0;
         for (int i = 0; i < cmds.length; i++) {
             switch (cmds[i]) {
                 case "searchmoves":
@@ -101,17 +102,20 @@ public class Parser {
                     cfg.setMoves(moves);
                     break;
                 case "wtime":
-                    String wtime = cmds[i + 1];
+                    wtime = Long.parseLong(cmds[i + 1]);
                     break;
                 case "btime":
-                    String btime = cmds[i + 1];
+                    btime = Long.parseLong(cmds[i + 1]);
                     break;
                 case "winc":
-                    long winc = Long.parseLong(cmds[i + 1]);
+                    winc = Long.parseLong(cmds[i + 1]);
                     break;
                 case "binc":
-                    long binc = Long.parseLong(cmds[i + 1]);
+                    binc = Long.parseLong(cmds[i + 1]);
                     break; 
+                case "movestogo":
+                    movestogo = Integer.parseInt(cmds[i + 1]);
+                    break;
                 case "depth":
                     depth = Integer.parseInt(cmds[i + 1]);
                     cfg.setDepthLimit(depth);
@@ -128,9 +132,8 @@ public class Parser {
                     break;
             }
         }
-        if (cfg.getTimeLimit() == 0L)
-            cfg.setTimeLimit(12500);
         
+        engine.getGame().setClock(wtime, btime, winc, binc, movestogo);
         engine.search();
 
 //        if (moves != null && depth != 0) {
@@ -145,7 +148,7 @@ public class Parser {
 //            engine.search(6);
 //        }
     }
-
+    
     /**
      * filtert die Zuege aus der Ausgabe und gibt diese zurueck.
      *

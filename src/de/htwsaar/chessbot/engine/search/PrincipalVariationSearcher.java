@@ -37,7 +37,7 @@ public class PrincipalVariationSearcher
     
 
     private final EvaluationHashTable mEvalTable;
-    private final List<Move> mPvLine;
+    private List<Move> mPvLine;
     private int mCurrentDepth;
     private long mNodes;
     private final String mName;
@@ -65,8 +65,7 @@ public class PrincipalVariationSearcher
     public void go() {
         prepareSearch();
         start();
-        int score = iterativeSearch();
-        DEBUG("bestscore " + score);
+        iterativeSearch();
         stop();
     }
 
@@ -74,8 +73,11 @@ public class PrincipalVariationSearcher
         int score = searchRoot(mCurrentDepth, -INFINITE, INFINITE);
         while (isSearching()) {
             
-            // checkDepth
+            infoDepth(mCurrentDepth);
             score = widenSearch(mCurrentDepth, score);
+            if (mPvLine.size() > 1)
+                setPonderMove(mPvLine.get(1));
+            infoHash();
             mCurrentDepth += 1;
             
             // Check timeout
@@ -123,7 +125,9 @@ public class PrincipalVariationSearcher
         return positions[moveNumber];
     }
     
-    
+    private static void infoDepth(int depth) {
+        UCISender.getInstance().sendToGUI("info depth " + depth);
+    }
     
     private void infoPv(int score) {
         String scoreString = null;
@@ -138,13 +142,17 @@ public class PrincipalVariationSearcher
         }
         long time = System.currentTimeMillis() - getConfiguration().getTimeStarted();
         String pvLine = pvLineToString();
-        String info = "info depth %d score %s time %d nodes %d nps %d pv %s";
+        String info = "info depth %d score %s time %d nodes %d nps %d %s";
         UCISender.getInstance().sendToGUI(
             String.format(
                 info, mCurrentDepth, scoreString, time,
                 mNodes, countNps(mNodes, time), pvLine
             )
         );
+    }
+    
+    private void infoHash() {
+        UCISender.getInstance().sendToGUI("info hashfull " + getHashTable().usage());
     }
     
     private static long countNps(long nodes, long time) {
@@ -154,11 +162,12 @@ public class PrincipalVariationSearcher
     }
     
     private String pvLineToString() {
-        findPvLine();
-        StringBuilder sb = new StringBuilder();
+        if (mPvLine.isEmpty())
+            return "";
+        StringBuilder sb = new StringBuilder("pv");
         for (Move m : mPvLine) {
-            sb.append(m);
             sb.append(Output.SPACE);
+            sb.append(m);
         }
         return sb.toString();
     }
@@ -166,20 +175,20 @@ public class PrincipalVariationSearcher
     public void setBestMove(final Move move, final int score) {
         if (score > mBestScore) {
             super.setBestMove(move);
+            mBestScore = score;
         }
     }
     
-//    public Move getBestMove() {
+    public Move getBestMove() {
 //        findPvLine();
-//        if (mPvLine.isEmpty())
-//            return super.getBestMove();
-//        else
-//            return mPvLine.get(0);
-//    }
+        if (mPvLine.isEmpty())
+            return super.getBestMove();
+        else
+            return mPvLine.get(0);
+    }
     
-    private void findPvLine() {
-        mPvLine.clear();
-        
+    private List<Move> findPvLine() {
+        List<Move> pvLine = new LinkedList<Move>();
         Board current = getBoard();
         MoveInfo mi = new MoveInfo();
         for (int i = 1; i <= mCurrentDepth; i++) {
@@ -187,15 +196,17 @@ public class PrincipalVariationSearcher
                 break;
             }
             current = mi.move().tryExecute(current);
-//            if (!Move.isValidResult(current))
-//                break;
-            mPvLine.add(mi.move());
+            pvLine.add(mi.move());
         }
+        if (pvLine.size() > mPvLine.size())
+            mPvLine = pvLine;
+        return pvLine;
     }
 
     private int searchRoot(int depth, int alpha, int beta) {
         int score = -INFINITE;
         Move bestMove = NOMOVE;
+        List<Move> pvLine = new LinkedList<Move>();
 
         // Wir erweitern die Suchtiefe, falls wir im Schach stehen
         if (BitBoardUtils.isInCheck(getBoard())) {
@@ -216,12 +227,14 @@ public class PrincipalVariationSearcher
             // die Zero-Window-Suche fehlschlägt, führen wir die Suche mit dem
             // vollen Fenster erneut durch.
             if (moveNumber == 0
-                    || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV) > alpha) {
-                score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, IS_PV);
+                    || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV, pvLine) > alpha) {
+                score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, IS_PV, pvLine);
             }
 
             if (shouldStop(depth, mNodes)) {
                 stop();
+            }
+            if (!isSearching()) {
                 break;
             }
 
@@ -239,6 +252,11 @@ public class PrincipalVariationSearcher
             }
         }
         
+        if (bestMove != NOMOVE) {
+            pvLine.add(0, bestMove);
+            if (pvLine.size() > mPvLine.size())
+                mPvLine = pvLine;
+        }
         getHashTable().put(getBoard(), bestMove, depth, alpha, FLAG_PV);
         return alpha;
     }
@@ -248,7 +266,8 @@ public class PrincipalVariationSearcher
             final int ply,
             int alpha,
             int beta,
-            final boolean isPV) 
+            final boolean isPV,
+            final List<Move> pvLine) 
     {
         int score = -INFINITE;
         Move bestMove = NOMOVE;
@@ -308,6 +327,8 @@ public class PrincipalVariationSearcher
         int legalMoves = 0;
 
         int oldAlpha = alpha;
+        List<Move> line = new LinkedList<Move>();
+
         for (int moveNum = 0; moveNum < moveList.length; moveNum++) {
             //Board currPos = moveList[moveNum];
             Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
@@ -330,12 +351,12 @@ public class PrincipalVariationSearcher
             do {
                 if (alpha == oldAlpha) {
                     // Falls alpha nicht erhöht wurde, suchen wir normal weiter
-                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, isPV);
-                } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, NO_PV) > alpha) {
+                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, isPV, line);
+                } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, NO_PV, line) > alpha) {
                     // Andernfalls führen wir eine ZWS durch. Wenn diese einen
                     // Alpha-Cutoff verursacht, suchen wir mit vollem Such-
                     // fenster erneut.
-                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, IS_PV);
+                    score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, IS_PV, line);
                 }
 
                 if (reductionDepth > 0 && score > alpha) {
@@ -364,6 +385,9 @@ public class PrincipalVariationSearcher
                     alpha = beta;
                     break;
                 }
+                pvLine.clear();
+                pvLine.add(0, currMove);
+                pvLine.addAll(line);
                 hashFlag = FLAG_PV;
                 alpha = score;
             }

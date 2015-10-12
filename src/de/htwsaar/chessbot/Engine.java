@@ -132,6 +132,10 @@ public class Engine {
         executeMoves(moves);
 //        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
     }
+    
+    public Game getGame() {
+        return mGame;
+    }
 
     /*
      * erzeugt eine Stellung auf Grund des fens
@@ -153,26 +157,22 @@ public class Engine {
      * @param moves
      */
     public void executeMoves(final List<String> moves) {
-        for (int i = 0; i < moves.size(); i++) {
-            mGame.doMove(moves.get(i).toString());
+        if (moves == null)
+            return;
+        for (String moveString : moves) {
+            mGame.doMove(moveString);
         }
     }
 
 	//========================================
     //= go
     //========================================
-    public void search(int depth) {
-        mSearchThread.getSearcher().getConfiguration().setDepthLimit(depth);
-        mSearchThread.startSearching();
-    }
-
-    public void searchmoves(List<Move> moves, int depth) {
-        mSearchThread.getSearcher().getConfiguration().setMoves(moves);
-        mSearchThread.startSearching();
-    }
-    
     public void search() {
-        getSearcher().setBoard(mGame.getCurrentBoard());
+        stop();
+        while (!mSearchThread.isSearcherDone()) {
+            // do a busy wait...
+        }
+        getSearcher().setGame(mGame);
         mSearchThread.startSearching();
     }
 

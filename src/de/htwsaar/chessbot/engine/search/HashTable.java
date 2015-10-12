@@ -76,7 +76,7 @@ public final class HashTable {
             return false;
 
         if (entry.zobristHash == zobristHash) {
-            if (entry.bestMove == NOMOVE)
+            if (entry.bestMove.type() == NOMOVE.type())
                 return false;
             moveInfo.setMove(entry.bestMove);
             HITS++;
@@ -121,7 +121,7 @@ public final class HashTable {
         // Falls kein Eintrag vergeben oder ein Eintrag mit verschiedenem
         // Hashwert existiert, wird ein neuer Eintrag angelegt
         if (entry == null
-         || entry.flags == FLAG_BETA && entry.zobristHash != zobristHash) {
+         || entry.flags != FLAG_PV && entry.zobristHash != zobristHash) {
             mSize += (entry == null ? 1 : 0);
             mPvEntries += (flags == FLAG_PV ? 1 : 0);
             entry = new Entry(zobristHash, bestMove, depth, score, flags);
