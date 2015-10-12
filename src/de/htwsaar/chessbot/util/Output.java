@@ -7,6 +7,7 @@ public interface Output {
     String NEWLINE = System.lineSeparator();
     String SPACE   = " ";
     String TAB     = "\t";
+    String EMPTY_STRING = "";
 
     /**
     * Print out the specified message.

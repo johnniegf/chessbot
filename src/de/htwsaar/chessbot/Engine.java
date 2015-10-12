@@ -1,18 +1,18 @@
 package de.htwsaar.chessbot;
 
-import de.htwsaar.chessbot.engine.Game;
-import de.htwsaar.chessbot.engine.config.Config;
-import de.htwsaar.chessbot.engine.eval.EvaluationFunction;
-import de.htwsaar.chessbot.engine.eval.Evaluator;
-import de.htwsaar.chessbot.engine.io.UCI;
-import de.htwsaar.chessbot.engine.io.UCISender;
-import de.htwsaar.chessbot.engine.io.Logger;
-import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.search.MoveSearcher;
-import de.htwsaar.chessbot.engine.search.NegaMaxSearcher;
-import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
-import de.htwsaar.chessbot.engine.search.SearchConfiguration;
-import de.htwsaar.chessbot.engine.search.SearchWorker;
+import de.htwsaar.chessbot.core.Game;
+import de.htwsaar.chessbot.config.Config;
+import de.htwsaar.chessbot.search.eval.EvaluationFunction;
+import de.htwsaar.chessbot.search.eval.Evaluator;
+import de.htwsaar.chessbot.uci.UCI;
+import de.htwsaar.chessbot.uci.UCISender;
+import de.htwsaar.chessbot.uci.Logger;
+import de.htwsaar.chessbot.core.Board;
+import de.htwsaar.chessbot.search.MoveSearcher;
+import de.htwsaar.chessbot.search.NegaMaxSearcher;
+import de.htwsaar.chessbot.search.PrincipalVariationSearcher;
+import de.htwsaar.chessbot.search.SearchConfiguration;
+import de.htwsaar.chessbot.search.SearchWorker;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -42,11 +42,11 @@ public class Engine {
     }
     
     private Game mGame;
-    private final SearchWorker mSearchThread;
-    private UCI mUCI;
+    private SearchWorker mSearchThread;
+    private final UCI mUCI;
 
     private MoveSearcher createSearcher(EvaluationFunction eval) {
-        String searchType = Config.getInstance().getOption(OPT_SEARCH).getValue().toString();
+        String searchType = Config.getInstance().getOption(OPT_SEARCH).getValue().toString().trim();
         switch (searchType) {
             case OPT_SEARCH_VAL_NEGAMAX:
                 return new NegaMaxSearcher(eval);
@@ -59,7 +59,7 @@ public class Engine {
     
     public Engine() {
         //Initialize Engine
-        Thread.currentThread().setName("chessbot-main");
+        
 
         //Initialize Game
         mGame = new Game();
@@ -82,11 +82,7 @@ public class Engine {
     
     public void start() {
         mSearchThread.start();
-        try {
-            mUCI.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        mUCI.start();
     }
 
     //======================================
@@ -121,6 +117,7 @@ public class Engine {
     public void newGame() {
         stop();
         mGame = new Game();
+        mSearchThread.setSearcher( createSearcher(DEFAULT_EVALUATOR) );
     }
 
     //======================================
@@ -224,6 +221,7 @@ public class Engine {
      */
     public static void main(String[] args) {
         //UCIManager anlegen
+        Thread.currentThread().setName("chessbot-main");
         Engine chessbot = new Engine();
         chessbot.start();
     }

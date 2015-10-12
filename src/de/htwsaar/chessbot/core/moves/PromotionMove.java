@@ -1,0 +1,137 @@
+package de.htwsaar.chessbot.core.moves;
+
+import de.htwsaar.chessbot.core.Board;
+import de.htwsaar.chessbot.core.Position;
+import de.htwsaar.chessbot.core.pieces.Bishop;
+import de.htwsaar.chessbot.core.pieces.King;
+import de.htwsaar.chessbot.core.pieces.Knight;
+import de.htwsaar.chessbot.core.pieces.Piece;
+import de.htwsaar.chessbot.core.pieces.Pawn;
+import de.htwsaar.chessbot.core.pieces.Pieces;
+import de.htwsaar.chessbot.core.pieces.Queen;
+import de.htwsaar.chessbot.core.pieces.Rook;
+import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
+
+/**
+* Bauernumwandlung.
+*
+* @author Dominik Becker
+*/
+public class PromotionMove extends Move {
+
+    private static final int MASK   = 0x003c_0000;
+    public static final byte TO_QUEEN  = 7;
+    public static final byte TO_ROOK   = 6;
+    public static final byte TO_KNIGHT = 5;
+    public static final byte TO_BISHOP = 4; 
+
+    private static final String EXN_INVALID_START = 
+        "Ungültiges Startfeld, muss in 2. oder 7. Reihe liegen";
+
+    private static final String EXN_INVALID_TARGET =
+        "Ungültiges Zielfeld, muss für Bauer auf Startfeld erreichbar sein.";
+    private static final String EXN_INVALID_CONV_TARGET =
+        "kann nicht zu Bauer oder Koenig umgewandelt werden";
+
+
+    private final byte mPromotionType;
+    private final Move mMove;
+
+    public PromotionMove(final Position start, 
+                     final Position target, 
+                     final byte promotionType){
+        super(start,target);
+        checkInBounds(promotionType, "promotedType", TO_BISHOP, TO_QUEEN);
+
+        setStart(start);
+        setTarget(target);
+        this.mPromotionType = promotionType;
+        mMove = Move.MV(getStart(), getTarget());
+
+    }
+    
+    public void setStart(final Position pos) {
+        checkNull(pos, "startingSquare");
+        if (pos.rank() == 7 || pos.rank() == 2) {
+            super.setStart(pos);
+        } else {
+            throw new MoveException();
+        }
+            
+    }
+    
+    public void setTarget(final Position pos) {
+        checkNull(pos, "targetSquare");
+        if ( abs(pos.file() - getStart().file()) > 1) {
+            throw new MoveException();
+        }
+        if ( (pos.rank() - 1) != ((getStart().rank()-1) ^ 1)) {
+            throw new MoveException();
+        }
+        super.setTarget(pos);
+    }
+	
+    @Override
+	public Board tryExecute(Board onBoard) {
+        Piece pawn = onBoard.getPieceAt(getStart());
+        if (pawn == null || pawn.id() != Pawn.ID)
+            return null;
+        
+        Board result = mMove.tryExecute(onBoard);
+        if (result != null) {
+            result.removePieceAt(getTarget());
+            Piece converted = Pieces.PC(getPieceType(mPromotionType), 
+                                        pawn.isWhite(),
+                                        getTarget());
+            result.putPiece(converted);
+            if ( !updateLastMove(this, result)) return null;
+
+        }
+        return result;
+    }
+    
+    @Override
+    public byte type() {
+        return mPromotionType;
+    }
+    
+    @Override
+    public String toString() {
+    	return super.toString() + getFenCharacter(mPromotionType);
+    }
+    
+    private static int abs(final int value) {
+        return (value < 0 ? -value : value);
+    }
+
+    private static char getFenCharacter(final int promotedType) {
+        switch (promotedType) {
+            case TO_BISHOP:
+                return 'b';
+            case TO_KNIGHT:
+                return 'n';
+            case TO_ROOK:
+                return 'r';
+            case TO_QUEEN:
+                return 'q';
+            default:
+                throw new MoveException();
+        }
+    }
+    
+    private static byte getPieceType(final byte promotionType) {
+        switch (promotionType) {
+            case TO_BISHOP:
+                return Bishop.ID;
+            case TO_KNIGHT:
+                return Knight.ID;
+            case TO_ROOK:
+                return Rook.ID;
+            case TO_QUEEN:
+                return Queen.ID;
+            default:
+                throw new MoveException();
+        }
+    }
+}
