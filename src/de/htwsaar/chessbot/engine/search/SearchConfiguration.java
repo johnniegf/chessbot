@@ -130,5 +130,14 @@ public class SearchConfiguration {
     public void setPonder(final boolean shouldPonder) {
         mPonder = shouldPonder;
     }
+    
+    public void set(final SearchConfiguration config) {
+        setDepthLimit(config.getDepthLimit());
+        setTimeLimit(config.getTimeLimit());
+        setNodeLimit(config.getNodeLimit());
+        setInfinite(config.isInfinite());
+        setMoves(config.getMoves());
+        setPonder(config.isPondering());
+    }
 
 }

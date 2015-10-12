@@ -32,6 +32,6 @@ public class MobilityEvaluator extends EvaluationFunction {
             board.getAttacked(board.getPieceBitsForColor(isWhiteAtMove), !isWhiteAtMove)
         );
         score = (attacks - attacked) * ATTACK_WEIGHT;
-        return (isWhiteAtMove ? 1 : -1) * score;
+        return score;
     }
 }

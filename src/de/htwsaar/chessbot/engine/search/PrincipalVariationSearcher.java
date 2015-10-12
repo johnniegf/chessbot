@@ -16,7 +16,6 @@ import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_ALPHA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_BETA;
 import static de.htwsaar.chessbot.engine.search.HashTable.FLAG_PV;
 import de.htwsaar.chessbot.engine.search.HashTable.MoveInfo;
-import static de.htwsaar.chessbot.util.DeveloperUtils.DEBUG;
 import de.htwsaar.chessbot.util.Output;
 import java.util.LinkedList;
 import java.util.List;
@@ -333,9 +332,9 @@ public class PrincipalVariationSearcher
         int legalMoves = 0;
 
         int oldAlpha = alpha;
-        List<Move> line = new LinkedList<Move>();
 
         for (int moveNum = 0; moveNum < moveList.length; moveNum++) {
+            List<Move> line = new LinkedList<Move>();
             //Board currPos = moveList[moveNum];
             Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
             Move currMove = currPos.getLastMove();

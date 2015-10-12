@@ -73,8 +73,11 @@ public final class SearchWorker
             }
             mSearcherDone = false;
             mSearcher.go();
+            if (!mSearcher.getConfiguration().isPondering())
+                infoBestmove(mSearcher.getBestMove(), mSearcher.getPonderMove());
+            else
+                infoBestmove(mSearcher.getBestMove(), null);
             mSearcherDone = true;
-            infoBestmove(mSearcher.getBestMove(), mSearcher.getPonderMove());
             infoHash(mSearcher.getHashTable().usage());
             stopSearching();
         }

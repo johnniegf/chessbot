@@ -32,8 +32,7 @@ public class Parser {
     }
 
     public static void isReady(final Engine engine) {
-        if (engine.isReady())
-            sendCmd("readyok");
+        engine.isready();
     }
 
     /**
@@ -88,9 +87,7 @@ public class Parser {
     public static void go(String line, Engine engine) {
         List<Move> moves = null;
         int depth = 0;
-        boolean infinite = false;
-        engine.getSearcher().resetConfiguration();
-        SearchConfiguration cfg = engine.getSearcher().getConfiguration();
+        SearchConfiguration cfg = new SearchConfiguration();
         String[] cmds = line.split(" ");
         long wtime = 0, btime = 0,
              winc = 0, binc = 0;
@@ -134,19 +131,8 @@ public class Parser {
         }
         
         engine.getGame().setClock(wtime, btime, winc, binc, movestogo);
-        engine.search();
+        engine.search(cfg);
 
-//        if (moves != null && depth != 0) {
-//            engine.searchmoves(moves, depth);
-//        } else if (moves != null) {
-//            engine.searchmoves(moves, 5);
-//        } else if (depth != 0) {
-//            engine.search(depth);
-//        } else if (infinite) {
-//            engine.search(Integer.MAX_VALUE);
-//        } else {
-//            engine.search(6);
-//        }
     }
     
     /**

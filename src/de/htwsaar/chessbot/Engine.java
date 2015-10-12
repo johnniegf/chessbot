@@ -12,6 +12,7 @@ import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.search.MoveSearcher;
 import de.htwsaar.chessbot.engine.search.NegaMaxSearcher;
 import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
+import de.htwsaar.chessbot.engine.search.SearchConfiguration;
 import de.htwsaar.chessbot.engine.search.SearchWorker;
 
 import java.io.IOException;
@@ -102,6 +103,9 @@ public class Engine {
     //= isready
     //======================================
     public void isready() {
+        while (isSearching()) {
+            // busy wait
+        }
         UCISender.getInstance().sendToGUI("readyok");
     }
 
@@ -167,11 +171,15 @@ public class Engine {
 	//========================================
     //= go
     //========================================
-    public void search() {
-        while (!mSearchThread.isSearcherDone()) {
-            // do a busy wait...
-        }
+    public void search(final SearchConfiguration config) {
+        if (isSearching())
+            stop();
+//        stop();
+//        while (!mSearchThread.isSearcherDone()) {
+//            // do a busy wait...
+//        }
         getSearcher().setGame(mGame);
+        getSearcher().getConfiguration().set(config);
         mSearchThread.startSearching();
     }
     
@@ -187,10 +195,13 @@ public class Engine {
     //========================================
     public void stop() {
         mSearchThread.stopSearching();
+        while (isSearching()) {
+            //busy wait
+        }
     }
     
     public boolean isSearching() {
-        return false;
+        return mSearchThread.isSearching() || !mSearchThread.isSearcherDone();
     }
     
     public boolean isReady() {

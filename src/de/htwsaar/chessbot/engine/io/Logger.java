@@ -82,6 +82,7 @@ public class Logger {
             logMessage += message;
             logMessage += "\n";
             this.logWriter.write(logMessage);
+            this.logWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
