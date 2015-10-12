@@ -6,7 +6,6 @@
 package de.htwsaar.chessbot.engine.search;
 
 import de.htwsaar.chessbot.engine.io.UCISender;
-import de.htwsaar.chessbot.engine.model.Board;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 
@@ -46,8 +45,8 @@ public final class SearchWorker
     }
     
     public void stopSearching() {
-        mSearching = false;
         mSearcher.stop();
+        mSearching = false;
     }
     
     public boolean isSearcherDone() {
@@ -87,7 +86,7 @@ public final class SearchWorker
         String message = "bestmove " + bestMove;
         if (ponder != null)
             message += " ponder " + ponder;
-        UCISender.getInstance().sendToGUI(message);
+        UCISender.getInstance().sendToGUI(message, true);
     }
     
     private static void infoHash(int usage) {

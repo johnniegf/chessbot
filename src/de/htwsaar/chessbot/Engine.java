@@ -8,7 +8,6 @@ import de.htwsaar.chessbot.engine.io.UCI;
 import de.htwsaar.chessbot.engine.io.UCISender;
 import de.htwsaar.chessbot.engine.io.Logger;
 import de.htwsaar.chessbot.engine.model.Board;
-import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.search.MoveSearcher;
 import de.htwsaar.chessbot.engine.search.NegaMaxSearcher;
 import de.htwsaar.chessbot.engine.search.PrincipalVariationSearcher;
@@ -195,9 +194,9 @@ public class Engine {
     //========================================
     public void stop() {
         mSearchThread.stopSearching();
-        while (isSearching()) {
-            //busy wait
-        }
+//        while (isSearching()) {
+//            //busy wait
+//        }
     }
     
     public boolean isSearching() {

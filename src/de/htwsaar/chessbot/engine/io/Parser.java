@@ -4,9 +4,10 @@ import de.htwsaar.chessbot.Engine;
 import de.htwsaar.chessbot.engine.config.Config;
 import de.htwsaar.chessbot.engine.model.move.Move;
 import de.htwsaar.chessbot.engine.search.SearchConfiguration;
+import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-
 /**
  * zerlegt Ausgaben und splittet diese zurecht. gibt die UCI-Kommandos das
  * praepariert an die Engine weiter.
@@ -14,7 +15,18 @@ import java.util.List;
  * @author Dominik Becker
  *
  */
-public class Parser {
+public class Parser extends Thread {
+
+    //UCI Kommandos
+    private static final String POS = "position";
+    private static final String GO = "go";
+    private static final String STOP = "stop";
+    private static final String UCI = "uci";
+    private static final String READY = "isready";
+    private static final String NEWGAME = "ucinewgame";
+    private static final String PONDERHIT = "ponderhit";
+    private static final String SETOPTION = "setoption";
+    private static final String TEST = "test";
 
     private static final String ILLEGALCMD
             = "Command is not supported: ";
@@ -26,12 +38,96 @@ public class Parser {
     private static final String OPTION_VALUE_REPLACEMENT = "${value}";
     private static final String POSITION = "position (?<pos>.+) (moves (?<moves>.+))?";
 
-    public static void uci() {
+    private final List<String> commandQueue = new LinkedList<String>();
+    private boolean mRunning = true;
+    private final Engine mEngine;
+    
+    public Parser(final Engine engine) {
+        checkNull(engine);
+        mEngine = engine;
+    }
+
+    public void pushCommand(final String command) {
+        if (command != null) {
+            commandQueue.add(command);
+        }
+    }
+
+    public String popCommand() {
+        if (commandQueue.isEmpty()) {
+            return null;
+        }
+        return commandQueue.remove(0);
+    }
+
+    public boolean hasCommands() {
+        return !commandQueue.isEmpty();
+    }
+
+    public void quit() {
+        mRunning = false;
+    }
+
+    public void run() {
+        while (mRunning) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException ex) {
+                // ignore
+            }
+            if (hasCommands()) {
+                String command = popCommand();
+                executeCommand(command);
+            }
+        }
+    }
+
+    private void executeCommand(final String cmd) {
+        Logger.getInstance().log(cmd, Logger.GUI_TO_ENGINE);
+
+        if (cmd.startsWith("quit")) {
+            System.exit(0);
+        }
+
+        String[] result = cmd.split(" ");
+        for (int i = 0; i < result.length; i++) {
+            switch (result[i]) {
+                case POS:
+                    position(cmd, mEngine);
+                    break;
+                case GO:
+                    go(cmd, mEngine);
+                    break;
+                case STOP:
+                    stop(mEngine);
+                    break;
+                case UCI:
+                    uci();
+                    break;
+                case READY:
+                    isReady(mEngine);
+                    break;
+                case NEWGAME:
+                    ucinewgame(mEngine);
+                    break;
+                case PONDERHIT:
+                    ponderhit(mEngine);
+                    break;
+                case SETOPTION:
+                    setoption(cmd);
+                    break;
+                case TEST:
+                    test(cmd, mEngine);
+            }
+        }
+    }
+
+    public void uci() {
         setUCIParameter();
         sendCmd("uciok");
     }
 
-    public static void isReady(final Engine engine) {
+    public void isReady(final Engine engine) {
         engine.isready();
     }
 
@@ -40,7 +136,7 @@ public class Parser {
      *
      * @param engine
      */
-    public static void ucinewgame(Engine engine) {
+    public void ucinewgame(Engine engine) {
         engine.newGame();
     }
 
@@ -51,7 +147,7 @@ public class Parser {
      * @param line
      * @param engine
      */
-    public static void position(String line, Engine engine) {
+    public void position(String line, Engine engine) {
         String[] result = line.split("position ");
         String[] cmd = result[1].split(" ");
         String fenString;
@@ -84,13 +180,13 @@ public class Parser {
      * @param line
      * @param engine
      */
-    public static void go(String line, Engine engine) {
+    public void go(String line, Engine engine) {
         List<Move> moves = null;
         int depth = 0;
         SearchConfiguration cfg = new SearchConfiguration();
         String[] cmds = line.split(" ");
         long wtime = 0, btime = 0,
-             winc = 0, binc = 0;
+                winc = 0, binc = 0;
         int movestogo = 0;
         for (int i = 0; i < cmds.length; i++) {
             switch (cmds[i]) {
@@ -109,7 +205,7 @@ public class Parser {
                     break;
                 case "binc":
                     binc = Long.parseLong(cmds[i + 1]);
-                    break; 
+                    break;
                 case "movestogo":
                     movestogo = Integer.parseInt(cmds[i + 1]);
                     break;
@@ -130,12 +226,12 @@ public class Parser {
                     break;
             }
         }
-        
+
         engine.getGame().setClock(wtime, btime, winc, binc, movestogo);
         engine.search(cfg);
 
     }
-    
+
     /**
      * filtert die Zuege aus der Ausgabe und gibt diese zurueck.
      *
@@ -143,7 +239,7 @@ public class Parser {
      * @param moveList
      * @return moves
      */
-    private static List<Move> getMoves(String line, Move[] moveList) {
+    private List<Move> getMoves(String line, Move[] moveList) {
         List<Move> moves = new ArrayList<Move>();
         String[] searchMv = line.split("searchmoves ");
         String[] elements = searchMv[1].split(" ");
@@ -162,12 +258,12 @@ public class Parser {
     }
 
     //Stop-Kommando
-    public static void stop(Engine engine) {
+    public void stop(Engine engine) {
         engine.stop();
     }
 
     //Ponderhit-Kommando
-    public static void ponderhit(Engine engine) {
+    public void ponderhit(Engine engine) {
         engine.ponderhit();
     }
 
@@ -176,13 +272,13 @@ public class Parser {
      *
      * @param line
      */
-    public static void setoption(String line) {
-        if(!line.matches(OPTION)) {
+    public void setoption(String line) {
+        if (!line.matches(OPTION)) {
             return;
         }
         String name = line.replaceFirst(OPTION_NAME, OPTION_NAME_REPLACEMENT);
         String val = line.replaceFirst(OPTION_VALUE, OPTION_VALUE_REPLACEMENT);
-        if(Config.getInstance().containsKey(name)){
+        if (Config.getInstance().containsKey(name)) {
             Config.getInstance().getOption(name).setValue(val);
         }
     }
@@ -192,7 +288,7 @@ public class Parser {
      *
      * @param line
      */
-    public static void setDebug(String line) {
+    public void setDebug(String line) {
         String[] result = line.split(" ");
         if (result[1].equals("on")) {
             UCISender.getInstance().setShowDebug(true);
@@ -213,10 +309,9 @@ public class Parser {
         sendCmd("id name Chessbot");
         sendCmd("id author Projektgruppe 2015 Schachengine");
         sendCmd(Config.getInstance().toString());
-
     }
 
-    public static void test(String cmd, Engine engine) {
+    public void test(String cmd, Engine engine) {
         String[] params = cmd.split(" ");
         String msg = "TEST_MSG";
         if (params.length > 4) {

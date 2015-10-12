@@ -337,6 +337,14 @@ public class PrincipalVariationSearcher
         int oldAlpha = alpha;
 
         for (int moveNum = 0; moveNum < moveList.length; moveNum++) {
+            // Check timeout
+            if (shouldStop(depth, mNodes)) {
+                stop();
+            }
+            if (!isSearching()) {
+                return 0;
+            }
+            
             List<Move> line = new LinkedList<Move>();
             //Board currPos = moveList[moveNum];
             Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
@@ -377,13 +385,6 @@ public class PrincipalVariationSearcher
 
             legalMoves += 1;
 
-            // Check timeout
-            if (shouldStop(depth, mNodes)) {
-                stop();
-            }
-            if (!isSearching()) {
-                return 0;
-            }
             
             // Cutoffs
             if (score > alpha) {

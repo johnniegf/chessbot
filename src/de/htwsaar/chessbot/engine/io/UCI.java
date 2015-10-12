@@ -15,22 +15,15 @@ import java.io.InputStreamReader;
  * 
 *
  */
-public class UCI {
+public class UCI extends Thread {
 
     private String cmd;
     private BufferedReader engineIn;
     private Engine engine;
+    private Parser mParser;
+    private boolean mExit = false;
 
-    //UCI Kommandos
-    private static final String POS = "position";
-    private static final String GO = "go";
-    private static final String STOP = "stop";
-    private static final String UCI = "uci";
-    private static final String READY = "isready";
-    private static final String NEWGAME = "ucinewgame";
-    private static final String PONDERHIT = "ponderhit";
-    private static final String SETOPTION = "setoption";
-    private static final String TEST = "test";
+
 
     /**
      * startet die Endlosschleife und kann dauerhaft Kommandos empfangen.
@@ -39,11 +32,12 @@ public class UCI {
      */
     public UCI(Engine engine) {
         this.engine = engine;
-
+        mParser = new Parser(engine);
     }
 
     public void initialize() {
         engineIn = new BufferedReader(new InputStreamReader(System.in));
+        mParser.start();
     }
 
     /**
@@ -52,45 +46,13 @@ public class UCI {
      *
      * @throws IOException
      */
-    public void start() throws IOException {
-        while (true) {
-            cmd = engineIn.readLine();
-            Logger.getInstance().log(cmd, Logger.GUI_TO_ENGINE);
-
-            if (cmd.startsWith("quit")) {
-                System.exit(0);
-            }
-
-            String[] result = cmd.split(" ");
-            for (int i = 0; i < result.length; i++) {
-                switch (result[i]) {
-                    case POS:
-                        Parser.position(cmd, this.engine);
-                        break;
-                    case GO:
-                        Parser.go(cmd, this.engine);
-                        break;
-                    case STOP:
-                        Parser.stop(this.engine);
-                        break;
-                    case UCI:
-                        Parser.uci();
-                        break;
-                    case READY:
-                        Parser.isReady(this.engine);
-                        break;
-                    case NEWGAME:
-                        Parser.ucinewgame(this.engine);
-                        break;
-                    case PONDERHIT:
-                        Parser.ponderhit(this.engine);
-                        break;
-                    case SETOPTION:
-                        Parser.setoption(cmd);
-                        break;
-                    case TEST:
-                        Parser.test(cmd, this.engine);
-                }
+    public void run() {
+        while (!mExit) {
+            try {
+                cmd = engineIn.readLine();
+                mParser.pushCommand(cmd);
+            } catch (IOException ioe) {
+                mExit = true;
             }
         }
     }

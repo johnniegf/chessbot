@@ -9,6 +9,7 @@ public class UCIToGuiMessage extends UCIMessage {
     @Override
     public void send() {
         System.out.println(getMessage());
+        System.out.flush();
     }
 
 }

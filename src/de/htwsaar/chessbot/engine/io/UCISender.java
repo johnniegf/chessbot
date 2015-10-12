@@ -32,15 +32,18 @@ public class UCISender extends Thread {
             UCIMessage message = pollMessage();
             if (message != null) {
                 message.send();
-                System.out.flush();
             } else {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
+    }
+    
+    private void queueFirst(UCIMessage message) {
+        messageQueue.addFirst(message);
     }
 
     private void queueMessage(UCIMessage message) {
@@ -50,11 +53,17 @@ public class UCISender extends Thread {
     private UCIMessage pollMessage() {
         return this.messageQueue.pollFirst();
     }
-
+    
     public void sendToGUI(String command) {
-        Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
+        sendToGUI(command, false);
+    }
 
-        queueMessage(new UCIToGuiMessage(command));
+    public void sendToGUI(String command, boolean urgent) {
+        //Logger.getInstance().log(command, Logger.ENGINE_TO_GUI);
+        if (urgent)
+            queueFirst(new UCIToGuiMessage(command));
+        else
+            queueMessage(new UCIToGuiMessage(command));
     }
 
     public void sendDebug(String msg) {
