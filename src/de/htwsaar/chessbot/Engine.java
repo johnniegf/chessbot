@@ -116,8 +116,8 @@ public class Engine {
      * erstellt ein neues Spiel.
      */
     public void newGame() {
+        stop();
         mGame = new Game();
-        mSearchThread.getSearcher().setBoard(mGame.getCurrentBoard());
     }
 
     //======================================

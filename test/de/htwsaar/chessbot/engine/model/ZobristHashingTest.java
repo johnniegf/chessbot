@@ -1,17 +1,11 @@
 package de.htwsaar.chessbot.engine.model;
 
 // Interne Referenzen
-import de.htwsaar.chessbot.*;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.Color.WHITE;
-import static de.htwsaar.chessbot.engine.model.BoardUtils.toBitBoard;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
+import static de.htwsaar.chessbot.engine.model.BitBoardUtils.toBitBoard;
 
 // Java-API
-import java.util.*;
-
-// JUnit-API
-import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 import org.junit.*;
 
 /**
@@ -19,17 +13,17 @@ import org.junit.*;
 *
 * @author Johannes Haupt <johnniegf@fsfe.org>
 */
-public class ZobristHashingTest { 
+public class ZobristHashingTest {
 
     // Testvariablen
     private Board emptyBoard;
     private Board emptyBoardFromFen;
-    
+
     // Kontrollwerte
     private static final String EMPTY_FEN =
         "8/8/8/8/8/8/8/8 w - - 0 1";
     private static final ZobristHasher HASHER = ZobristHasher.getInstance();
-    
+
     /**
     * Testaufbau.
     *
@@ -61,16 +55,16 @@ public class ZobristHashingTest {
             emptyBoardFromFen.hash()
         );
     }
-    
+
     @Test public void testExecuteSomeMoves() {
         Board b = Board.B();
     }
-    
+
     @Test public void testPutPieces() {
         Board tmpBoard;
         Board tmpFenBoard;
-        for (int t = 0; t < 6; t++) 
-            for (int c = 0; c < 2; c++) 
+        for (int t = 0; t < 6; t++)
+            for (int c = 0; c < 2; c++)
                 for (int p = 0; p < 63; p++) {
                     tmpBoard = new Board();
                     boolean isWhite = c == WHITE;
@@ -91,11 +85,11 @@ public class ZobristHashingTest {
                     );
                 }
     }
-    
+
     @Test public void testCastlings() {
         Board tmpBoard;
         for (byte cstl = 0; cstl < 16; cstl++) {
-            
+
         }
     }
 
