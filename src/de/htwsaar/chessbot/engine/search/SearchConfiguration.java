@@ -28,7 +28,8 @@ public class SearchConfiguration {
     private boolean mPonder;
     private List<Move> mMoves;
     
-    private static final int DEPTH_HARD_LIMIT = 100;
+    private static final int DEPTH_HARD_LIMIT = 50;
+    private static final long TIME_HARD_LIMIT = 30000;
 
     public SearchConfiguration() {
         reset();
@@ -39,7 +40,7 @@ public class SearchConfiguration {
         if (isPondering()) return false;
         if (getNodeLimit() > 0 && nodes > getNodeLimit())
             return true;
-        if (getDepthLimit() > 0 && (depth > getDepthLimit() || depth > DEPTH_HARD_LIMIT))
+        if ((getDepthLimit() > 0 && depth > getDepthLimit()) || depth > DEPTH_HARD_LIMIT)
             return true;
         if ((nodes & TIMEOUT_INTERVAL) == 0L)
             return isTimeOut();
@@ -54,7 +55,7 @@ public class SearchConfiguration {
         mMaxNodes    = 0L;
         mMaxTime     = 0L;
         mTimeStarted = 0L;
-        mMoves       = new LinkedList<Move>();
+        mMoves       = new LinkedList<>();
         mInfinite    = false;
         mPonder      = false;
     }
@@ -66,7 +67,12 @@ public class SearchConfiguration {
     public final boolean isTimeOut() {
         return !isInfinite()
             && getTimeLimit() > 0
-            && System.currentTimeMillis() - mTimeStarted > getTimeLimit();
+            &&  (getElapsedTime() > getTimeLimit()
+              || getElapsedTime() > TIME_HARD_LIMIT);
+    }
+    
+    public long getElapsedTime() {
+        return System.currentTimeMillis() - mTimeStarted;
     }
 
     public int getDepthLimit() {

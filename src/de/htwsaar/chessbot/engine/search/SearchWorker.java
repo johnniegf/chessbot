@@ -27,7 +27,7 @@ public final class SearchWorker
         setSearcher(searcher);
     }
     
-    public MoveSearcher getSearcher() {
+    public synchronized MoveSearcher getSearcher() {
         return mSearcher;
     }
     
@@ -73,10 +73,9 @@ public final class SearchWorker
             }
             mSearcherDone = false;
             mSearcher.go();
-            infoHash(mSearcher.getHashTable().usage());
-//            if (!mSearcher.getConfiguration().isPondering())
-            infoBestmove(mSearcher.getBestMove(), mSearcher.getPonderMove());
             mSearcherDone = true;
+            infoBestmove(mSearcher.getBestMove(), mSearcher.getPonderMove());
+            infoHash(mSearcher.getHashTable().usage());
             stopSearching();
         }
     }

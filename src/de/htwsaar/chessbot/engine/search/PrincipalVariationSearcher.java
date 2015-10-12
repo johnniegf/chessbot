@@ -32,6 +32,7 @@ public class PrincipalVariationSearcher
     private static final String NAME = "pv-searcher";
     private static int ID = 1;
     private static final int INFINITE = 1_000_000;
+    private static final int MATE_THRESHOLD = INFINITE - 2000;
     private static final boolean IS_PV = true;
     private static final boolean NO_PV = false;
     
@@ -45,15 +46,17 @@ public class PrincipalVariationSearcher
 
     public PrincipalVariationSearcher(EvaluationFunction evaluator) {
         super(evaluator);
-        mPvLine = new LinkedList<Move>();
+        mPvLine = new LinkedList<>();
         mEvalTable = new EvaluationHashTable();
         mName = NAME + "#" + ID++;
     }
 
+    @Override
     public String name() {
         return mName;
     }
 
+    @Override
     protected void prepareSearch() {
         super.prepareSearch();
         mPvLine.clear();
@@ -62,6 +65,7 @@ public class PrincipalVariationSearcher
         mBestScore = -INFINITE;
     }
 
+    @Override
     public void go() {
         prepareSearch();
         start();
@@ -77,6 +81,8 @@ public class PrincipalVariationSearcher
             score = widenSearch(mCurrentDepth, score);
             if (mPvLine.size() > 1)
                 setPonderMove(mPvLine.get(1));
+            if (score > MATE_THRESHOLD)
+                stop();
             infoHash();
             mCurrentDepth += 1;
             

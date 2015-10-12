@@ -181,6 +181,7 @@ public class Parser {
 
     //Ponderhit-Kommando
     public static void ponderhit(Engine engine) {
+        engine.ponderhit();
     }
 
     /**

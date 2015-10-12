@@ -168,12 +168,18 @@ public class Engine {
     //= go
     //========================================
     public void search() {
-        stop();
         while (!mSearchThread.isSearcherDone()) {
             // do a busy wait...
         }
         getSearcher().setGame(mGame);
         mSearchThread.startSearching();
+    }
+    
+    public void ponderhit() {
+        if (mSearchThread.getSearcher().getConfiguration().isPondering()) {
+            mSearchThread.getSearcher().getConfiguration().prepareForSearch();
+            mSearchThread.getSearcher().getConfiguration().setPonder(false);
+        }
     }
 
 	//========================================
