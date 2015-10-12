@@ -119,6 +119,7 @@ public class Parser {
                     break;
                 case "movetime":
                     int movetime = Integer.parseInt(cmds[i + 1]);
+                    movetime -= 500;
                     cfg.setTimeLimit(movetime);
                     break;
                 case "infinite":
