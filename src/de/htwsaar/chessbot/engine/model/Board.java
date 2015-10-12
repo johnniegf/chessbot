@@ -484,7 +484,11 @@ public final class Board {
     }
 
     public long getAttacked(final long squares, final boolean byWhite) {
-        return squares & mAttacked[toColor(byWhite)];
+        long attackMap = 0L;
+        for (Piece p : getPiecesForColor(invert(toColor(byWhite)))) {
+            attackMap |= p.getAttackBits(this);
+        }
+        return attackMap & squares;
     }
 
     public Piece getPieceAt(final Position pos) {

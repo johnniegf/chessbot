@@ -10,10 +10,8 @@ import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.signOf;
 import static de.htwsaar.chessbot.engine.model.BitBoardUtils.FILE_MASK;
 import de.htwsaar.chessbot.engine.model.Position;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
-import de.htwsaar.chessbot.engine.model.piece.Piece;
 import de.htwsaar.chessbot.engine.model.piece.Rook;
 import de.htwsaar.chessbot.util.Bitwise;
-import java.util.ArrayList;
 
 /**
  * Bewertung der Türme auf dem Schachbrett:
@@ -86,39 +84,5 @@ public class RookEvaluator extends EvaluationFunction {
         }
         return score;
         
-//		for(Piece r : rooks) {
-//			if(r.getPosition().rank() == 7 && r.isWhite()) {
-//				malus -= ROOK_AT_7;
-//			}
-//			else if(r.getPosition().rank() == 2 && !r.isWhite()) {
-//				malus += ROOK_AT_7;
-//			}
-//			for(Piece p : b.getAllPieces(Pawn.ID)) {
-//				if(r.getPosition().file() == p.getPosition().file()) {
-//					open = false;
-//					if(r.isWhite() == !p.isWhite()) {
-//						halfOpen = true;
-//					}
-//					else {
-//						halfOpen = false;
-//						break;
-//					}
-//				}
-//			}
-//			if(open) {
-//				if(r.isWhite())
-//					malus -= OPEN_LINE;
-//				else malus += OPEN_LINE;
-//			}
-//			if(halfOpen)
-//				if(r.isWhite())
-//					malus -= HALF_OPEN_LINE;
-//				else malus += HALF_OPEN_LINE;
-//			
-//			open = true;
-//			halfOpen = false;
-//		}
-//		//System.out.println("Malus Türme: "+malus);
-//		return malus;
 	}
 }

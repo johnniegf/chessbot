@@ -10,11 +10,10 @@ import de.htwsaar.chessbot.engine.model.Board;
  */
 public class Evaluator extends EvaluationFunction {
 
-    EvaluationFunction pawnEval;
-    EvaluationFunction rookEval;
-    EvaluationFunction evalKenievel;
-    EvaluationFunction pieceSquareEval;
-    EvaluationFunction mobilityEval;
+    private EvaluationFunction pawnEval;
+    private EvaluationFunction rookEval;
+    private EvaluationFunction pieceSquareEval;
+    private EvaluationFunction mobilityEval;
 
     /**
      * Konstruktor der sämtliche Evaluatoren beinhaltet.
@@ -22,7 +21,6 @@ public class Evaluator extends EvaluationFunction {
     public Evaluator() {
         this.pawnEval = new PawnEvaluator();
         this.rookEval = new RookEvaluator();
-        this.evalKenievel = new MaterialEvaluator();
         this.pieceSquareEval = new PositionBasedEvaluator();
         this.mobilityEval = new MobilityEvaluator();
     }
@@ -33,11 +31,10 @@ public class Evaluator extends EvaluationFunction {
     public int evaluate(Board b) {
         int sign = b.isWhiteAtMove() ? 1 : -1;
         return sign * ( 0
-//                +  mobilityEval.evaluate(b)
+                + mobilityEval.evaluate(b)
                 + rookEval.evaluate(b)
                 + pawnEval.evaluate(b)
                 + pieceSquareEval.evaluate(b)
-//                + evalKenievel.evaluate(b)
         );
     }
 }

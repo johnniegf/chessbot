@@ -1,6 +1,5 @@
 package de.htwsaar.chessbot.engine.eval;
 
-import de.htwsaar.chessbot.engine.eval.MaterialEvaluator;
 import de.htwsaar.chessbot.engine.model.Board;
 import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.BLACK;
 import static de.htwsaar.chessbot.engine.model.BitBoardUtils.Color.WHITE;
@@ -9,8 +8,6 @@ import static de.htwsaar.chessbot.engine.model.BitBoardUtils.FILE_MASK;
 import static de.htwsaar.chessbot.engine.model.BitBoardUtils.West;
 import static de.htwsaar.chessbot.engine.model.BitBoardUtils.shift;
 import de.htwsaar.chessbot.engine.model.piece.Pawn;
-import de.htwsaar.chessbot.engine.model.piece.Piece;
-import static de.htwsaar.chessbot.engine.model.Position.*;
 import de.htwsaar.chessbot.util.Bitwise;
 
 /**
@@ -26,7 +23,7 @@ public class PawnEvaluator extends EvaluationFunction {
     private static final int ISOLATED_PAWN = -20;
     private static final int BACKWARD_PAWN = -8;
     private static final int PASSED_PAWN = +20;
-    private static final int FREE_LINE = +30;
+    private static final int FREE_LINE = +15;
 
     
     public PawnEvaluator() {
@@ -43,8 +40,7 @@ public class PawnEvaluator extends EvaluationFunction {
              + getDoubledPawnScore(whitePawns, blackPawns)
              + getBackwardPawnBlack(blackPawns)
              + getBackwardPawnWhite(whitePawns)
-             + getPassedPawnScore(whitePawns, blackPawns)
-             + getPawnOnFreeLineScore(whitePawns, blackPawns, allPieces);
+             + getPassedPawnScore(whitePawns, blackPawns, allPieces);
     }
     
     private int getBackwardPawnWhite(long whitePawns) {
@@ -133,17 +129,20 @@ public class PawnEvaluator extends EvaluationFunction {
         return score;
     }
     
-    private int getPassedPawnScore(long whitePawns, long blackPawns) {
+    private int getPassedPawnScore(long whitePawns, long blackPawns, long occupation) {
         int score = 0;
-        long pawns, pawn, inFront;
+        long pawns, pawn, inFront, neighbors;
         for (int file = 0; file < 8; file++) {
             pawns = FILE_MASK[file] & whitePawns;
             while (pawns != 0L) {
                 pawn = Bitwise.highestBit(pawns);
                 inFront = ~(pawn | (pawn-1)) & FILE_MASK[file];
-                inFront = shift(West, inFront) | shift(East, inFront);
-                if ((inFront & blackPawns) == 0L) {
+                neighbors = shift(West, inFront) | shift(East, inFront);
+                if ((neighbors & blackPawns) == 0L) {
                     score += PASSED_PAWN;
+                    if ((inFront & occupation) == 0L) {
+                        score += FREE_LINE;
+                    }
                 }
                 pawns ^= pawn;   
             }
@@ -151,9 +150,12 @@ public class PawnEvaluator extends EvaluationFunction {
             while (pawns != 0L) {
                 pawn = Bitwise.highestBit(pawns);
                 inFront = (pawn-1) & FILE_MASK[file];
-                inFront = shift(West, inFront) | shift(East, inFront);
-                if ((inFront & whitePawns) == 0L) {
+                neighbors = shift(West, inFront) | shift(East, inFront);
+                if ((neighbors & whitePawns) == 0L) {
                     score -= PASSED_PAWN;
+                    if ((inFront & occupation) == 0L) {
+                        score += FREE_LINE;
+                    }
                 }
                 pawns ^= pawn;   
             }
