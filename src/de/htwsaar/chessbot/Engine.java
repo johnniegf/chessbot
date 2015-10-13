@@ -26,8 +26,7 @@ import java.util.List;
  */
 public class Engine {
 
-    private static final EvaluationFunction DEFAULT_EVALUATOR =
-            new Evaluator();
+    private static final EvaluationFunction DEFAULT_EVALUATOR = new Evaluator();
     private static final String OPT_SEARCH = "SearchAlgorithm";
     private static final String OPT_SEARCH_VAL_PVS = "PrincipalVariation";
     private static final String OPT_SEARCH_VAL_NEGAMAX = "NegaMax";

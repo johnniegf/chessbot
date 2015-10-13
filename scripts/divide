@@ -1,2 +1,2 @@
 #!/bin/bash
-java -Xmx1G -cp build de.htwsaar.chessbot.engine.util.DivideMain "$1" $2 $3
+java -Xmx1G -cp build de.htwsaar.chessbot.perft.DivideMain "$1" $2 $3

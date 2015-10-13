@@ -39,7 +39,7 @@ public class MobilityEvaluator extends EvaluationFunction {
         );
         int myAttackedPieceCount = Bitwise.count(myAttacks);
         int theirAttackedPieceCount = Bitwise.count(theirAttacks);
-        score = (myAttackedPieceCount - theirAttackedPieceCount) * ATTACK_WEIGHT;
+        score += (myAttackedPieceCount - theirAttackedPieceCount) * ATTACK_WEIGHT;
         return score;
     }
 }

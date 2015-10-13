@@ -33,9 +33,10 @@ public abstract class AbstractMoveSearcher
     private SearchConfiguration mConfig;
     private boolean mIsSearching;
     private Move mBestMove;
-    protected final EvaluationFunction mEvaluator;
     private Move mPonderMove;
     private Game mGame;
+    protected final EvaluationFunction mEvaluator;
+    private final TimeStrategy mTimeStrategy;
 
     public AbstractMoveSearcher(final EvaluationFunction evaluator) {
         checkNull(evaluator);
@@ -44,6 +45,7 @@ public abstract class AbstractMoveSearcher
         mConfig = new SearchConfiguration();
         mIsSearching = false;
         mEvaluator = evaluator;
+        mTimeStrategy = new SimpleTimeStrategy();
     }
 
     protected void prepareSearch() {
@@ -68,24 +70,7 @@ public abstract class AbstractMoveSearcher
     }
     
     private long getTimeLimit() {
-        Clock cl = getGame().getClock();
-        boolean isWhiteAtMove = getGame().getCurrentBoard().isWhiteAtMove();
-        long mytime = (isWhiteAtMove ? cl.wtime : cl.btime);
-        long myinc  = (isWhiteAtMove ? cl.winc  : cl.binc);
-        long myMoveTime = 0;
-        int movestogo = cl.movestogo;
-        int movenum = getBoard().getFullMoves();
-        if (movestogo == 0) {
-            movestogo = 30;
-            if (mytime > TEN_MINUTES)
-                movestogo += 20;
-            if (mytime > TWENTY_MINUTES)
-                movestogo += 10;
-        }
-        myMoveTime = mytime / movestogo + myinc;
-        if ( movenum < 5 )
-            myMoveTime *= OPENING_INCREMENT;
-        return myMoveTime;
+        return mTimeStrategy.getMoveTime(getGame());
     }
     
     private static final long TEN_MINUTES = 600_000L;
