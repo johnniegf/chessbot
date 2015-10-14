@@ -1,10 +1,7 @@
 package de.htwsaar.chessbot.search.eval;
 
 import de.htwsaar.chessbot.core.Board;
-import static de.htwsaar.chessbot.core.BitBoardUtils.Color.COLORS;
-import static de.htwsaar.chessbot.core.BitBoardUtils.Color.signOf;
 import de.htwsaar.chessbot.core.pieces.Bishop;
-import de.htwsaar.chessbot.core.pieces.Piece;
 import de.htwsaar.chessbot.util.Bitwise;
 
 /**
@@ -40,5 +37,9 @@ public class MaterialEvaluator extends EvaluationFunction{
 		}
 		return materialCount;
 	}
+    
+    public boolean isAbsolute() {
+        return true;
+    }
 	
 }

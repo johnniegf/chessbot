@@ -1,16 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.htwsaar.chessbot.search;
 
 import static de.htwsaar.chessbot.search.eval.EvaluationFunction.INFINITE;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 
 /**
- *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Hashtabelle für Bewertungen.
+ * 
+ * Speichert einmal berechnete Bewertungen für Stellungen. Dabei werden bei
+ * Kollisionen alte Einträge überschrieben.
+ * 
+ * @author Johannes Haupt
  */
 public class EvaluationHashTable {
 
@@ -40,11 +39,14 @@ public class EvaluationHashTable {
         if (e == null || e.hash != hash) {
             e = new Entry(hash, score);
             mEntries[index(hash)] = e;
+        } else {
+            // Sollte nie passieren.
+            e.score = score;
         }
     }
 
     private int index(final long hash) {
-        return (int) ((hash & ~Long.MIN_VALUE) % capacity());
+        return (int) ((hash & Long.MAX_VALUE) % capacity());
     }
 
     public int size() {

@@ -23,8 +23,8 @@ public class PawnEvaluator extends EvaluationFunction {
     private static final int ISOLATED_PAWN = -20;
     private static final int BACKWARD_PAWN = -8;
     private static final int PASSED_PAWN = +20;
-    private static final int FREE_LINE = +30;
-    private static final int DISTANCE_DECREMENT = 5;
+    private static final int FREE_LINE = +15;
+    private static final int DISTANCE_DECREMENT = 3;
 
     
     public PawnEvaluator() {
@@ -42,6 +42,11 @@ public class PawnEvaluator extends EvaluationFunction {
              + getBackwardPawnBlack(blackPawns)
              + getBackwardPawnWhite(whitePawns)
              + getPassedPawnScore(whitePawns, blackPawns, allPieces);
+    }
+    
+    @Override
+    public boolean isAbsolute() {
+        return true;
     }
     
     private int getBackwardPawnWhite(long whitePawns) {

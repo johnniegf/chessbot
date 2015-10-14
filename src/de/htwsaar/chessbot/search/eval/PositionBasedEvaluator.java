@@ -78,8 +78,8 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     };
 
     private static final int[] KING_VALUES_MIDGAME = {
-         20,  30,  10,   0,   0,  10,  30,  20,
-         20,  20,   0,   0,   0,   0,  20,  20,
+         20,  30,  20, -10,   0, -10,  30,  20,
+         20,  20, -10, -10, -10, -10,  20,  20,
         -10, -20, -20, -20, -20, -20, -20, -10,
         -20, -30, -30, -40, -40, -30, -30, -20,
         -30, -40, -40, -50, -50, -40, -40, -30,
@@ -101,8 +101,8 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     
     private static final int[][][] PIECE_VALUES = new int[6][2][];
 
-    private static final int PIECE_VALUE_WEIGHT = 80;
-    private static final int PIECE_POSITION_WEIGHT = 20;
+    private static final int PIECE_VALUE_WEIGHT = 75;
+    private static final int PIECE_POSITION_WEIGHT = 25;
     private static final int WEIGHT_SUM = 
         PIECE_VALUE_WEIGHT + PIECE_POSITION_WEIGHT;
     
@@ -135,6 +135,11 @@ public class PositionBasedEvaluator extends EvaluationFunction {
         }
         return materialCount / WEIGHT_SUM;
     }
+    
+    @Override
+    public boolean isAbsolute() {
+        return true;
+    }
 
     private int getPositionValue(Board b, Piece p, int endgame) {
         int i = p.getPosition().index();
@@ -148,10 +153,11 @@ public class PositionBasedEvaluator extends EvaluationFunction {
     private int isEndGame(Board b) {
 		//EndGame -> 1) Beide Spieler ohne Dame
         //      oder 2) Jeder Spieler mit Dame hoechstens 1 "kleine" Figur (Laeufer/Springer)
+        boolean condition1 = false;
         long whitePieces = b.getPieceBitsForColor(true);
         long queens = b.getPieceBitsForType(Queen.ID);
         if (queens == 0L)
-            return ENDGAME;
+            condition1 = true;
 
         boolean condition2 = true;
         long minorPieces = b.getPieceBitsForType(Knight.ID)
@@ -170,7 +176,7 @@ public class PositionBasedEvaluator extends EvaluationFunction {
             condition2 = false;
         }
         
-        return (condition2 ? ENDGAME : MIDGAME);
+        return (condition2 || condition1 ? ENDGAME : MIDGAME);
     }
 
 }

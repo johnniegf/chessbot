@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.htwsaar.chessbot.search;
 
 import de.htwsaar.chessbot.core.Game;
@@ -11,8 +6,8 @@ import de.htwsaar.chessbot.core.Board;
 import de.htwsaar.chessbot.core.moves.Move;
 
 /**
- *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Schnittstelle für Suchalgorithmen.
+ * @author Johannes Haupt
  */
 public interface MoveSearcher {
 
@@ -49,19 +44,28 @@ public interface MoveSearcher {
      */
     Move getBestMove();
     
+    /**
+     * Gib den Zug zurück, über den die Engine nachdenken möchte.
+     * @return Ponder-Zug.
+     */
     Move getPonderMove();
     
-    Board getBoard();
-
     /**
-     * Lege die Ausgangsstellung für die Suche fest.
-     *
-     * @param board Ausgangsstellung für die nächste Suche.
+     * Gib die zu untersuchende Stellung zurück.
+     * @return die zu untersuchende Stellung.
      */
-    void setBoard(final Board board);
+    Board getBoard();
     
+    /**
+     * Gib den aktuellen Stand der zu untersuchenden Partie zurück.
+     * @return die zu untersuchende Partie.
+     */
     Game getGame();
     
+    /**
+     * Lege den Stand der zu untersuchenden Partie fest.
+     * @param game die zu untersuchende Partie.
+     */
     void setGame(final Game game);
 
     /**

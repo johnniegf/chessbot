@@ -10,8 +10,6 @@ import java.util.*;
 /**
 * Testwerkzeug für Performance- und Korrektheit des Zuggenerators.
 *
-* Perft zählt alle Züge, die der Zuggenerator für eine Ausgangstellung und 
-* eine Suchtiefe erzeugt. Die Ergebnisse der Generierung lassen sich 
 * @author Johannes Haupt
 */
 

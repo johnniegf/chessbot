@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.htwsaar.chessbot.search;
 
 import de.htwsaar.chessbot.core.Board;
@@ -14,12 +9,14 @@ import static de.htwsaar.chessbot.util.Exceptions.checkNull;
 /**
  * Transpositionstabelle.
  *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Die Transpositionstabelle speichert Art und Höhe der Bewertungen für 
+ * Stellungen. Besonders im Endspiel können Suchalgorithmen dadurch an 
+ * Geschwindigkeit gewinnen.
+ * 
+ * @author Johannes Haupt
  */
 public final class HashTable {
 
-    private int HITS = 0;
-    private int AGE  = 0;
 
     public static final int FLAG_ALPHA = 0;
     public static final int FLAG_BETA  = 1;
@@ -30,7 +27,7 @@ public final class HashTable {
 
     private final Entry[] mEntries;
     private int mSize;
-    private int mPvEntries;
+    private int mTableHits;
 
     public HashTable() {
         this(DEFAULT_CAPACITY);
@@ -40,27 +37,19 @@ public final class HashTable {
         checkInBounds(maxCapacity, 0, Integer.MAX_VALUE);
         mEntries = new Entry[maxCapacity];
         mSize = 0;
-        mPvEntries = 0;
+        mTableHits = 0;
     }
     
     public final int usage() {
         return (1000 * size()) / capacity();
     }
     
-    public final int pvEntries() {
-        return mPvEntries;
-    }
-
     public final int size() {
         return mSize;
     }
 
-    private int ageThreshold() {
-        return AGE - 100;
-    }
-
     public final int hits() {
-        return HITS;
+        return mTableHits;
     }
 
     public boolean get(final Board board,
@@ -79,7 +68,7 @@ public final class HashTable {
             if (entry.bestMove.type() == NOMOVE.type())
                 return false;
             moveInfo.setMove(entry.bestMove);
-            HITS++;
+            mTableHits++;
             if (entry.depth >= depth) {
                 moveInfo.setScore(entry.score);
 
@@ -118,23 +107,20 @@ public final class HashTable {
         long zobristHash = board.hash();
         Entry entry = mEntries[makeIndex(zobristHash)];
 
-        // Falls kein Eintrag vergeben oder ein Eintrag mit verschiedenem
-        // Hashwert existiert, wird ein neuer Eintrag angelegt
+        // Falls kein Eintrag vergeben ist oder ein Eintrag mit verschiedenem
+        // Hashwert existiert, der keine exakte Bewertung enthält,
+        // wird ein neuer Eintrag angelegt
         if (entry == null
          || entry.flags != FLAG_PV && entry.zobristHash != zobristHash) {
             mSize += (entry == null ? 1 : 0);
-            mPvEntries += (flags == FLAG_PV ? 1 : 0);
             entry = new Entry(zobristHash, bestMove, depth, score, flags);
             mEntries[makeIndex(zobristHash)] = entry;
             return;
         }
 
-
         // Hash stimmt überein
-//        if (entry.depth <= depth)
         if (entry.depth <= depth)
         {
-//            entry.zobristHash = zobristHash;
             entry.bestMove = bestMove;
             entry.depth = depth;
             entry.score = score;
@@ -153,7 +139,7 @@ public final class HashTable {
     }
 
     private int makeIndex(final long zobristHash) {
-        return (int) ((zobristHash >>> 1) % capacity());
+        return (int) ((zobristHash & Long.MAX_VALUE) % capacity());
     }
 
     public static final boolean isDefined(final int result) {

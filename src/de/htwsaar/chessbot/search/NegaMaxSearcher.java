@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.htwsaar.chessbot.search;
 
 import de.htwsaar.chessbot.search.eval.EvaluationFunction;
@@ -10,8 +5,9 @@ import de.htwsaar.chessbot.uci.UCISender;
 import de.htwsaar.chessbot.core.Board;
 
 /**
- *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Implementierung des primitiven Negamax-Algorithmus.
+ * @author Johannes Haupt
+ * @see <a href="https://en.wikipedia.org/wiki/Negamax">Wikipedia zu Negamax</a>
  */
 public class NegaMaxSearcher
      extends AbstractMoveSearcher

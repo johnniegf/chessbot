@@ -19,23 +19,27 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Implementierungshilfe für Suchalgorithmen.
+ * @author Johannes Haupt
+ * @author David Holzapfel
+ * @author Timo Klein
  */
 public abstract class AbstractMoveSearcher
            implements MoveSearcher
 {
 
-    private Board mCurrentPosition;
+    private boolean mIsSearching;
+    private SearchConfiguration mConfig;
+    
+    private Game mGame;
     private Board[] mPositionList;
+    private Move mBestMove;
+    private Move mPonderMove;
+    
     private final HashTable mHashTable;
     private final EvaluationHashTable mEvalTable;
-    private SearchConfiguration mConfig;
-    private boolean mIsSearching;
-    private Move mBestMove;
-    protected final EvaluationFunction mEvaluator;
-    private Move mPonderMove;
-    private Game mGame;
+    private final EvaluationFunction mEvaluator;
+    private final TimeStrategy mTimeStrategy;
 
     public AbstractMoveSearcher(final EvaluationFunction evaluator) {
         checkNull(evaluator);
@@ -44,6 +48,7 @@ public abstract class AbstractMoveSearcher
         mConfig = new SearchConfiguration();
         mIsSearching = false;
         mEvaluator = evaluator;
+        mTimeStrategy = new SimpleTimeStrategy();
     }
 
     protected void prepareSearch() {
@@ -61,37 +66,12 @@ public abstract class AbstractMoveSearcher
             mPositionList = positionsToSearch.toArray(new Board[0]);
         }
         if (mConfig.getTimeLimit() == 0L) {
-            long timeLimit = getTimeLimit();
+            long timeLimit = mTimeStrategy.getMoveTime(getGame());
             mConfig.setTimeLimit(timeLimit);
         }
         mConfig.prepareForSearch();
     }
     
-    private long getTimeLimit() {
-        Clock cl = getGame().getClock();
-        boolean isWhiteAtMove = getGame().getCurrentBoard().isWhiteAtMove();
-        long mytime = (isWhiteAtMove ? cl.wtime : cl.btime);
-        long myinc  = (isWhiteAtMove ? cl.winc  : cl.binc);
-        long myMoveTime = 0;
-        int movestogo = cl.movestogo;
-        int movenum = getBoard().getFullMoves();
-        if (movestogo == 0) {
-            movestogo = 30;
-            if (mytime > TEN_MINUTES)
-                movestogo += 20;
-            if (mytime > TWENTY_MINUTES)
-                movestogo += 10;
-        }
-        myMoveTime = mytime / movestogo + myinc;
-        if ( movenum < 5 )
-            myMoveTime *= OPENING_INCREMENT;
-        return myMoveTime;
-    }
-    
-    private static final long TEN_MINUTES = 600_000L;
-    private static final long TWENTY_MINUTES = 2 * TEN_MINUTES;
-    private static final double OPENING_INCREMENT = 1.20;
-
     @Override
     public void clearHashTable() {
         mHashTable.clear();
@@ -137,12 +117,6 @@ public abstract class AbstractMoveSearcher
     protected Board[] getBoardList() {
         return mPositionList;
     }
-
-    @Override
-    public void setBoard(Board board) {
-        checkCondition(Move.isValidResult(board));
-        mCurrentPosition = board;
-    }
     
     @Override
     public Game getGame() {
@@ -151,6 +125,7 @@ public abstract class AbstractMoveSearcher
     
     @Override
     public void setGame(final Game game) {
+        checkNull(game);
         mGame = game;
     }
 

@@ -80,7 +80,7 @@ public class King
         if (context.isWhiteAtMove() != isWhite())
             return 0L;
         long moveBits = getAttackBits(context);
-        return moveBits ^ context.getAttacked(moveBits, !isWhite());
+        return moveBits ^ context.getAttackedBits(moveBits, !isWhite());
     }
     
     @Override
@@ -124,7 +124,7 @@ public class King
                 continue;
             long attacked = ATTACK_MASK & CASTLING_MASKS[color][side];
             attacked |= getPosition().toBitBoard();
-            if (context.getAttacked(attacked, !isWhite()) != 0L ) {
+            if (context.getAttackedBits(attacked, !isWhite()) != 0L ) {
                 continue;
             }
 

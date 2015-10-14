@@ -20,9 +20,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 /**
-* Beschreibung.
-*
+* Schachbrett in Bitboard-Darstellung.
+* 
+* Informationen über das Schachbrett können sowohl über die objektorientierten,
+* als auch die Bitboard-Schnittstellen abegefragt werden.
+* 
 * @author Johannes Haupt
+* @author Timo Klein
+* @author Henning Walte
 */
 public final class Board {
 
@@ -37,10 +42,9 @@ public final class Board {
         return BUILDER.fromFenString(fenString);
     }
 
-    // bitboards for pieces
+    // Bitboards für Figuren, Farben und en-passant
     private final long[] mColors;
     private final long[] mPieces;
-    private final long[] mAttacked;
     private Position mEnPassant;
 
     private long    mZobristHash;
@@ -49,8 +53,7 @@ public final class Board {
     private short   mMoveNumber;
     private byte    mCastlings;
     private Move    mLastMove;
-    private List<Long> mHistory;
-//    private String  mFenString;
+    private final List<Long> mHistory;
 
     @Override
     public final Board clone() {
@@ -92,7 +95,6 @@ public final class Board {
     }
 
     public Board() {
-        mAttacked = new long[2];
         mColors = new long[2];
         mPieces = new long[6];
 
@@ -113,7 +115,6 @@ public final class Board {
     }
 
     public boolean isAttacked(final long position, final int color) {
-//        return (mAttacked[color] & position) != 0L;
         return attackCount(position, color, false) > 0;
     }
 
@@ -331,12 +332,6 @@ public final class Board {
         return true;
     }
 
-    public void recalculateAttacks() {
-        for (Piece p : getAllPieces()) {
-            mAttacked[toColor(p.isWhite())] |= p.getAttackBits(this);
-        }
-    }
-
     public boolean movePieceTo(final Position from, final Position to) {
         return movePieceTo(from.toBitBoard(), to.toBitBoard());
     }
@@ -483,7 +478,7 @@ public final class Board {
         return true;
     }
 
-    public long getAttacked(final long squares, final boolean byWhite) {
+    public long getAttackedBits(final long squares, final boolean byWhite) {
         if (squares == 0L)
             return squares;
         

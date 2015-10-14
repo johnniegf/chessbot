@@ -1,13 +1,7 @@
 /**
-* Zusammenfassung.
+* Stellt Klassen und ausführbare Dateien für Perft und Divide bereit.
 *
-* Ausführliche Beschreibung.
-*
-* @author Kevin Alberts
-* @author Dominik Becker
 * @author Johannes Haupt
-* @author David Holzapfel
-* @author Timo Klein
-* @author Henning Walte
+* @see <a href="http://chessprogramming.wikispaces.com/Perft">CPW zu Perft</a>
 */
 package de.htwsaar.chessbot.perft;

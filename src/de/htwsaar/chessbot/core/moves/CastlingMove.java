@@ -56,7 +56,7 @@ public class CastlingMove extends Move {
         long possibleAttacks = freeSquares & ATTACK_MASK;
         
         if ((freeSquares & onBoard.getOccupiedBits()) != 0L) return null;
-        if ( onBoard.getAttacked(possibleAttacks, !toBool(color)) != 0L ) return null;
+        if ( onBoard.getAttackedBits(possibleAttacks, !toBool(color)) != 0L ) return null;
         
         Board result = mMove.tryExecute(onBoard);
         if (result != null) {

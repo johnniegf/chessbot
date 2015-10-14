@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.htwsaar.chessbot.search;
 
 import de.htwsaar.chessbot.search.eval.EvaluationFunction;
@@ -11,7 +6,6 @@ import de.htwsaar.chessbot.core.Board;
 import de.htwsaar.chessbot.core.BitBoardUtils;
 import de.htwsaar.chessbot.core.moves.Move;
 import static de.htwsaar.chessbot.core.moves.Move.NOMOVE;
-import static de.htwsaar.chessbot.search.EvaluationHashTable.UNDEFINED;
 import static de.htwsaar.chessbot.search.HashTable.FLAG_ALPHA;
 import static de.htwsaar.chessbot.search.HashTable.FLAG_BETA;
 import static de.htwsaar.chessbot.search.HashTable.FLAG_PV;
@@ -21,8 +15,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
- * @author Johannes Haupt <johnniegf@fsfe.org>
+ * Alpha-Beta-Suchalgorithmus mit Principal Variation Search.
+ * 
+ * <p> Implementierung des Alpha-Beta-Algorithmus im Negamax-Stil mit 
+ * folgenden Erweiterungen:</p>
+ * <ul>
+ *  <li><a href="https://en.wikipedia.org/wiki/Principal_variation_search">
+ *      Principal Variation Search</a></li>
+ *  <li><a href="http://chessprogramming.wikispaces.com/Transposition+Table">
+ *      Transposition Hash Table</a></li>
+ *  <li><a href="http://chessprogramming.wikispaces.com/Aspiration+Windows">
+ *      Aspiration Windows</a></li>
+ *  <li><a href="http://chessprogramming.wikispaces.com/Iterative+Deepening">
+ *      Iterative Deepening</a></li>
+ * </ul>
+ * 
+ * @author Johannes Haupt
+ * @author David Holzapfel
+ * @see HashTable
  */
 public class PrincipalVariationSearcher
         extends AbstractMoveSearcher
@@ -30,7 +40,6 @@ public class PrincipalVariationSearcher
 
     private static final String NAME = "pv-searcher";
     private static int ID = 1;
-    private static final int INFINITE = 1_000_000;
     private static final int MATE_THRESHOLD = INFINITE - 2000;
     private static final boolean IS_PV = true;
     private static final boolean NO_PV = false;
@@ -40,9 +49,12 @@ public class PrincipalVariationSearcher
     private int mCurrentDepth;
     private long mNodes;
     private final String mName;
-    private int mBestScore;
 
-    public PrincipalVariationSearcher(EvaluationFunction evaluator) {
+    /**
+     * Erzeuge einen neuen PV-Sucher mit der übergebenen Bewertungsfunktion.
+     * @param evaluator Bewertungsfunktion.
+     */
+    public PrincipalVariationSearcher(final EvaluationFunction evaluator) {
         super(evaluator);
         mPvLine = new LinkedList<>();
         mName = NAME + "#" + ID++;
@@ -59,7 +71,6 @@ public class PrincipalVariationSearcher
         mPvLine.clear();
         mCurrentDepth = 1;
         mNodes = 0;
-        mBestScore = -INFINITE;
     }
 
     @Override
@@ -70,7 +81,13 @@ public class PrincipalVariationSearcher
         stop();
     }
 
-    private int iterativeSearch() {
+    /**
+     * Iterative deepening.
+     * 
+     * Suche aufsteigend alle Suchtiefen ab. Wird der Sucher von außen gestoppt,
+     * bricht der Algorithmus umgehend ab.
+     */
+    private void iterativeSearch() {
         int score = searchRoot(mCurrentDepth, -INFINITE, INFINITE);
         while (isSearching()) {
             
@@ -87,22 +104,33 @@ public class PrincipalVariationSearcher
             if (shouldStop(mCurrentDepth, mNodes))
                 stop();
         }
-        return score;
     }
     
+    /**
+     * Führe die Suche mit möglichst kleinem Fenster aus.
+     * 
+     * Zunächst wird um die übergebene Bewertung ein Fenster der Größe
+     * 100 gebildet. Falls die Suche ein Ergebnis außerhalb dieses Fensters
+     * produziert, muss mit vollem Suchfenster neu gesucht werden.
+     * 
+     * @param depth Suchtiefe
+     * @param score Bewertung um die das Fenster gebildet werden soll.
+     * @return Ergebnis der Suche.
+     */
     private int widenSearch(int depth, int score) {
-        int temp = score;
-        int alpha = score - 50;
-        int beta  = score + 50;
+        int alpha = score - ASPIRATION_WINDOW;
+        int beta  = score + ASPIRATION_WINDOW;
  
-        // Check the aspiration window.
-        temp = searchRoot(depth, alpha, beta);
+        // Suche mit kleinem Fenster durchführen.
+        int temp = searchRoot(depth, alpha, beta);
         
-        // If the narrow window search fails, re-search with full window.
+        // Falls das fehlschlägt, muss eine neue Suche mit großem Suchfenster
+        // durchgeführt werden
         if (temp <= alpha || temp >= beta)
             temp = searchRoot(depth, -INFINITE, INFINITE);
         return temp;
     }
+    private static final int ASPIRATION_WINDOW = 50;
 
     private Board pickNextMove(final Board current,
             final Board[] positions,
@@ -111,10 +139,6 @@ public class PrincipalVariationSearcher
             final int alpha,
             final int beta) 
     {
-//        if (moveNumber > 0) {
-//            return positions[moveNumber];
-//        }
-
         MoveInfo mi = new MoveInfo();
         if (getHashTable().get(current, depth, alpha, beta, mi)) {
             Move next = mi.move();
@@ -128,103 +152,19 @@ public class PrincipalVariationSearcher
         return positions[moveNumber];
     }
     
-    private static void infoDepth(int depth) {
-        UCISender.getInstance().sendToGUI("info depth " + depth);
-    }
     
-    private void infoBeta(String currmove, int beta) {
-        info(
-            currmove,
-            String.format(SCORE_BETA, beta),
-            ""
-        );
-    }
-    private static final String SCORE_BETA = "upperbound %d";
-    
-    private void info(String currmove, String score, String pvline) {
-        long time = getConfiguration().getElapsedTime();
-        UCISender.getInstance().sendToGUI(
-            String.format(INFO,
-                currmove,
-                mCurrentDepth, 
-                score, 
-                time, 
-                mNodes, 
-                countNps(mNodes, time),
-                pvline
-            )
-        );
-    }
-    private static final String INFO = 
-        "info currmove %s depth %d score %s time %d nodes %d nps %d %s";
-    
-    private void infoPv(String currmove, int score, List<Move> pvline) {
-        String scoreString = null;
-        if (Math.abs(score) < INFINITE - 2000) {
-            scoreString = "cp " + score;
-        } else {
-            if (score > 0) {
-                scoreString = "mate " + ((INFINITE-score) / 2 + 1);
-            } else {
-                scoreString = "mate " + (-(INFINITE+score) / 2 - 1);
-            }
-        }
-        String pvLine = pvLineToString(pvline);
-        info(currmove, scoreString, pvLine);
-    }
-    
-    private void infoHash() {
-        UCISender.getInstance().sendToGUI("info hashfull " + getHashTable().usage());
-    }
-    
-    private static long countNps(long nodes, long time) {
-        if (time == 0L) return 0L;
-        
-        return nodes * 1000 / time;
-    }
-    
-    private String pvLineToString(final List<Move> pvline) {
-        if (pvline == null || pvline.isEmpty())
-            return "";
-        StringBuilder sb = new StringBuilder("pv");
-        for (Move m : pvline) {
-            sb.append(Output.SPACE);
-            sb.append(m);
-        }
-        return sb.toString();
-    }
-    
-    public void setBestMove(final Move move, final int score) {
-        if (score > mBestScore) {
-            super.setBestMove(move);
-            mBestScore = score;
-        }
-    }
-    
+    @Override
     public Move getBestMove() {
-//        findPvLine();
-        if (mPvLine.isEmpty())
-            return super.getBestMove();
-        else
-            return mPvLine.get(0);
+        return mPvLine.get(0);
     }
     
-    private List<Move> findPvLine() {
-        List<Move> pvLine = new LinkedList<Move>();
-        Board current = getBoard();
-        MoveInfo mi = new MoveInfo();
-        for (int i = 1; i <= mCurrentDepth; i++) {
-            if (!getHashTable().get(current, 0, 0, 0, mi)) {
-                break;
-            }
-            current = mi.move().tryExecute(current);
-            pvLine.add(mi.move());
-        }
-        if (pvLine.size() > mPvLine.size())
-            mPvLine = pvLine;
-        return pvLine;
-    }
-
+    /**
+     * Algorithmus für die Wurzel.
+     * @param depth gewünschte Suchtiefe.
+     * @param alpha untere Schranke der Bewertung.
+     * @param beta  obere Schranke der Bewertung.
+     * @return Bewertung des besten Zugs.
+     */
     private int searchRoot(int depth, int alpha, int beta) {
         int score = -INFINITE;
         Move bestMove = NOMOVE;
@@ -241,7 +181,7 @@ public class PrincipalVariationSearcher
         Board childPos = null;
         String currmove;
         for (int moveNumber = 0; moveNumber < moveCount; moveNumber++) {
-            List<Move> line = new LinkedList<Move>();
+            List<Move> line = new LinkedList<>();
             childPos = pickNextMove(getBoard(), getBoardList(), moveNumber, depth, alpha, beta);
             currmove = childPos.getLastMove().toString();
 
@@ -249,7 +189,8 @@ public class PrincipalVariationSearcher
             // die Zero-Window-Suche fehlschlägt, führen wir die Suche mit dem
             // vollen Fenster erneut durch.
             if (moveNumber == 0
-                    || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV, line) > alpha) {
+             || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV, line) > alpha) 
+            {
                 score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, IS_PV, line);
             }
 
@@ -262,7 +203,6 @@ public class PrincipalVariationSearcher
 
             if (score > alpha) {
                 bestMove = childPos.getLastMove();
-                setBestMove(bestMove, score);
                 if (score >= beta) {
                     getHashTable().put(getBoard(), bestMove, depth, beta, FLAG_BETA);
                     infoBeta(currmove,beta);
@@ -286,6 +226,22 @@ public class PrincipalVariationSearcher
         return alpha;
     }
 
+    /**
+     * Innerer Suchalgorithmus.
+     * 
+     * Der wesentliche Ablauf des Algorithmus ist derselbe wie bei der Wurzel.
+     * Jedoch werden einige weitere Optimierungen in diesem Algorithmus nicht
+     * in der Wurzel durchgeführt, weil dies z.T. unsinnig ist.
+     * 
+     * @param board zu bewertende Stellung.
+     * @param depth verbleibende Suchtiefe.
+     * @param ply   Halbzüge seit der Wurzel.
+     * @param alpha Untere Schranke der Bewertung.
+     * @param beta  Obere Schranke der Bewertung.
+     * @param isPV  true, wenn die aktuelle Stellung ein PV-Knoten ist
+     * @param pvLine Akkumulator für die PV-Zugfolge
+     * @return Bewertung der aktuellen Stellung.
+     */
     private int searchInner(final Board board,
             int depth,
             final int ply,
@@ -305,6 +261,7 @@ public class PrincipalVariationSearcher
         if (shouldStop(depth, mNodes)) {
             stop();
         }
+
         if (!isSearching()) {
             return 0;
         }
@@ -331,12 +288,13 @@ public class PrincipalVariationSearcher
         }
 
 
-        // Repetition checking
+        // Tritt eine Stellungswiederholung auf, oder nähern wir uns einem
+        // Remis nach der 50-Züge-Regel, prüfen wir, ob sich ein Remis lohnt.
         if (board.isRepetition()) {
-            return contempt();
+            return contempt(board);
         }
 
-        // Probe hash table
+        // Suche der Stellung in der Transpositionstabelle
         if (getHashTable().get(board, depth, alpha, beta, hashMove)) {
             score = hashMove.score();
             if (!isPV || (score > alpha && score < beta)) {
@@ -344,7 +302,7 @@ public class PrincipalVariationSearcher
             }
         }
 
-        // Generate child positions
+        // Zugliste absuchen
         Board[] moveList = board.getResultingPositions();
 
         int reductionDepth = 0;
@@ -354,7 +312,7 @@ public class PrincipalVariationSearcher
         int oldAlpha = alpha;
 
         for (int moveNum = 0; moveNum < moveList.length; moveNum++) {
-            // Check timeout
+            // Zeitlimit prüfen
             if (shouldStop(depth, mNodes)) {
                 stop();
             }
@@ -363,10 +321,13 @@ public class PrincipalVariationSearcher
             }
             
             List<Move> line = new LinkedList<Move>();
-            //Board currPos = moveList[moveNum];
             Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
             Move currMove = currPos.getLastMove();
 
+            // Late move reduction
+            // Wegen der Sortierung der Stellungsliste gehen wir davon aus,
+            // dass sich die Knoten der Principal Variation nicht am Ende der
+            // Zugliste befinden. Dort suchen wir nicht so tief.
             if (!isPV && newDepth > 3
                     && moveNum > 3
                     && BitBoardUtils.isInCheck(currPos)
@@ -386,12 +347,16 @@ public class PrincipalVariationSearcher
                     // Falls alpha nicht erhöht wurde, suchen wir normal weiter
                     score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, isPV, line);
                 } else if (-searchInner(currPos, newDepth, ply + 1, -alpha - 1, -alpha, NO_PV, line) > alpha) {
+                    
                     // Andernfalls führen wir eine ZWS durch. Wenn diese einen
                     // Alpha-Cutoff verursacht, suchen wir mit vollem Such-
-                    // fenster erneut.
+                    // fenster erneut. In diesem Fall müssen wir annehmen, dass
+                    // wir uns in einem Knoten der PV befinden.
                     score = -searchInner(currPos, newDepth, ply + 1, -beta, -alpha, IS_PV, line);
                 }
-
+                
+                // Falls wir die Suchtiefe reduziert haben und unsere Suche mit
+                // einem Alpha-Cutoff fehlschlägt
                 if (reductionDepth > 0 && score > alpha) {
                     newDepth += reductionDepth;
                     reductionDepth = 0;
@@ -418,7 +383,7 @@ public class PrincipalVariationSearcher
                 alpha = score;
             }
 
-        } // End of recursion
+        } // Fertig mit der Rekursion
 
         // Matt- und Patterkennung
         if (legalMoves == 0) {
@@ -426,16 +391,110 @@ public class PrincipalVariationSearcher
             if (inCheck) {
                 alpha = -INFINITE + ply;
             } else {
-                alpha = contempt();
+                alpha = contempt(board);
             }
         }
 
         getHashTable().put(board, bestMove, depth, alpha, hashFlag);
         return alpha;
     }
-
+    
+    /**
+     * Quiescence search.
+     * @param position
+     * @param alpha
+     * @param beta
+     * @return 
+     */
     private int quiescenceSearch(final Board position, int alpha, int beta) {
+        // TODO: Quiescence search implementieren. Blattknoten sollten nur
+        //       bewertet werden, wenn der am Zug befindliche Spieler keine
+        //       ungedeckten Figuren hat. Erreicht werden kann dies dadurch,
+        //       dass alle Züge, in denen eine Figur geschlagen wird, ab der
+        //       übergebenen Stellung generiert und untersucht werden.
+        //       Diese können dann aufgrund von SEE (Static Exchange Evaluation)
+        //       bewertet werden.
         return evaluate(position);
+    }
+
+
+    /**
+     * Evaluation für Patt- und Remissituationen.
+     * 
+     * @return Bewertung einer Pattsituation.
+     */
+    private int contempt(final Board board) {
+        // TODO: Tatsächlich bewerten. Ein Remis ist am Anfang der Partie
+        //       weniger wünschenswert als im Endspiel, selbst wenn die
+        //       Engine im Nachteil ist.
+        return 0;
+    }
+    
+    // =======================================================================
+    // === AUSGABEN 
+    // =======================================================================
+    
+    private static void infoDepth(int depth) {
+        UCISender.getInstance().sendToGUI("info depth " + depth);
+    }
+    
+    private void infoBeta(String currmove, int beta) {
+        info(
+            currmove,
+            String.format(SCORE_BETA, beta),
+            ""
+        );
+    }
+    
+    private void infoPv(String currmove, int score, List<Move> pvline) {
+        String scoreString = null;
+        if (Math.abs(score) < MATE_THRESHOLD) {
+            scoreString = "cp " + score;
+        } else {
+            if (score > 0) {
+                scoreString = "mate " + ((INFINITE-score) / 2 + 1);
+            } else {
+                scoreString = "mate " + (-(INFINITE+score) / 2 - 1);
+            }
+        }
+        String pvLine = pvLineToString(pvline);
+        info(currmove, scoreString, pvLine);
+    }
+    
+    private void infoHash() {
+        UCISender.getInstance().sendToGUI("info hashfull " + getHashTable().usage());
+    }
+    
+    private void info(String currmove, String score, String pvline) {
+        long time = getConfiguration().getElapsedTime();
+        UCISender.getInstance().sendToGUI(
+            String.format(INFO,
+                currmove,
+                mCurrentDepth, 
+                score, 
+                time, 
+                mNodes, 
+                countNps(mNodes, time),
+                pvline
+            )
+        );
+    }
+    
+    private static long countNps(long nodes, long time) {
+        if (time == 0L) return 0L;
+        
+        return nodes * 1000 / time;
+    }
+    
+    private String pvLineToString(final List<Move> pvline) {
+        if (pvline == null || pvline.isEmpty())
+            return "";
+        StringBuilder sb = new StringBuilder("pv");
+        for (Move m : pvline) {
+            sb.append(Output.SPACE);
+            sb.append(m);
+        }
+        return sb.toString();
     }
 
     private static void swap(Board[] positions, int moveNumber, int i) {
@@ -443,14 +502,8 @@ public class PrincipalVariationSearcher
         positions[moveNumber] = positions[i];
         positions[i] = temp;
     }
-
-    /**
-     * Evaluation für Patt- und Remissituationen.
-     * 
-     * @return Bewertung einer Pattsituation.
-     */
-    private int contempt() {
-        return 0;
-    }
-
+    
+    private static final String INFO = 
+        "info currmove %s depth %d score %s time %d nodes %d nps %d %s";
+    private static final String SCORE_BETA = "upperbound %d";
 }

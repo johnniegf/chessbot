@@ -13,8 +13,9 @@ import de.htwsaar.chessbot.core.pieces.Rook;
 /**
  * Bewertungsfunktion für Stellungen.
  * 
-* Eine Bewertungsfunktion kann eine Stellung aufgrund vieler verschiedener
- * Kriterien bewerten.
+ * Eine Bewertungsfunktion kann eine Stellung aufgrund vieler verschiedener
+ * Kriterien bewerten, etwa Materialdifferenz, Bauernstruktur und
+ * Königssicherheit. 
  * 
 * @author Johannes Haupt, Dominik Becker
  */
@@ -70,5 +71,16 @@ public abstract class EvaluationFunction {
      * @throws NullPointerException falls <code>board == null</code>
      */
     public abstract int evaluate(final Board b);
-
+    
+    /**
+     * Gib zurück, ob die Funktion absolut oder relativ bewertet.
+     * 
+     * Bei absoluter Bewertung ist der Vorteil für weiß immer eine positive und
+     * der Vorteil für schwarz immer eine negative Zahl. Bei Bewertung
+     * relativ zur ziehenden Farbe stellen negative Werte einen Nachteil für
+     * die ziehende Farbe dar.
+     * 
+     * @return true genau dann, wenn die Funktion absolut bewertet.
+     */
+    public abstract boolean isAbsolute();
 }
