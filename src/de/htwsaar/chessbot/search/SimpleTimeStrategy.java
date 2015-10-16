@@ -16,7 +16,7 @@ import de.htwsaar.chessbot.core.Game;
 public class SimpleTimeStrategy implements TimeStrategy {
     private static final long TEN_MINUTES = 10 * MINUTE;
     private static final long TWENTY_MINUTES = 20 * MINUTE;
-    private static final double OPENING_INCREMENT = 1.25;
+    private static final double OPENING_INCREMENT = 1.5;
 
     @Override
     public long getMoveTime(Game gameState) {

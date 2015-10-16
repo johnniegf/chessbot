@@ -30,12 +30,12 @@ public interface MoveSearcher {
      */
     String name();
     
-    HashTable getHashTable();
+    TranspositionHashTable getHashTable();
 
     /**
      * Leere die Transpositionstabelle des Suchers.
      */
-    void clearHashTable();
+    void clearHashTables();
 
     /**
      * Gib den berechneten besten Zug für die aktuelle Stellung zurück.

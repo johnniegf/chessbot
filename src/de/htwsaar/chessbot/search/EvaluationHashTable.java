@@ -11,7 +11,7 @@ import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
  * 
  * @author Johannes Haupt
  */
-public class EvaluationHashTable {
+public class EvaluationHashTable implements HashTable {
 
     public static final int UNDEFINED = -INFINITE;
 
@@ -49,17 +49,37 @@ public class EvaluationHashTable {
         return (int) ((hash & Long.MAX_VALUE) % capacity());
     }
 
+    @Override
     public int size() {
         return mCount;
     }
 
+    @Override
     public int capacity() {
         return mEntries.length;
     }
+    
+    @Override
+    public void setCapacity(final int sizeInKB) {
+        checkInBounds(sizeInKB, 0, Integer.MAX_VALUE);
+        int capacity = sizeInKB / Entry.SIZE_IN_KB;
+        if (mEntries == null || capacity != capacity()) {
+            mEntries = new Entry[capacity];
+            mCount = 0;
+        }
+    }
+    
+    @Override
+    public void clear() {
+        mEntries = new Entry[capacity()];
+        mCount = 0;
+    }
 
-    private static final int DEFAULT_CAPACITY = 1 << 17;
+    private static final int DEFAULT_CAPACITY = 1024 * 1024;
 
     private static class Entry {
+        
+        public static final int SIZE_IN_KB = 24;
         public long hash;
         public int score;
 

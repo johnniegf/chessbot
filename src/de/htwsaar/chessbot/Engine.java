@@ -28,6 +28,7 @@ public class Engine {
 
     private static final EvaluationFunction DEFAULT_EVALUATOR = Evaluator.DEFAULT;
     private static final String OPT_SEARCH = "SearchAlgorithm";
+    private static final String OPT_HASH = "HashTableSize";
     private static final String OPT_SEARCH_VAL_PVS = "PrincipalVariation";
     private static final String OPT_SEARCH_VAL_NEGAMAX = "NegaMax";
     private static final String[] OPT_SEARCH_VALUES = new String[] {
@@ -38,6 +39,7 @@ public class Engine {
         Config.getInstance().addComboOption(
             OPT_SEARCH, OPT_SEARCH_VAL_PVS, Arrays.asList(OPT_SEARCH_VALUES)
         );
+        Config.getInstance().addSpinOption(OPT_HASH, 1024, 1, Integer.MAX_VALUE);
     }
     
     private Game mGame;
@@ -105,6 +107,10 @@ public class Engine {
 
     public MoveSearcher getSearcher() {
         return mSearchThread.getSearcher();
+    }
+    
+    public void clearHashTables() {
+        
     }
     
 	//======================================

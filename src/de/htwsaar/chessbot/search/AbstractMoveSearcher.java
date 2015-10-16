@@ -5,7 +5,7 @@
  */
 package de.htwsaar.chessbot.search;
 
-import de.htwsaar.chessbot.core.Clock;
+import de.htwsaar.chessbot.config.Config;
 import de.htwsaar.chessbot.core.Game;
 import de.htwsaar.chessbot.search.eval.EvaluationFunction;
 import de.htwsaar.chessbot.core.Board;
@@ -27,7 +27,7 @@ import java.util.List;
 public abstract class AbstractMoveSearcher
            implements MoveSearcher
 {
-
+    
     private boolean mIsSearching;
     private SearchConfiguration mConfig;
     
@@ -36,14 +36,14 @@ public abstract class AbstractMoveSearcher
     private Move mBestMove;
     private Move mPonderMove;
     
-    private final HashTable mHashTable;
+    private final TranspositionHashTable mHashTable;
     private final EvaluationHashTable mEvalTable;
     private final EvaluationFunction mEvaluator;
     private final TimeStrategy mTimeStrategy;
 
     public AbstractMoveSearcher(final EvaluationFunction evaluator) {
         checkNull(evaluator);
-        mHashTable = new HashTable();
+        mHashTable = new TranspositionHashTable();
         mEvalTable = new EvaluationHashTable();
         mConfig = new SearchConfiguration();
         mIsSearching = false;
@@ -54,8 +54,12 @@ public abstract class AbstractMoveSearcher
     protected void prepareSearch() {
         checkCondition(Move.isValidResult(getBoard()));
         EvaluationFunction.updatePieceValues();
+        updateTableSizes();
         mBestMove = NOMOVE;
         mPositionList = getBoard().getResultingPositions();
+        for (Board b : mPositionList) {
+            b.setScore(evaluate(b));
+        }
         if (!mConfig.getMoves().isEmpty()) {
             List<Board> positionsToSearch = new ArrayList<>();
             List<Board> childPositions = Arrays.asList(mPositionList);
@@ -72,20 +76,32 @@ public abstract class AbstractMoveSearcher
         mConfig.prepareForSearch();
     }
     
+    private void updateTableSizes() {
+        int capacity = (int) Config.getInstance().getOption("HashTableSize").getValue();
+        mHashTable.setCapacity(capacity);
+        mEvalTable.setCapacity(capacity);
+    }
+    
     @Override
-    public void clearHashTable() {
+    public void clearHashTables() {
         mHashTable.clear();
+        mEvalTable.clear();
     }
 
     @Override
-    public HashTable getHashTable() {
+    public TranspositionHashTable getHashTable() {
         return mHashTable;
     }
     
     protected int evaluate(final Board position) {
         int score = mEvalTable.get(position.hash());
         if (score == UNDEFINED) {
-            score = mEvaluator.evaluate(position);
+            if (mEvaluator.isAbsolute()) {
+                score = mEvaluator.evaluate(position)
+                      * (position.isWhiteAtMove() ? 1 : -1);
+            } else {
+                score = mEvaluator.evaluate(position);
+            }
             mEvalTable.put(position.hash(), score);
         }
         return score;

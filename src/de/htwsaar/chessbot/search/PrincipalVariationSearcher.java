@@ -6,10 +6,10 @@ import de.htwsaar.chessbot.core.Board;
 import de.htwsaar.chessbot.core.BitBoardUtils;
 import de.htwsaar.chessbot.core.moves.Move;
 import static de.htwsaar.chessbot.core.moves.Move.NOMOVE;
-import static de.htwsaar.chessbot.search.HashTable.FLAG_ALPHA;
-import static de.htwsaar.chessbot.search.HashTable.FLAG_BETA;
-import static de.htwsaar.chessbot.search.HashTable.FLAG_PV;
-import de.htwsaar.chessbot.search.HashTable.MoveInfo;
+import static de.htwsaar.chessbot.search.TranspositionHashTable.FLAG_ALPHA;
+import static de.htwsaar.chessbot.search.TranspositionHashTable.FLAG_BETA;
+import static de.htwsaar.chessbot.search.TranspositionHashTable.FLAG_PV;
+import de.htwsaar.chessbot.search.TranspositionHashTable.MoveInfo;
 import de.htwsaar.chessbot.util.Output;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.List;
  * 
  * @author Johannes Haupt
  * @author David Holzapfel
- * @see HashTable
+ * @see TranspositionHashTable
  */
 public class PrincipalVariationSearcher
         extends AbstractMoveSearcher
@@ -148,6 +148,17 @@ public class PrincipalVariationSearcher
                     break;
                 }
             }
+        } else {
+            int maxScore = -INFINITE;
+            int maxindex = -1;
+            for (int i = moveNumber+1; i < positions.length; i++) {
+                if (positions[i].score() > maxScore) {
+                    maxScore = positions[i].score();
+                    maxindex = i;
+                }
+            }
+            if (maxindex >= 0)
+                swap(positions, moveNumber, maxindex);
         }
         return positions[moveNumber];
     }
@@ -168,7 +179,6 @@ public class PrincipalVariationSearcher
     private int searchRoot(int depth, int alpha, int beta) {
         int score = -INFINITE;
         Move bestMove = NOMOVE;
-        List<Move> pvLine = new LinkedList<Move>();
 
         // Wir erweitern die Suchtiefe, falls wir im Schach stehen
         if (BitBoardUtils.isInCheck(getBoard())) {
@@ -192,6 +202,7 @@ public class PrincipalVariationSearcher
              || -searchInner(childPos, depth - 1, 0, -alpha - 1, -alpha, NO_PV, line) > alpha) 
             {
                 score = -searchInner(childPos, depth - 1, 0, -beta, -alpha, IS_PV, line);
+                childPos.setScore(score);
             }
 
             if (shouldStop(depth, mNodes)) {
@@ -203,6 +214,7 @@ public class PrincipalVariationSearcher
 
             if (score > alpha) {
                 bestMove = childPos.getLastMove();
+                
                 if (score >= beta) {
                     getHashTable().put(getBoard(), bestMove, depth, beta, FLAG_BETA);
                     infoBeta(currmove,beta);
@@ -211,10 +223,7 @@ public class PrincipalVariationSearcher
                 
                 if (bestMove != NOMOVE) {
                     line.add(0, bestMove);
-                    pvLine = line;
-                    if (line.size() >= mPvLine.size()) {
-                        mPvLine = pvLine;
-                    }
+                    mPvLine = line;
                 }
                 getHashTable().put(getBoard(), bestMove, depth, score, FLAG_ALPHA);
                 infoPv(currmove,score, line);
@@ -297,7 +306,20 @@ public class PrincipalVariationSearcher
         // Suche der Stellung in der Transpositionstabelle
         if (getHashTable().get(board, depth, alpha, beta, hashMove)) {
             score = hashMove.score();
+            Move move = hashMove.move();
             if (!isPV || (score > alpha && score < beta)) {
+                Board child = board;
+                while (move != NOMOVE) {
+                    child = move.tryExecute(child);
+                    if (!Move.isValidResult(child))
+                        break;
+                    pvLine.add(move);
+                    if (getHashTable().get(child, 0, 0, 0, hashMove)) {
+                        move = hashMove.move();
+                    } else {
+                        break;
+                    }
+                }
                 return score;
             }
         }
@@ -321,7 +343,8 @@ public class PrincipalVariationSearcher
             }
             
             List<Move> line = new LinkedList<Move>();
-            Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
+            Board currPos = moveList[moveNum];
+//            Board currPos = pickNextMove(board, moveList, moveNum, depth, alpha, beta);
             Move currMove = currPos.getLastMove();
 
             // Late move reduction
@@ -365,6 +388,7 @@ public class PrincipalVariationSearcher
                 }
             } while (true);
 
+            currPos.setScore(score);
             legalMoves += 1;
 
             

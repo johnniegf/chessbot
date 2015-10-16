@@ -39,6 +39,29 @@ public class BitBoardUtils {
         return Board.isKingInCheck(board, Color.toColor(whiteKing));
     }
     
+    private static final long MINOR_PIECES = 0x6600_0000_0000_0066L;
+    
+    public static GameStage getGameStage(final Board board) {
+        if (board.getFullMoves() < 10) {
+            int minorPiecesOnStartingSquares = 
+                Bitwise.count(board.getOccupiedBits() & MINOR_PIECES);
+            if (minorPiecesOnStartingSquares > 1) {
+                return GameStage.OPENING;
+            }
+        }
+        
+        if (board.getPawnCount() < 6 && board.getMaterialCount() < 20)
+            return GameStage.ENDGAME;
+        
+        return GameStage.MIDGAME;
+    }
+    
+    public static enum GameStage {
+        OPENING,
+        MIDGAME,
+        ENDGAME
+    }
+    
     private static final String EXN_ILLEGAL_BITBOARD_POS = "Position darf nur ein 1-bit enthalten";
     
     private static final long NOT_H_FILE = 0x7f7f_7f7f_7f7f_7f7fL;

@@ -9,10 +9,14 @@ import static de.htwsaar.chessbot.core.BitBoardUtils.Color.toColor;
 import static de.htwsaar.chessbot.core.BitBoardUtils.checkBitBoardPosition;
 import static de.htwsaar.chessbot.core.BitBoardUtils.toIndex;
 import de.htwsaar.chessbot.core.moves.Move;
+import de.htwsaar.chessbot.core.pieces.Bishop;
 import de.htwsaar.chessbot.core.pieces.King;
+import de.htwsaar.chessbot.core.pieces.Knight;
 import de.htwsaar.chessbot.core.pieces.Pieces;
 import de.htwsaar.chessbot.core.pieces.Piece;
 import de.htwsaar.chessbot.core.pieces.Pawn;
+import de.htwsaar.chessbot.core.pieces.Queen;
+import de.htwsaar.chessbot.core.pieces.Rook;
 import de.htwsaar.chessbot.util.Bitwise;
 import static de.htwsaar.chessbot.util.Exceptions.checkInBounds;
 import static de.htwsaar.chessbot.util.Exceptions.checkNull;
@@ -54,6 +58,8 @@ public final class Board {
     private byte    mCastlings;
     private Move    mLastMove;
     private final List<Long> mHistory;
+    
+    private int mScore;
 
     @Override
     public final Board clone() {
@@ -66,6 +72,7 @@ public final class Board {
         copy.mMoveNumber = mMoveNumber;
         copy.mCastlings = mCastlings;
         copy.mHistory.addAll(mHistory);
+        copy.mScore = mScore;
         copy.setHash(hash());
         return copy;
     }
@@ -108,6 +115,15 @@ public final class Board {
         setCastlings((byte) 0);
         mLastMove = null;
         mHistory = new ArrayList<Long>();
+        mScore = 0;
+    }
+    
+    public void setScore(final int score) {
+        mScore = score;
+    }
+    
+    public int score() {
+        return mScore;
     }
 
     public boolean isAttacked(final Position pos, final boolean byWhite) {
@@ -521,6 +537,26 @@ public final class Board {
 
     public long getPieceBitsForType(final int pieceType) {
         return mPieces[pieceType];
+    }
+    
+    public int getMajorPieceCount() {
+        return Bitwise.count(mPieces[Queen.ID] | mPieces[Rook.ID]);
+    }
+    
+    public int getMinorPieceCount() {
+        return Bitwise.count(mPieces[Bishop.ID] | mPieces[Knight.ID]);
+    }
+    
+    public long getMaterialCount() {
+        return getMajorPieceCount() * 5 + getMinorPieceCount() * 3;
+    }
+    
+    public int getPopulationCount() {
+        return Bitwise.count(getOccupiedBits());
+    }
+    
+    public int getPawnCount() {
+        return Bitwise.count(mPieces[Pawn.ID]);
     }
 
     @Override

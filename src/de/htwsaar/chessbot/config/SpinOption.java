@@ -30,8 +30,9 @@ public class SpinOption extends Option{
 	 * checkt ob sich der festgelegte Wert in der Reichweite befindet.
 	 * @return true wenn in der Reichweite, false wenn nicht
 	 */
-	public boolean setValue(Object value){
-		if((Integer)value >= min && (Integer)value <= max){
+	public boolean setValue(Object input){
+        int value = Integer.parseInt(input.toString());
+		if(value >= min && value <= max){
 			super.setValue(value);
 			return true;
 		}
