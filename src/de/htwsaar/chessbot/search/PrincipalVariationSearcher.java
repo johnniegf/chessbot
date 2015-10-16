@@ -307,7 +307,10 @@ public class PrincipalVariationSearcher
         if (getHashTable().get(board, depth, alpha, beta, hashMove)) {
             score = hashMove.score();
             Move move = hashMove.move();
-            if (!isPV || (score > alpha && score < beta)) {
+            if (!isPV) {
+                return score;
+            }
+            if  (score > alpha && score < beta) {
                 Board child = board;
                 while (move != NOMOVE) {
                     child = move.tryExecute(child);
